@@ -99,6 +99,26 @@ class EvoClient:
                                        document=document, birthday=birthday)
         return created, True
 
+    def find_prospect_id(self, email=None, phone=None):
+        """Retorna o idProspect de um prospect existente (por e-mail, depois telefone),
+        ou None se não achar. NÃO cria."""
+        for key, val in (("email", email), ("phone", phone)):
+            if not val:
+                continue
+            found = self.find_prospects(**{key: val})
+            if found and found[0].get("idProspect"):
+                return found[0]["idProspect"]
+        return None
+
+    def prospect_services(self, id_prospect, branch_id=None):
+        """Serviços já vendidos para um prospect: lista de {idService, nameService}."""
+        params = {"idProspect": int(id_prospect)}
+        bid = self._bid(branch_id)
+        if bid:
+            params["idBranch"] = bid
+        data = self._request("GET", "/api/v1/prospects/services", params=params)
+        return data if isinstance(data, list) else []
+
     # --------------- serviços / horários (descoberta) ---------------
     def list_services(self, experimental_only=False, branch_id=None):
         """Lista serviços. Com experimental_only=True, filtra os que liberam aula
