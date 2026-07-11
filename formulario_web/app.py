@@ -33,6 +33,12 @@ FORM_MAX_OCUPACAO = int(os.getenv("FORM_MAX_OCUPACAO", "7"))  # turma com >7 fic
 # token que o PC usa para puxar a outbox (defina o MESMO valor no PC e no Render):
 OUTBOX_TOKEN = os.getenv("FORM_OUTBOX_TOKEN", "")
 OUTBOX_FILE = os.getenv("FORM_OUTBOX_FILE", "web_outbox.jsonl")
+# mensagem quando a pessoa já tem aula experimental (1 por pessoa):
+BLOCK_MSG = os.getenv(
+    "FORM_BLOCK_MSG",
+    "Vimos que você já tem uma aula experimental com a gente 😊 Para agendar uma nova, "
+    "fale com a Sofia no WhatsApp (é só tocar no botão verde aqui embaixo).",
+)
 
 _lock = threading.Lock()
 
@@ -73,6 +79,17 @@ def _outbox_ack(keys):
 
 def _row_key(row):
     return f"{row.get('contactId')}|{row.get('when')}|{row.get('ts')}"
+
+
+def _ja_tem_experimental(evo, id_prospect):
+    """True se o prospect já tem o serviço da aula experimental vendido (por id ou nome)."""
+    sid = str(getattr(config, "EVO_SERVICE_ID", "") or "")
+    for s in (evo.prospect_services(id_prospect) or []):
+        if sid and str(s.get("idService")) == sid:
+            return True
+        if "experimental" in (s.get("nameService") or "").lower():
+            return True
+    return False
 
 
 # =============================== validações ==================================
@@ -138,9 +155,19 @@ def api_book():
     id_config = dados.get("idConfiguration")
     activity_date = dados.get("activityDate")   # "yyyy-MM-dd HH:mm"
 
+    evo = EvoClient()
+
+    # limite: 1 aula experimental por pessoa. Se já foi vendido o serviço da
+    # experimental para esse e-mail/telefone, bloqueia (sem cadastrar nem vender).
+    try:
+        idp = evo.find_prospect_id(email=limpo["email"], phone=limpo["telefone"])
+        if idp and _ja_tem_experimental(evo, idp):
+            return jsonify({"ok": False, "bloqueio": "ja_tem_experimental", "erro": BLOCK_MSG}), 409
+    except Exception:
+        app.logger.exception("Falha ao checar experimental existente (libero o agendamento)")
+
     # revalida a vaga no momento do envio (regra do formulário: ocupation <= 7)
     try:
-        evo = EvoClient()
         slots = available_slots(evo=evo, days=FORM_DAYS, max_ocupacao=FORM_MAX_OCUPACAO)
     except Exception as e:
         app.logger.exception("Falha ao revalidar grade")
