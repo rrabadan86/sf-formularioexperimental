@@ -230,7 +230,8 @@ document.getElementById("btn").addEventListener("click", async ()=>{
     }
     if(data.erros){ mostrarErros(data.erros); }
     else { msg.className="msg err"; msg.textContent = data.erro || "Não foi possível concluir."; msg.style.display="block"; }
-    if(r.status===409){ carregarGrade(); escolha=null; }   // horário lotou -> recarrega
+    // horário lotou -> recarrega a grade; bloqueio de "já tem experimental" -> não recarrega
+    if(r.status===409 && !data.bloqueio){ carregarGrade(); escolha=null; }
   }catch(e){
     msg.className="msg err"; msg.textContent = "Falha de conexão. Tente de novo."; msg.style.display="block";
   }finally{
