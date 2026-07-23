@@ -31,6 +31,11 @@ _LOTADA_HINTS = ("lotad", "capacidad", "cheia", "esgotad", "sem vaga", "vagas", 
 _FORA_JANELA_HINTS = ("out of booking hours", "booking hours", "fora da janela",
                       "fora do horario de agendamento", "anteceden")
 
+# Trechos que indicam que o prospect JÁ ESTÁ matriculado nessa turma (uma tentativa
+# anterior já matriculou). Tratamos como agendado: marca "Feito" e não revende.
+_JA_MATRICULADO_HINTS = ("already booked", "already enrolled", "já matriculad",
+                         "ja matriculad", "já inscrit", "ja inscrit")
+
 
 @dataclass
 class BookingResult:
@@ -116,7 +121,9 @@ def notify_studio_full(zee, name, phone, when, alternatives=None, reason="sem va
         opcoes = "; ".join(f"{a['when']} ({a.get('freeSpots')} vaga(s))" for a in alternatives[:5])
         alt_txt = f"\nHorários com vaga: {opcoes}"
     reason_l = (reason or "").lower()
-    if any(k in reason_l for k in ("janela", "booking hours", "anteceden")):
+    if "experimenta" in reason_l:
+        template = config.ZEE_ALERT_EXPERIMENTAIS
+    elif any(k in reason_l for k in ("janela", "booking hours", "anteceden")):
         template = config.ZEE_ALERT_FORA_JANELA
     elif any(k in reason_l for k in ("não há turma", "nao ha turma", "inexist")):
         template = config.ZEE_ALERT_INEXISTENTE
@@ -127,6 +134,32 @@ def notify_studio_full(zee, name, phone, when, alternatives=None, reason="sem va
     zee.notify_phone(studio_phone, msg, name=config.ZEE_STUDIO_NAME)
     log.info("Studio avisado (%s): %s tentou %s (%s)", studio_phone, name, turma, reason)
     return True
+
+
+def _enrollment_experimental_ativa(e):
+    """True se o enrollment é uma aula EXPERIMENTAL que ocupa vaga (ativa).
+    Experimental = tem idProspect e não tem idMember. Ativa = não cancelada
+    (status 2 = cancelada) nem removida/suspensa."""
+    if not e.get("idProspect") or e.get("idMember"):
+        return False
+    if e.get("status") == 2 or e.get("removed") or e.get("suspended"):
+        return False
+    return True
+
+
+def count_experimentais(evo, id_configuration, when, branch_id=None):
+    """Quantas aulas experimentais ATIVAS já existem na turma (idConfiguration) no
+    dia `when`. Usa GET /activities/schedule/detail (campo `enrollments`).
+    Retorna int, ou None se não conseguir consultar (aí não bloqueia)."""
+    try:
+        detail = evo.schedule_detail(id_configuration=id_configuration,
+                                     activity_date=when, branch_id=branch_id) or {}
+    except EvoError as e:
+        log.warning("Não consegui checar experimentais da turma %s (%s): %s",
+                    id_configuration, when, e)
+        return None
+    enrollments = detail.get("enrollments") or []
+    return sum(1 for e in enrollments if _enrollment_experimental_ativa(e))
 
 
 def book_experimental(
@@ -169,7 +202,18 @@ def book_experimental(
         if not id_service:
             raise ValueError("Informe o serviço da aula experimental (EVO_SERVICE_ID ou EVO_SERVICE).")
 
-    # 1) localizar a turma do horário escolhido
+    # 1) cadastro (idempotente) — registra a OPORTUNIDADE primeiro, antes de
+    #    checar a turma. Assim o lead sempre fica cadastrado no EVO, mesmo que a
+    #    turma esteja lotada (nesse caso não vende nem matricula — ver passo 2).
+    first, last = split_name(name)
+    id_prospect, created = evo.get_or_create_prospect(
+        name=first, last_name=last, email=email, phone=phone, branch_id=branch_id,
+        document=document, birthday=birthday,
+    )
+
+    # 2) localizar a turma do horário e checar vaga (cadastro JÁ feito acima).
+    #    Se a turma estiver cheia ou não existir nesse horário, a oportunidade já
+    #    ficou cadastrada, mas NÃO vende nem matricula — avisa o Studio p/ tratar.
     schedule = evo.list_schedule(when, show_full_week=True, branch_id=branch_id)
     session = _find_session(schedule, when, activity, id_activity)
     if session is None:
@@ -186,12 +230,18 @@ def book_experimental(
 
     id_configuration = session.get("idConfiguration")
 
-    # 2) cadastro (idempotente)
-    first, last = split_name(name)
-    id_prospect, created = evo.get_or_create_prospect(
-        name=first, last_name=last, email=email, phone=phone, branch_id=branch_id,
-        document=document, birthday=birthday,
-    )
+    # 2b) limite de aulas experimentais por horário (ex.: máx. 2). Conta as
+    #     experimentais ATIVAS já marcadas na turma; se atingiu o limite, trata
+    #     como turma cheia — a oportunidade já ficou cadastrada, mas NÃO vende nem
+    #     matricula, e o Studio é avisado para reagendar.
+    if check_capacity and config.EVO_MAX_EXPERIMENTAIS:
+        n_exp = count_experimentais(evo, id_configuration, when, branch_id=branch_id)
+        if n_exp is not None and n_exp >= config.EVO_MAX_EXPERIMENTAIS:
+            raise TurmaLotadaError(
+                fmt_datetime_evo(when),
+                alternatives=list_alternatives(evo, when, activity, id_activity, branch_id),
+                reason=f"já há {n_exp} aulas experimentais nesse horário",
+            )
 
     # 3) vende o serviço "Aula Experimental"
     sold = False
@@ -222,7 +272,14 @@ def book_experimental(
                 fmt_datetime_evo(when),
                 reason="fora da janela de agendamento",
             ) from e
-        raise
+        if any(h in emsg for h in _JA_MATRICULADO_HINTS):
+            # A aluna JÁ está matriculada nessa turma (tentativa anterior matriculou).
+            # Considero agendado: cai no return abaixo -> o job marca "Feito" e para de
+            # reprocessar/revender. NÃO relança o erro.
+            log.info("Prospect %s já estava matriculado na turma — tratando como agendado.",
+                     id_prospect)
+        else:
+            raise
 
     return BookingResult(
         id_prospect=id_prospect,
@@ -264,6 +321,14 @@ def available_slots(evo=None, days=10, activity=None, id_activity=None, branch_i
             vistos.add(key)
             cap = s.get("capacity")
             ocup = s.get("ocupation") or 0
+            disponivel = (ocup <= max_ocupacao)
+            n_exp = None
+            # Só checa experimentais nas turmas que, de outra forma, estariam
+            # disponíveis (evita uma chamada /detail por turma já cheia).
+            if disponivel and config.EVO_MAX_EXPERIMENTAIS:
+                n_exp = count_experimentais(evo, s.get("idConfiguration"), dt, branch_id=branch_id)
+                if n_exp is not None and n_exp >= config.EVO_MAX_EXPERIMENTAIS:
+                    disponivel = False       # já tem 2 experimentais -> indisponível
             itens.append({
                 "idConfiguration": s.get("idConfiguration"),
                 "activityDate": fmt_datetime_evo(dt),   # "yyyy-MM-dd HH:mm"
@@ -274,7 +339,8 @@ def available_slots(evo=None, days=10, activity=None, id_activity=None, branch_i
                 "capacity": cap,
                 "ocupation": ocup,
                 "freeSpots": (max(cap - ocup, 0) if cap is not None else None),
-                "disponivel": (ocup <= max_ocupacao),
+                "experimentais": n_exp,                  # quantas experimentais ativas (ou None)
+                "disponivel": disponivel,
             })
         d += timedelta(days=7)
     itens.sort(key=lambda x: x["activityDate"])
@@ -322,10 +388,12 @@ def _parse_iso(s):
 
 
 def _recent_threads(zee, hours_back, now_utc):
-    """Conversas relevantes: o GET /threads (sem parâmetros) já devolve as recentes.
-    Mantemos as abertas (endDate nulo) e as que finalizaram/começaram na janela."""
-    threads = zee.list_threads() or []
+    """Conversas relevantes: pagina o GET /threads (que devolve as recentes, 20 por
+    página) até cobrir a janela de `hours_back`. Mantém as abertas (endDate nulo) e as
+    que finalizaram/começaram na janela."""
     cutoff = now_utc - timedelta(hours=hours_back)
+    cutoff_iso = cutoff.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    threads = zee.list_threads(since=cutoff_iso) or []
     out = []
     for t in threads or []:
         end = (t or {}).get("endDate")
@@ -346,6 +414,38 @@ def _unique_contact_ids(threads):
             seen.add(cid)
             ids.append(cid)
     return ids
+
+
+def _thread_sort_key(t):
+    # ISO 8601 (ex.: "2026-07-15T16:06:58.056Z") ordena cronologicamente como texto.
+    return (t or {}).get("startDate") or (t or {}).get("endDate") or ""
+
+
+def _recent_thread_by_contact(threads):
+    """contactId -> a conversa MAIS RECENTE daquele contato (por startDate).
+    Assim, com várias interações, usamos o resumo da conversa certa (a de hoje)."""
+    best = {}
+    for t in threads or []:
+        cid = (t or {}).get("contactId")
+        if not cid:
+            continue
+        cur = best.get(cid)
+        if cur is None or _thread_sort_key(t) > _thread_sort_key(cur):
+            best[cid] = t
+    return best
+
+
+def _norm_tag(s):
+    import unicodedata
+    s = "".join(c for c in unicodedata.normalize("NFD", str(s or ""))
+                if unicodedata.category(c) != "Mn")
+    return " ".join(s.lower().split())
+
+
+def _has_tag(tags, name):
+    """Compara tag ignorando acento/maiúscula/espaços extras (evita perder por detalhe)."""
+    alvo = _norm_tag(name)
+    return any(_norm_tag(t) == alvo for t in (tags or []))
 
 
 def _final_tag_ids(zee, contact, done_tag_id):
@@ -465,7 +565,8 @@ def process_pending(zee=None, evo=None, hours_back=2, todo_tag=None, done_tag=No
     threads = _recent_threads(zee, hours_back, now_utc)
     results = {"processed": [], "full": [], "skipped": [], "errors": []}
 
-    for cid in _unique_contact_ids(threads):
+    recent_by_contact = _recent_thread_by_contact(threads)
+    for cid, thread in recent_by_contact.items():
         try:
             contact = zee.get_contact(contact_id=cid) or {}
         except Exception as e:
@@ -473,14 +574,15 @@ def process_pending(zee=None, evo=None, hours_back=2, todo_tag=None, done_tag=No
             continue
 
         tags = contact.get("tags") or []
-        if todo_tag not in tags:
+        if not _has_tag(tags, todo_tag):
             continue                                   # não fechou aula experimental
-        if done_tag and done_tag in tags:
+        if done_tag and _has_tag(tags, done_tag):
             continue                                   # já processado
 
         summary = None
         try:
-            summary = zee.get_summary(cid)
+            # resumo da conversa MAIS RECENTE (evita pegar interação antiga)
+            summary = zee.get_summary(cid, thread_id=(thread or {}).get("id"))
         except Exception:
             pass
         data = booking_data_from_contact(contact, summary)

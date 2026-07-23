@@ -42,6 +42,12 @@ EVO_SERVICE_VALUE = float(_clean("EVO_SERVICE_VALUE", "0") or "0")
 # Se o EVO pedir forma de pagamento, tente EVO_PAYMENT=3 (Dinheiro) ou 4.
 EVO_PAYMENT = _clean("EVO_PAYMENT")
 
+# Limite de aulas experimentais por horário/turma (ex.: 2). Se a turma já tiver
+# esse número de experimentais ATIVAS marcadas, não deixa marcar outra (mesmo que
+# ainda haja vaga normal). 0 = sem limite.
+EVO_MAX_EXPERIMENTAIS = int(_clean("EVO_MAX_EXPERIMENTAIS", "2") or "0")
+
+
 # ================= ZEE =================
 # A doc do ZEE não trazia o host base explícito; ajuste se necessário.
 ZEE_BASE_URL = _clean("ZEE_BASE_URL", "https://magic.zee.tech/api/v1").rstrip("/")
@@ -108,4 +114,11 @@ ZEE_ALERT_FORA_JANELA = os.getenv(
     "⚠️ {name} ({phone}) quer a aula experimental em {turma}, mas o EVO ainda não "
     "libera o agendamento com essa antecedência. O cadastro e a venda JÁ foram feitos "
     "— só falta matricular manualmente quando abrir a janela.{alternatives}",
+)
+# Turma tem vaga normal, mas o horário já atingiu o limite de aulas experimentais.
+ZEE_ALERT_EXPERIMENTAIS = os.getenv(
+    "ZEE_ALERT_EXPERIMENTAIS",
+    "⚠️ {name} ({phone}) gostaria de agendar uma aula experimental em {turma}, mas esse "
+    "horário já tem 2 aulas experimentais marcadas. Entrar em contato para reagendamento."
+    "{alternatives}",
 )
