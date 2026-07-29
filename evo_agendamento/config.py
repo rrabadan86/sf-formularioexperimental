@@ -47,6 +47,11 @@ EVO_PAYMENT = _clean("EVO_PAYMENT")
 # ainda haja vaga normal). 0 = sem limite.
 EVO_MAX_EXPERIMENTAIS = int(_clean("EVO_MAX_EXPERIMENTAIS", "2") or "0")
 
+# Cache da grade do formulário (available_slots), em segundos. Evita refazer
+# dezenas de chamadas ao EVO a cada visita/refresh do formulário (o que estourava
+# o limite de 40 req/min → HTTP 429). 0 = desliga o cache.
+FORM_SLOTS_TTL = int(_clean("FORM_SLOTS_TTL", "120") or "0")
+
 
 # ================= ZEE =================
 # A doc do ZEE não trazia o host base explícito; ajuste se necessário.
@@ -80,7 +85,14 @@ ZEE_META_WHEN_KEY = _clean("ZEE_META_WHEN_KEY", "horario")
 #   "off"             = não confirma.
 STUDIO_CONFIRM_CHANNEL = _clean("STUDIO_CONFIRM_CHANNEL", "outbox").lower()
 # Arquivo-fila (JSON Lines) lido pelo bot do Studio. Cada linha = uma confirmação a enviar.
-STUDIO_OUTBOX_FILE = _clean("STUDIO_OUTBOX_FILE", "confirmacoes_outbox.jsonl")
+# IMPORTANTE: o padrão é ABSOLUTO, ancorado na pasta "agendamento_evo" (um nível acima
+# deste pacote). Assim o Python grava SEMPRE no mesmo arquivo que o bot Node lê, não
+# importa de qual pasta a Tarefa Agendada ("Iniciar em") execute o script. Se fosse
+# relativo, o arquivo cairia no diretório de trabalho do processo (ex.: System32) e a
+# confirmação nunca chegaria ao WhatsApp.
+_PKG_DIR = os.path.dirname(os.path.abspath(__file__))        # .../agendamento_evo/evo_agendamento
+_BASE_DIR = os.path.dirname(_PKG_DIR)                         # .../agendamento_evo
+STUDIO_OUTBOX_FILE = _clean("STUDIO_OUTBOX_FILE", os.path.join(_BASE_DIR, "confirmacoes_outbox.jsonl"))
 # Placeholders da mensagem: {name} {quando}  (quando = "sexta-feira, 10/07 às 16:15")
 ZEE_CONFIRM_TEMPLATE = os.getenv(
     "ZEE_CONFIRM_TEMPLATE",

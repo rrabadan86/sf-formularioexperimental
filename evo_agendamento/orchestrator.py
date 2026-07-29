@@ -8,6 +8,8 @@
 # sem depender do flag allowExperimentalClass.
 import json
 import logging
+import os
+import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Optional
@@ -293,12 +295,26 @@ def book_experimental(
     )
 
 
+_SLOTS_CACHE = {}   # key -> (expira_em_monotonic, resultado)
+_SLOTS_TTL = float(getattr(config, "FORM_SLOTS_TTL", 120) or 0)  # segundos (0 = sem cache)
+
+
 def available_slots(evo=None, days=10, activity=None, id_activity=None, branch_id=None,
-                    max_ocupacao=7, now=None):
+                    max_ocupacao=7, now=None, use_cache=True):
     """Grade da aula experimental nos próximos `days` dias (padrão 10).
     Cada item traz vagas e um flag `disponivel`: True quando ocupation <= max_ocupacao
     (padrão 7). Turmas com 8/9 aparecem, mas com disponivel=False (não deixa marcar).
-    Só retorna horários do agora pra frente."""
+    Só retorna horários do agora pra frente.
+
+    A grade é CACHEADA por `FORM_SLOTS_TTL` segundos (padrão 120): assim, várias
+    visitas/refreshes do formulário no mesmo intervalo NÃO refazem dezenas de
+    chamadas ao EVO (era o que estourava o limite de 40 req/min → HTTP 429)."""
+    cache_key = (days, activity, id_activity, branch_id, max_ocupacao)
+    if use_cache and _SLOTS_TTL > 0:
+        hit = _SLOTS_CACHE.get(cache_key)
+        if hit and hit[0] > time.monotonic():
+            return hit[1]
+
     evo = evo or EvoClient()
     activity = activity or config.EVO_ACTIVITY or None
     id_activity = id_activity or (config.EVO_ACTIVITY_ID or None)
@@ -344,6 +360,8 @@ def available_slots(evo=None, days=10, activity=None, id_activity=None, branch_i
             })
         d += timedelta(days=7)
     itens.sort(key=lambda x: x["activityDate"])
+    if use_cache and _SLOTS_TTL > 0:
+        _SLOTS_CACHE[cache_key] = (time.monotonic() + _SLOTS_TTL, itens)
     return itens
 
 
@@ -518,8 +536,23 @@ def _write_outbox(cid, name, phone, when, message):
         "contactId": cid, "name": name, "phone": br_phone_with_9(phone),
         "when": when, "message": message, "status": "pending",
     }
-    with open(config.STUDIO_OUTBOX_FILE, "a", encoding="utf-8") as f:
-        f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    path = config.STUDIO_OUTBOX_FILE
+    line = json.dumps(row, ensure_ascii=False)
+    # Blindagem: se o último registro do arquivo NÃO terminou em nova linha (ex.: uma
+    # linha inserida manualmente sem "\n"), um append normal colaria dois JSON na mesma
+    # linha ("}{"), e o leitor do bot descartaria AMBOS ao falhar o JSON.parse.
+    # Então, se faltar a quebra final, adicionamos uma antes de gravar.
+    prefix = ""
+    try:
+        if os.path.exists(path) and os.path.getsize(path) > 0:
+            with open(path, "rb") as fr:
+                fr.seek(-1, os.SEEK_END)
+                if fr.read(1) != b"\n":
+                    prefix = "\n"
+    except OSError:
+        pass
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(prefix + line + "\n")
 
 
 def _confirm_aluna(zee, cid, name, phone, when):

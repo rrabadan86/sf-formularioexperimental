@@ -1,6 +1,9 @@
 # Cliente da API do EVO (W12 / abcevo).
 # Doc: https://evo-integracao.w12app.com.br/swagger  |  Auth: Basic (DNS + Secret Key).
 import logging
+import threading
+import time
+from collections import deque
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -9,6 +12,33 @@ from . import config
 from .util import br_phone_with_9, build_session, fmt_date_evo, fmt_datetime_evo, only_digits
 
 log = logging.getLogger("evo")
+
+# --- Limitador de taxa -------------------------------------------------------
+# O EVO devolve HTTP 429 acima de 40 requisições por minuto. Mantemos uma folga
+# (35/min) e SERIALIZAMOS os envios deste processo por uma janela deslizante de
+# 60s, pra nunca estourar a cota por conta própria (a grade do formulário fazia
+# uma chamada /detail por horário da semana e estourava o limite).
+_RATE_MAX = 35
+_RATE_WINDOW = 60.0
+_rate_lock = threading.Lock()
+_rate_hits = deque()
+
+
+def _rate_gate():
+    """Bloqueia até haver "vaga" na janela de 60s (no máximo _RATE_MAX chamadas)."""
+    with _rate_lock:
+        now = time.monotonic()
+        while _rate_hits and now - _rate_hits[0] > _RATE_WINDOW:
+            _rate_hits.popleft()
+        if len(_rate_hits) >= _RATE_MAX:
+            espera = _RATE_WINDOW - (now - _rate_hits[0]) + 0.05
+            if espera > 0:
+                log.info("Throttle EVO: aguardando %.1fs para respeitar o limite de req/min...", espera)
+                time.sleep(espera)
+            now = time.monotonic()
+            while _rate_hits and now - _rate_hits[0] > _RATE_WINDOW:
+                _rate_hits.popleft()
+        _rate_hits.append(time.monotonic())
 
 
 class EvoError(RuntimeError):
@@ -31,19 +61,35 @@ class EvoClient:
     # --------------- baixo nível ---------------
     def _request(self, method, path, params=None, json=None):
         url = f"{self.base_url}{path}"
-        resp = self.session.request(
-            method, url,
-            params=_drop_empty(params), json=json, auth=self.auth,
-            timeout=self.timeout, headers={"Accept": "application/json"},
-        )
-        if not resp.ok:
-            raise EvoError(f"EVO {method} {path} -> HTTP {resp.status_code}: {_error_detail(resp)}")
-        if resp.status_code == 204 or not resp.content:
-            return None
-        try:
-            return resp.json()
-        except ValueError:
-            return resp.text
+        for tentativa in range(1, 5):                 # 1 tentativa + 3 retries no 429
+            _rate_gate()                              # respeita o limite de req/min
+            resp = self.session.request(
+                method, url,
+                params=_drop_empty(params), json=json, auth=self.auth,
+                timeout=self.timeout, headers={"Accept": "application/json"},
+            )
+            # HTTP 429 = limite de 40/min do EVO. Espera e tenta de novo (pode ter
+            # sido outro consumidor — ex.: o bot do PC — usando a cota ao mesmo tempo).
+            if resp.status_code == 429 and tentativa < 4:
+                ra = resp.headers.get("Retry-After")
+                try:
+                    espera = float(ra) if ra else min(8 * tentativa, 30)
+                except (TypeError, ValueError):
+                    espera = min(8 * tentativa, 30)
+                log.warning("EVO 429 (limite 40/min). Aguardando %.0fs e tentando de novo (%d/3)...",
+                            espera, tentativa)
+                time.sleep(espera)
+                continue
+            if not resp.ok:
+                raise EvoError(f"EVO {method} {path} -> HTTP {resp.status_code}: {_error_detail(resp)}")
+            if resp.status_code == 204 or not resp.content:
+                return None
+            try:
+                return resp.json()
+            except ValueError:
+                return resp.text
+        # Esgotou os retries ainda em 429:
+        raise EvoError(f"EVO {method} {path} -> HTTP 429: limite de 40 req/min excedido após 3 tentativas")
 
     def _bid(self, branch_id):
         return branch_id if branch_id is not None else self.branch_id
