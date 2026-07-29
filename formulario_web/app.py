@@ -33,6 +33,8 @@ FORM_MAX_OCUPACAO = int(os.getenv("FORM_MAX_OCUPACAO", "7"))  # turma com >7 fic
 # token que o PC usa para puxar a outbox (defina o MESMO valor no PC e no Render):
 OUTBOX_TOKEN = os.getenv("FORM_OUTBOX_TOKEN", "")
 OUTBOX_FILE = os.getenv("FORM_OUTBOX_FILE", "web_outbox.jsonl")
+# token compartilhado com a Sofia (WhatsApp). Defina no Render em Environment.
+SOFIA_TOKEN = os.getenv("SOFIA_TOKEN", "")
 # mensagem quando a pessoa já tem aula experimental (1 por pessoa):
 BLOCK_MSG = os.getenv(
     "FORM_BLOCK_MSG",
@@ -231,6 +233,50 @@ def api_outbox_ack():
 def health():
     return jsonify({"ok": True})
 
+@app.post("/api/book-sofia")
+def api_book_sofia():
+    # 1) Autenticação simples por token compartilhado (só a Sofia conhece).
+    if not SOFIA_TOKEN or request.headers.get("X-Sofia-Token") != SOFIA_TOKEN:
+        return jsonify({"ok": False, "erro": "não autorizado"}), 401
+
+    dados = request.get_json(silent=True) or {}
+    nome = (dados.get("nome") or "").strip()
+    email = (dados.get("email") or "").strip().lower()
+    telefone = only_digits(dados.get("telefone"))
+    when = (dados.get("when") or "").strip()   # "quinta-feira às 16:30" ou "2026-07-30 16:30"
+
+    # 2) Validação mínima (sem CPF/nascimento — fluxo leve do WhatsApp).
+    if len(nome.split()) < 2:
+        return jsonify({"ok": False, "erro": "nome incompleto"}), 400
+    if not email or "@" not in email:
+        return jsonify({"ok": False, "erro": "email inválido"}), 400
+    if not when:
+        return jsonify({"ok": False, "erro": "horário não informado"}), 400
+
+    # 3) Agenda no EVO reusando TODA a sua lógica (cadastro + venda + matrícula,
+    #    deduplicação, limite de experimentais, etc.). CPF/nascimento ficam de fora.
+    try:
+        res = book_experimental(name=nome, when=when, email=email, phone=telefone)
+    except TurmaLotadaError as e:
+        # Turma cheia / inexistente / fora de janela: o lead JÁ foi cadastrado no EVO.
+        # Devolvemos as alternativas para a Sofia oferecer outro horário à aluna.
+        return jsonify({
+            "ok": False,
+            "motivo": "sem_vaga",
+            "detalhe": str(e),
+            "alternativas": [a.get("when") for a in (e.alternatives or [])][:5],
+        }), 409
+    except Exception as e:
+        app.logger.exception("Sofia: falha no agendamento")
+        return jsonify({"ok": False, "erro": f"não consegui agendar: {e}"}), 500
+
+    # 4) Sucesso: a aula foi agendada no EVO.
+    return jsonify({
+        "ok": True,
+        "when": res.when,               # "2026-07-30 16:30" (data real resolvida)
+        "idProspect": res.id_prospect,
+        "activity": res.activity,
+    })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", "8000")), debug=True)
