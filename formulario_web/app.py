@@ -270,7 +270,20 @@ def api_book_sofia():
         app.logger.exception("Sofia: falha no agendamento")
         return jsonify({"ok": False, "erro": f"não consegui agendar: {e}"}), 500
 
-    # 4) Sucesso: a aula foi agendada no EVO.
+    # 4) Enfileira a confirmação na OUTBOX — o bot do Studio (8550-8065) vai ler
+    #    essa fila e enviar a mensagem para a aluna, igual ao fluxo do formulário.
+    try:
+        msg = _confirm_message(nome, res.when)
+        _outbox_append({
+            "ts": datetime.now().isoformat(timespec="seconds"),
+            "contactId": "sofia-" + (telefone or ""),
+            "name": nome, "phone": br_phone_with_9(telefone),
+            "when": res.when, "message": msg, "status": "pending",
+        })
+    except Exception:
+        app.logger.exception("Sofia: agendou mas falhou ao enfileirar a confirmação")
+
+    # 5) Sucesso: a aula foi agendada no EVO.
     return jsonify({
         "ok": True,
         "when": res.when,               # "2026-07-30 16:30" (data real resolvida)
