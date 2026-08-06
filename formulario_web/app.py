@@ -139,8 +139,18 @@ _slots_cache = {"exp": 0.0, "data": None, "refreshing": False, "error": None}
 _slots_cache_lock = threading.Lock()
 
 
+# Só UM cálculo da grade por vez no processo inteiro. Sem isso, cada visitante
+# dispara dezenas de chamadas ao EVO em paralelo e estoura o limite de 40
+# req/min (HTTP 429) — foi o que aconteceu com o anúncio trazendo várias
+# pessoas ao mesmo tempo. Quem chegar durante um cálculo espera e aproveita o
+# resultado dele, em vez de abrir outro.
+_compute_lock = threading.Lock()
+
+
 def _compute_slots():
-    return available_slots(days=FORM_DAYS, max_ocupacao=FORM_MAX_OCUPACAO, use_cache=False)
+    # use_cache=True de propósito: o cache interno do orchestrator é a segunda
+    # trava contra o 429 (não desligar).
+    return available_slots(days=FORM_DAYS, max_ocupacao=FORM_MAX_OCUPACAO)
 
 
 def _refresh_slots_bg():
@@ -152,7 +162,8 @@ def _refresh_slots_bg():
 
     def _worker():
         try:
-            data = _compute_slots()
+            with _compute_lock:           # nunca em paralelo com outro cálculo
+                data = _compute_slots()
             _slots_cache["data"] = data
             _slots_cache["exp"] = time.monotonic() + FORM_SLOTS_TTL
             _slots_cache["error"] = None
@@ -178,11 +189,15 @@ def _get_slots_cached():
     # terminar, exatamente como era antes do cache. NUNCA devolvemos vazio por
     # impaciência — melhor demorar um pouco nessa 1ª carga do que dizer à aluna
     # que não há horário. Só esta 1ª visita paga a espera; as próximas usam o cache.
-    data = _compute_slots()
-    _slots_cache["data"] = data
-    _slots_cache["exp"] = time.monotonic() + FORM_SLOTS_TTL
-    _slots_cache["error"] = None
-    return data
+    with _compute_lock:                   # um cálculo por vez (evita o 429 do EVO)
+        pronta = _slots_cache["data"]     # outro request pode ter calculado enquanto esperávamos
+        if pronta is not None and _slots_cache["exp"] > time.monotonic():
+            return pronta
+        data = _compute_slots()
+        _slots_cache["data"] = data
+        _slots_cache["exp"] = time.monotonic() + FORM_SLOTS_TTL
+        _slots_cache["error"] = None
+        return data
 
 
 # Aquece o cache já no boot (em segundo plano; não bloqueia o 1º request).
@@ -215,7 +230,13 @@ def api_slots():
         slots = _get_slots_cached()
     except Exception as e:
         app.logger.exception("Falha ao listar grade")
-        return jsonify({"ok": False, "erro": f"Não consegui carregar a grade: {e}"}), 502
+        # Se o EVO recusou agora (ex.: 429 por excesso de chamadas), mas temos a
+        # última grade boa, mostramos ela em vez de assustar a aluna com erro.
+        antiga = _slots_cache.get("data")
+        if antiga:
+            slots = antiga
+        else:
+            return jsonify({"ok": False, "erro": f"Não consegui carregar a grade: {e}"}), 502
     dias = {}
     for s in slots:
         dias.setdefault(s["date"], []).append({
