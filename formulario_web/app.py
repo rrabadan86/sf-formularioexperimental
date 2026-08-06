@@ -135,7 +135,7 @@ def index():
 # vivo no EVO na hora de marcar, então mostrar uma grade com poucos segundos de
 # idade é seguro (vaga/experimentais/ocupação continuam valendo no agendamento).
 FORM_SLOTS_TTL = float(os.getenv("FORM_SLOTS_TTL", "120"))  # segundos de "frescor"
-_slots_cache = {"exp": 0.0, "data": None, "refreshing": False}
+_slots_cache = {"exp": 0.0, "data": None, "refreshing": False, "error": None}
 _slots_cache_lock = threading.Lock()
 
 
@@ -155,7 +155,10 @@ def _refresh_slots_bg():
             data = _compute_slots()
             _slots_cache["data"] = data
             _slots_cache["exp"] = time.monotonic() + FORM_SLOTS_TTL
-        except Exception:
+            _slots_cache["error"] = None
+        except Exception as e:
+            # Guarda o erro para /api/slots poder mostrar (senão fica "vazio" mudo).
+            _slots_cache["error"] = f"{type(e).__name__}: {e}"
             app.logger.exception("Falha ao recalcular a grade (background)")
         finally:
             _slots_cache["refreshing"] = False
@@ -203,7 +206,16 @@ def api_slots():
             "disponivel": s["disponivel"],
             "freeSpots": s["freeSpots"],
         })
-    return jsonify({"ok": True, "dias": dias, "maxOcupacao": FORM_MAX_OCUPACAO})
+    resp = {"ok": True, "dias": dias, "maxOcupacao": FORM_MAX_OCUPACAO}
+    # Se veio vazio, expõe o motivo (erro do cálculo ou ainda aquecendo) para
+    # diagnóstico — assim o /api/slots deixa de ser "vazio mudo".
+    if not dias:
+        resp["_debug"] = {
+            "error": _slots_cache.get("error"),
+            "refreshing": _slots_cache.get("refreshing"),
+            "has_data": _slots_cache.get("data") is not None,
+        }
+    return jsonify(resp)
 
 
 @app.post("/api/book")
