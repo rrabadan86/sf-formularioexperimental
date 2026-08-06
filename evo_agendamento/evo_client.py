@@ -117,7 +117,11 @@ class EvoClient:
             "email": email,
             "cellphone": _evo_cellphone(phone, ddi or config.EVO_DDI),
             "ddi": ddi or config.EVO_DDI,
-            "document": only_digits(document) if document else None,
+            # ATENÇÃO: o EVO usa nomes diferentes na entrada e na saída. O CPF é
+            # enviado como "cpf" e devolvido como "document" (assim como
+            # "birthday" volta como "birthDate"). Enviar "document" aqui faz o
+            # EVO ignorar o campo em silêncio — o cadastro ficava sem CPF.
+            "cpf": only_digits(document) if document else None,
             "birthday": birthday or None,
             "notes": notes,
         }
