@@ -174,14 +174,15 @@ def _get_slots_cached():
     if data is not None:
         _refresh_slots_bg()               # velho → serve o velho e recalcula ao fundo
         return data
-    # Cache vazio (1ª carga após o deploy): garante um recálculo e espera a 1ª
-    # grade ficar pronta (uma vez só; as próximas visitas já pegam do cache).
-    _refresh_slots_bg()
-    for _ in range(60):                   # aguarda até ~30s
-        if _slots_cache["data"] is not None:
-            return _slots_cache["data"]
-        time.sleep(0.5)
-    return []                             # não veio a tempo → devolve vazio
+    # SEM grade pronta (1ª visita após o deploy/reinício): calcula AQUI e espera
+    # terminar, exatamente como era antes do cache. NUNCA devolvemos vazio por
+    # impaciência — melhor demorar um pouco nessa 1ª carga do que dizer à aluna
+    # que não há horário. Só esta 1ª visita paga a espera; as próximas usam o cache.
+    data = _compute_slots()
+    _slots_cache["data"] = data
+    _slots_cache["exp"] = time.monotonic() + FORM_SLOTS_TTL
+    _slots_cache["error"] = None
+    return data
 
 
 # Aquece o cache já no boot (em segundo plano; não bloqueia o 1º request).
