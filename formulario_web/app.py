@@ -188,6 +188,25 @@ def _get_slots_cached():
 _refresh_slots_bg()
 
 
+@app.get("/api/diag-evo")
+def api_diag_evo():
+    """Cronometra UMA chamada ao EVO (list_schedule) para medir a latência real
+    do servidor até a API do EVO. Só diagnóstico — não altera nada."""
+    from datetime import datetime as _dt
+    t0 = time.monotonic()
+    try:
+        raw = EvoClient().list_schedule(_dt.now(), show_full_week=True) or []
+        dt_ms = int((time.monotonic() - t0) * 1000)
+        ids = {}
+        for s in raw[:400]:
+            k = f"{s.get('idActivity')}|{s.get('name')}"
+            ids[k] = ids.get(k, 0) + 1
+        return jsonify({"ok": True, "ms": dt_ms, "turmas": len(raw), "atividades": ids})
+    except Exception as e:
+        return jsonify({"ok": False, "ms": int((time.monotonic() - t0) * 1000),
+                        "erro": f"{type(e).__name__}: {e}"}), 502
+
+
 @app.get("/api/slots")
 def api_slots():
     """Grade dos próximos FORM_DAYS dias, agrupada por dia, com flag de disponibilidade."""
