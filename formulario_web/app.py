@@ -15,6 +15,7 @@ import json
 import os
 import re
 import threading
+import time
 from datetime import datetime
 
 from flask import Flask, jsonify, request, send_from_directory
@@ -126,11 +127,69 @@ def index():
     return send_from_directory(os.path.join(BASE, "templates"), "index.html")
 
 
+# ============ cache "stale-while-revalidate" da grade de horários ============
+# Calcular a grade faz DEZENAS de chamadas ao EVO (lento na carga fria). Para o
+# formulário nunca travar em "Carregando horários...", servimos a última grade
+# do cache NA HORA e recalculamos em segundo plano quando ela envelhece. As
+# REGRAS não mudam (o cálculo é o mesmo); e o /api/book revalida o horário ao
+# vivo no EVO na hora de marcar, então mostrar uma grade com poucos segundos de
+# idade é seguro (vaga/experimentais/ocupação continuam valendo no agendamento).
+FORM_SLOTS_TTL = float(os.getenv("FORM_SLOTS_TTL", "120"))  # segundos de "frescor"
+_slots_cache = {"exp": 0.0, "data": None, "refreshing": False}
+_slots_cache_lock = threading.Lock()
+
+
+def _compute_slots():
+    return available_slots(days=FORM_DAYS, max_ocupacao=FORM_MAX_OCUPACAO, use_cache=False)
+
+
+def _refresh_slots_bg():
+    """Dispara UM recálculo em segundo plano (ignora se já houver um rodando)."""
+    with _slots_cache_lock:
+        if _slots_cache["refreshing"]:
+            return
+        _slots_cache["refreshing"] = True
+
+    def _worker():
+        try:
+            data = _compute_slots()
+            _slots_cache["data"] = data
+            _slots_cache["exp"] = time.monotonic() + FORM_SLOTS_TTL
+        except Exception:
+            app.logger.exception("Falha ao recalcular a grade (background)")
+        finally:
+            _slots_cache["refreshing"] = False
+
+    threading.Thread(target=_worker, name="slots-refresh", daemon=True).start()
+
+
+def _get_slots_cached():
+    now = time.monotonic()
+    data = _slots_cache["data"]
+    if data is not None and _slots_cache["exp"] > now:
+        return data                       # fresco → instantâneo
+    if data is not None:
+        _refresh_slots_bg()               # velho → serve o velho e recalcula ao fundo
+        return data
+    # Cache vazio (1ª carga após o deploy): garante um recálculo e espera a 1ª
+    # grade ficar pronta (uma vez só; as próximas visitas já pegam do cache).
+    _refresh_slots_bg()
+    for _ in range(60):                   # aguarda até ~30s
+        if _slots_cache["data"] is not None:
+            return _slots_cache["data"]
+        time.sleep(0.5)
+    return []                             # não veio a tempo → devolve vazio
+
+
+# Aquece o cache já no boot (em segundo plano; não bloqueia o 1º request).
+_refresh_slots_bg()
+
+
 @app.get("/api/slots")
 def api_slots():
     """Grade dos próximos FORM_DAYS dias, agrupada por dia, com flag de disponibilidade."""
     try:
-        slots = available_slots(days=FORM_DAYS, max_ocupacao=FORM_MAX_OCUPACAO)
+        slots = _get_slots_cached()
     except Exception as e:
         app.logger.exception("Falha ao listar grade")
         return jsonify({"ok": False, "erro": f"Não consegui carregar a grade: {e}"}), 502
