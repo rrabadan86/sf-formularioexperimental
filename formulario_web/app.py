@@ -99,6 +99,21 @@ def _ja_tem_experimental(evo, id_prospect):
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
+def _cpf_valido(cpf: str) -> bool:
+    """Validação oficial do CPF (dígitos verificadores)."""
+    c = only_digits(cpf)
+    if len(c) != 11 or c == c[0] * 11:
+        return False
+    for tam in (9, 10):
+        soma = sum(int(c[i]) * ((tam + 1) - i) for i in range(tam))
+        dv = (soma * 10) % 11
+        if dv == 10:
+            dv = 0
+        if dv != int(c[tam]):
+            return False
+    return True
+
+
 def _valida(dados):
     erros = {}
     nome = (dados.get("nome") or "").strip()
@@ -107,6 +122,11 @@ def _valida(dados):
     cpf = only_digits(dados.get("cpf"))
     if len(cpf) != 11:
         erros["cpf"] = "CPF deve ter 11 dígitos."
+    elif not _cpf_valido(cpf):
+        # Antes bastava ter 11 dígitos: um número inventado passava aqui e o EVO
+        # descartava o campo em silêncio, deixando o cadastro sem CPF. Agora
+        # avisamos na hora, em vez de perder o dado.
+        erros["cpf"] = "CPF inválido. Confira os números."
     tel = only_digits(dados.get("telefone"))
     if len(tel) < 10:
         erros["telefone"] = "Telefone inválido."
