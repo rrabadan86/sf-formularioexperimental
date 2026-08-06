@@ -135,8 +135,24 @@ def index():
 # vivo no EVO na hora de marcar, então mostrar uma grade com poucos segundos de
 # idade é seguro (vaga/experimentais/ocupação continuam valendo no agendamento).
 FORM_SLOTS_TTL = float(os.getenv("FORM_SLOTS_TTL", "120"))  # segundos de "frescor"
+# A grade é carregada EM PARTES (4 dias, depois +4, depois +2 — até FORM_DAYS).
+# Motivo: cada horário disponível custa 1 consulta ao EVO e a cota é 40/min;
+# pedir os 10 dias de uma vez passava de 40 chamadas, o EVO freava e a request
+# estourava o timeout de 120s do gunicorn ("Falha de conexão"). Em partes, cada
+# pedido fica bem abaixo do limite e responde em segundos.
+FORM_FIRST_DAYS = int(os.getenv("FORM_FIRST_DAYS", "4"))
+# Um cache por tamanho de janela: {days: {"exp":..., "data":..., ...}}
+_slots_cache_por_dias = {}
 _slots_cache = {"exp": 0.0, "data": None, "refreshing": False, "error": None}
 _slots_cache_lock = threading.Lock()
+
+
+def _cache_de(days):
+    c = _slots_cache_por_dias.get(days)
+    if c is None:
+        c = {"exp": 0.0, "data": None, "refreshing": False, "error": None}
+        _slots_cache_por_dias[days] = c
+    return c
 
 
 # Só UM cálculo da grade por vez no processo inteiro. Sem isso, cada visitante
@@ -147,61 +163,61 @@ _slots_cache_lock = threading.Lock()
 _compute_lock = threading.Lock()
 
 
-def _compute_slots():
+def _compute_slots(days):
     # use_cache=True de propósito: o cache interno do orchestrator é a segunda
     # trava contra o 429 (não desligar).
-    return available_slots(days=FORM_DAYS, max_ocupacao=FORM_MAX_OCUPACAO)
+    return available_slots(days=days, max_ocupacao=FORM_MAX_OCUPACAO)
 
 
-def _refresh_slots_bg():
+def _refresh_slots_bg(days):
     """Dispara UM recálculo em segundo plano (ignora se já houver um rodando)."""
+    c = _cache_de(days)
     with _slots_cache_lock:
-        if _slots_cache["refreshing"]:
+        if c["refreshing"]:
             return
-        _slots_cache["refreshing"] = True
+        c["refreshing"] = True
 
     def _worker():
         try:
             with _compute_lock:           # nunca em paralelo com outro cálculo
-                data = _compute_slots()
-            _slots_cache["data"] = data
-            _slots_cache["exp"] = time.monotonic() + FORM_SLOTS_TTL
-            _slots_cache["error"] = None
+                data = _compute_slots(days)
+            c["data"] = data
+            c["exp"] = time.monotonic() + FORM_SLOTS_TTL
+            c["error"] = None
         except Exception as e:
             # Guarda o erro para /api/slots poder mostrar (senão fica "vazio" mudo).
-            _slots_cache["error"] = f"{type(e).__name__}: {e}"
+            c["error"] = f"{type(e).__name__}: {e}"
             app.logger.exception("Falha ao recalcular a grade (background)")
         finally:
-            _slots_cache["refreshing"] = False
+            c["refreshing"] = False
 
-    threading.Thread(target=_worker, name="slots-refresh", daemon=True).start()
+    threading.Thread(target=_worker, name=f"slots-refresh-{days}", daemon=True).start()
 
 
-def _get_slots_cached():
-    now = time.monotonic()
-    data = _slots_cache["data"]
-    if data is not None and _slots_cache["exp"] > now:
+def _get_slots_cached(days):
+    c = _cache_de(days)
+    data = c["data"]
+    if data is not None and c["exp"] > time.monotonic():
         return data                       # fresco → instantâneo
     if data is not None:
-        _refresh_slots_bg()               # velho → serve o velho e recalcula ao fundo
+        _refresh_slots_bg(days)           # velho → serve o velho e recalcula ao fundo
         return data
-    # SEM grade pronta (1ª visita após o deploy/reinício): calcula AQUI e espera
-    # terminar, exatamente como era antes do cache. NUNCA devolvemos vazio por
-    # impaciência — melhor demorar um pouco nessa 1ª carga do que dizer à aluna
-    # que não há horário. Só esta 1ª visita paga a espera; as próximas usam o cache.
+    # SEM grade pronta: calcula AQUI e espera terminar. NUNCA devolvemos vazio
+    # por impaciência — melhor demorar um pouco do que dizer à aluna que não há
+    # horário. Só a 1ª visita paga a espera; as próximas usam o cache.
     with _compute_lock:                   # um cálculo por vez (evita o 429 do EVO)
-        pronta = _slots_cache["data"]     # outro request pode ter calculado enquanto esperávamos
-        if pronta is not None and _slots_cache["exp"] > time.monotonic():
+        pronta = c["data"]                # outro request pode ter calculado enquanto esperávamos
+        if pronta is not None and c["exp"] > time.monotonic():
             return pronta
-        data = _compute_slots()
-        _slots_cache["data"] = data
-        _slots_cache["exp"] = time.monotonic() + FORM_SLOTS_TTL
-        _slots_cache["error"] = None
+        data = _compute_slots(days)
+        c["data"] = data
+        c["exp"] = time.monotonic() + FORM_SLOTS_TTL
+        c["error"] = None
         return data
 
 
-# Aquece o cache já no boot (em segundo plano; não bloqueia o 1º request).
-_refresh_slots_bg()
+# Aquece a 1ª janela já no boot (em segundo plano; não bloqueia o 1º request).
+_refresh_slots_bg(min(FORM_FIRST_DAYS, FORM_DAYS))
 
 
 @app.get("/api/diag-evo")
@@ -225,14 +241,23 @@ def api_diag_evo():
 
 @app.get("/api/slots")
 def api_slots():
-    """Grade dos próximos FORM_DAYS dias, agrupada por dia, com flag de disponibilidade."""
+    """Grade agrupada por dia, com flag de disponibilidade.
+
+    ?days=N → carrega só os próximos N dias (padrão FORM_FIRST_DAYS). A tela
+    pede 4, depois 8, depois 10, para cada pedido caber na cota do EVO."""
     try:
-        slots = _get_slots_cached()
+        days = int(request.args.get("days") or FORM_FIRST_DAYS)
+    except (TypeError, ValueError):
+        days = FORM_FIRST_DAYS
+    days = max(1, min(days, FORM_DAYS))     # nunca além da janela configurada
+
+    try:
+        slots = _get_slots_cached(days)
     except Exception as e:
         app.logger.exception("Falha ao listar grade")
         # Se o EVO recusou agora (ex.: 429 por excesso de chamadas), mas temos a
         # última grade boa, mostramos ela em vez de assustar a aluna com erro.
-        antiga = _slots_cache.get("data")
+        antiga = _cache_de(days).get("data")
         if antiga:
             slots = antiga
         else:
@@ -247,14 +272,16 @@ def api_slots():
             "disponivel": s["disponivel"],
             "freeSpots": s["freeSpots"],
         })
-    resp = {"ok": True, "dias": dias, "maxOcupacao": FORM_MAX_OCUPACAO}
+    resp = {"ok": True, "dias": dias, "maxOcupacao": FORM_MAX_OCUPACAO,
+            "days": days, "maxDays": FORM_DAYS, "temMais": days < FORM_DAYS}
     # Se veio vazio, expõe o motivo (erro do cálculo ou ainda aquecendo) para
     # diagnóstico — assim o /api/slots deixa de ser "vazio mudo".
     if not dias:
+        c = _cache_de(days)
         resp["_debug"] = {
-            "error": _slots_cache.get("error"),
-            "refreshing": _slots_cache.get("refreshing"),
-            "has_data": _slots_cache.get("data") is not None,
+            "error": c.get("error"),
+            "refreshing": c.get("refreshing"),
+            "has_data": c.get("data") is not None,
         }
     return jsonify(resp)
 

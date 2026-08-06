@@ -299,6 +299,28 @@ _SLOTS_CACHE = {}   # key -> (expira_em_monotonic, resultado)
 _SLOTS_TTL = float(getattr(config, "FORM_SLOTS_TTL", 120) or 0)  # segundos (0 = sem cache)
 
 
+# Memo por turma/horário do "quantas experimentais já tem" — usado SOMENTE para
+# montar a grade de exibição. Cada consulta dessas é uma chamada ao EVO, e a cota
+# é de 40/min; sem esse memo, carregar a grade em partes (4 dias, +4, +2)
+# reconsultaria os mesmos horários e estouraria o limite (HTTP 429).
+# O AGENDAMENTO (book_experimental) continua chamando count_experimentais ao
+# vivo, sem cache — então o limite de experimentais por turma segue garantido.
+_EXP_CACHE = {}          # (idConfiguration, iso) -> (expira_em_monotonic, n)
+_EXP_TTL = float(getattr(config, "FORM_EXP_TTL", 300) or 0)
+
+
+def _exp_cached(evo, id_configuration, dt, branch_id=None):
+    chave = (id_configuration, dt.isoformat(), branch_id)
+    if _EXP_TTL > 0:
+        hit = _EXP_CACHE.get(chave)
+        if hit and hit[0] > time.monotonic():
+            return hit[1]
+    n = count_experimentais(evo, id_configuration, dt, branch_id=branch_id)
+    if _EXP_TTL > 0 and n is not None:
+        _EXP_CACHE[chave] = (time.monotonic() + _EXP_TTL, n)
+    return n
+
+
 def available_slots(evo=None, days=10, activity=None, id_activity=None, branch_id=None,
                     max_ocupacao=7, now=None, use_cache=True):
     """Grade da aula experimental nos próximos `days` dias (padrão 10).
@@ -342,7 +364,7 @@ def available_slots(evo=None, days=10, activity=None, id_activity=None, branch_i
             # Só checa experimentais nas turmas que, de outra forma, estariam
             # disponíveis (evita uma chamada /detail por turma já cheia).
             if disponivel and config.EVO_MAX_EXPERIMENTAIS:
-                n_exp = count_experimentais(evo, s.get("idConfiguration"), dt, branch_id=branch_id)
+                n_exp = _exp_cached(evo, s.get("idConfiguration"), dt, branch_id)
                 if n_exp is not None and n_exp >= config.EVO_MAX_EXPERIMENTAIS:
                     disponivel = False       # já tem 2 experimentais -> indisponível
             itens.append({

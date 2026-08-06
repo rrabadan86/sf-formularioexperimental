@@ -104,9 +104,14 @@
 
     <div class="card">
       <div class="secao-titulo">Escolha o dia e horário</div>
-      <div class="secao-sub">Próximos 10 dias. Toque no horário desejado.</div>
+      <div class="secao-sub">Toque no horário desejado. Use "ver mais dias" para outras datas.</div>
       <div class="aviso" id="aviso-turma" style="display:none"></div>
       <div id="grade"><div class="loading">Carregando horários…</div></div>
+      <div id="mais-dias" style="display:none;text-align:center;margin-top:12px">
+        <button type="button" id="btn-mais"
+                style="background:#fff;border:1px solid #e6a8c4;color:#c2185b;border-radius:10px;
+                       padding:10px 18px;font-size:15px;cursor:pointer">Ver mais dias</button>
+      </div>
       <div class="legenda">Horários <b>em cinza tracejado</b> estão indisponíveis para aula experimental.</div>
     </div>
 
@@ -155,12 +160,26 @@ function fmtDiaTitulo(dateStr){
   return WD[(dt.getDay()+6)%7] + ", " + String(d).padStart(2,"0") + "/" + String(m).padStart(2,"0");
 }
 
-async function carregarGrade(){
+// A grade é carregada em ETAPAS (4 dias, +4, +2 — até o máximo do servidor).
+// Cada horário custa uma consulta ao EVO, que limita 40 por minuto; pedir tudo
+// de uma vez fazia a página demorar minutos ou falhar. Em etapas, cada pedido
+// responde em segundos e a aluna já vê os primeiros dias na hora.
+let diasCarregados = 0;
+const PROXIMA_ETAPA = { 4: 8, 8: 10 };   // 4 → +4 → +2
+
+async function carregarGrade(qtdDias){
   const grade = document.getElementById("grade");
+  const caixaMais = document.getElementById("mais-dias");
+  const btnMais = document.getElementById("btn-mais");
   try{
-    const r = await fetch("/api/slots");
+    const url = qtdDias ? ("/api/slots?days=" + qtdDias) : "/api/slots";
+    const r = await fetch(url);
     const data = await r.json();
     if(!data.ok){ grade.innerHTML = '<div class="msg err" style="display:block">'+(data.erro||"Erro ao carregar")+'</div>'; return; }
+    diasCarregados = data.days || 0;
+    // Mostra o botão só se ainda houver dias para carregar.
+    if(caixaMais) caixaMais.style.display = data.temMais ? "block" : "none";
+    if(btnMais){ btnMais.disabled = false; btnMais.textContent = "Ver mais dias"; }
     const dias = data.dias;
     const chaves = Object.keys(dias).sort();
     if(chaves.length===0){ grade.innerHTML = '<div class="loading">Nenhum horário nos próximos dias. Fale com o Studio.</div>'; return; }
@@ -237,6 +256,15 @@ document.getElementById("btn").addEventListener("click", async ()=>{
   }finally{
     btn.disabled=false; btn.textContent="Agendar a sua aula Experimental";
   }
+});
+
+// "Ver mais dias": amplia a janela (4 → 8 → 10) e recarrega a grade.
+document.getElementById("btn-mais").addEventListener("click", async (ev)=>{
+  const b = ev.currentTarget;
+  const proxima = PROXIMA_ETAPA[diasCarregados];
+  if(!proxima) { document.getElementById("mais-dias").style.display = "none"; return; }
+  b.disabled = true; b.textContent = "Carregando…";
+  await carregarGrade(proxima);
 });
 
 carregarGrade();
