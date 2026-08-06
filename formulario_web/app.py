@@ -128,8 +128,14 @@ def _valida(dados):
         # avisamos na hora, em vez de perder o dado.
         erros["cpf"] = "CPF inválido. Confira os números."
     tel = only_digits(dados.get("telefone"))
-    if len(tel) < 10:
-        erros["telefone"] = "Telefone inválido."
+    if tel.startswith("55") and len(tel) > 11:
+        tel = tel[2:]                      # tolera quem digita o 55 na frente
+    if len(tel) != 11 or tel[2] != "9":
+        # Todo celular brasileiro tem 11 dígitos (DDD + 9 + 8) desde 2016. Antes
+        # aceitávamos 10 dígitos e um ajuste automático inseria o 9 — um número
+        # digitado com 1 dígito a menos virava OUTRO número, válido na aparência
+        # e inexistente no WhatsApp (a confirmação nunca chegava). Melhor avisar.
+        erros["telefone"] = "Celular deve ter 11 dígitos com DDD (ex.: 62 99999-9999)."
     email = (dados.get("email") or "").strip().lower()
     if not _EMAIL_RE.match(email):
         erros["email"] = "E-mail inválido."
