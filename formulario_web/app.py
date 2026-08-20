@@ -245,29 +245,43 @@ def _refresh_slots_bg(days):
 
 
 def _get_slots_cached(days):
+    """NUNCA bloqueia a request. O cálculo da grade faz dezenas de chamadas ao
+    EVO e pode levar 1-2 min quando o EVO está lento — se fizermos isso enquanto
+    a aluna espera, a página fica "Carregando horários..." por minutos e o worker
+    do gunicorn pode ser morto (WORKER TIMEOUT). Então:
+      - grade fresca  → devolve na hora;
+      - grade velha   → devolve a velha e recalcula ao fundo;
+      - grade fria    → dispara o cálculo ao fundo e devolve None (a página mostra
+                        "preparando..." e tenta de novo em segundos).
+    O aquecedor abaixo mantém a 1ª janela quase sempre quente, então na prática a
+    aluna vê os horários na hora."""
     c = _cache_de(days)
     data = c["data"]
     if data is not None and c["exp"] > time.monotonic():
         return data                       # fresco → instantâneo
-    if data is not None:
-        _refresh_slots_bg(days)           # velho → serve o velho e recalcula ao fundo
-        return data
-    # SEM grade pronta: calcula AQUI e espera terminar. NUNCA devolvemos vazio
-    # por impaciência — melhor demorar um pouco do que dizer à aluna que não há
-    # horário. Só a 1ª visita paga a espera; as próximas usam o cache.
-    with _compute_lock:                   # um cálculo por vez (evita o 429 do EVO)
-        pronta = c["data"]                # outro request pode ter calculado enquanto esperávamos
-        if pronta is not None and c["exp"] > time.monotonic():
-            return pronta
-        data = _compute_slots(days)
-        c["data"] = data
-        c["exp"] = time.monotonic() + FORM_SLOTS_TTL
-        c["error"] = None
-        return data
+    _refresh_slots_bg(days)               # velho ou frio → recalcula ao fundo
+    return data                           # devolve o que tem (pode ser None = aquecendo)
 
 
 # Aquece a 1ª janela já no boot (em segundo plano; não bloqueia o 1º request).
 _refresh_slots_bg(min(FORM_FIRST_DAYS, FORM_DAYS))
+
+
+def _warmer_loop():
+    """Mantém a grade da 1ª janela sempre quente, para a aluna quase nunca pegar
+    o cálculo frio. Recalcula um pouco antes de o cache expirar."""
+    dias_warm = min(FORM_FIRST_DAYS, FORM_DAYS)
+    intervalo = max(30.0, FORM_SLOTS_TTL - 20)
+    while True:
+        try:
+            _refresh_slots_bg(dias_warm)
+        except Exception:
+            app.logger.exception("Aquecedor da grade falhou")
+        time.sleep(intervalo)
+
+
+if os.getenv("FORM_WARMER", "1") not in ("0", "false", "False"):
+    threading.Thread(target=_warmer_loop, name="slots-warmer", daemon=True).start()
 
 
 @app.get("/api/diag-evo")
@@ -303,15 +317,20 @@ def api_slots():
 
     try:
         slots = _get_slots_cached(days)
-    except Exception as e:
+    except Exception:
         app.logger.exception("Falha ao listar grade")
-        # Se o EVO recusou agora (ex.: 429 por excesso de chamadas), mas temos a
-        # última grade boa, mostramos ela em vez de assustar a aluna com erro.
-        antiga = _cache_de(days).get("data")
-        if antiga:
-            slots = antiga
-        else:
-            return jsonify({"ok": False, "erro": f"Não consegui carregar a grade: {e}"}), 502
+        slots = _cache_de(days).get("data")
+
+    if slots is None:
+        # Grade ainda "aquecendo" (o cálculo roda em segundo plano). Responde JÁ,
+        # sem prender a request; a página tenta de novo em instantes. Isso evita
+        # o "Carregando..." infinito e o WORKER TIMEOUT.
+        c = _cache_de(days)
+        return jsonify({"ok": True, "dias": {}, "warming": True,
+                        "days": days, "maxDays": FORM_DAYS,
+                        "temMais": days < FORM_DAYS,
+                        "_debug": {"error": c.get("error"), "refreshing": c.get("refreshing")}})
+
     dias = {}
     for s in slots:
         dias.setdefault(s["date"], []).append({

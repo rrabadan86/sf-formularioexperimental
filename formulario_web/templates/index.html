@@ -167,7 +167,9 @@ function fmtDiaTitulo(dateStr){
 let diasCarregados = 0;
 const PROXIMA_ETAPA = { 4: 8, 8: 10 };   // 4 → +4 → +2
 
-async function carregarGrade(qtdDias){
+let _warmTimer = null;
+async function carregarGrade(qtdDias, tentativa){
+  tentativa = tentativa || 0;
   const grade = document.getElementById("grade");
   const caixaMais = document.getElementById("mais-dias");
   const btnMais = document.getElementById("btn-mais");
@@ -176,6 +178,19 @@ async function carregarGrade(qtdDias){
     const r = await fetch(url);
     const data = await r.json();
     if(!data.ok){ grade.innerHTML = '<div class="msg err" style="display:block">'+(data.erro||"Erro ao carregar")+'</div>'; return; }
+    // Grade ainda sendo preparada no servidor (cálculo em segundo plano).
+    // Mostra aviso e tenta de novo sozinho em alguns segundos — a página NUNCA
+    // fica presa esperando o cálculo.
+    if(data.warming){
+      clearTimeout(_warmTimer);
+      if(tentativa < 25){
+        grade.innerHTML = '<div class="loading">Preparando os horários…<br><small>só um instante — isso leva alguns segundos na primeira vez do dia</small></div>';
+        _warmTimer = setTimeout(function(){ carregarGrade(qtdDias, tentativa+1); }, 3500);
+      } else {
+        grade.innerHTML = '<div class="loading">Está demorando mais que o normal. <a href="javascript:void(0)" onclick="carregarGrade(); return false;">Tentar de novo</a></div>';
+      }
+      return;
+    }
     diasCarregados = data.days || 0;
     // Mostra o botão só se ainda houver dias para carregar.
     if(caixaMais) caixaMais.style.display = data.temMais ? "block" : "none";
