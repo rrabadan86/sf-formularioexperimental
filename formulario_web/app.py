@@ -210,7 +210,13 @@ _compute_lock = threading.Lock()
 def _compute_slots(days):
     # use_cache=True de propósito: o cache interno do orchestrator é a segunda
     # trava contra o 429 (não desligar).
-    return available_slots(days=days, max_ocupacao=FORM_MAX_OCUPACAO)
+    # Timeout do EVO mais curto SÓ no formulário: uma chamada travada falha em
+    # ~15s (em vez de segurar 30s), então a grade degrada rápido em vez de
+    # empurrar o cálculo para além do timeout do gunicorn. FORM_EVO_TIMEOUT=0
+    # usa o padrão global (EVO_TIMEOUT).
+    _to = int(os.getenv("FORM_EVO_TIMEOUT", "15") or 0) or None
+    return available_slots(days=days, max_ocupacao=FORM_MAX_OCUPACAO,
+                           evo=EvoClient(timeout=_to))
 
 
 def _refresh_slots_bg(days):

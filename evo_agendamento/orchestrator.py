@@ -344,6 +344,15 @@ def available_slots(evo=None, days=10, activity=None, id_activity=None, branch_i
     inicio = now.replace(hour=0, minute=0, second=0, microsecond=0)
     fim = inicio + timedelta(days=days)          # exclusivo
 
+    # Orçamento de tempo: checar experimentais faz 1 chamada /detail por horário
+    # livre. Sob lentidão/instabilidade do EVO isso pode passar do timeout do
+    # gunicorn (120s) e derrubar o worker (WORKER TIMEOUT no /api/slots). Quando o
+    # cálculo estoura o orçamento, paramos de consultar experimentais e devolvemos
+    # a grade pela ocupação — o /api/book revalida experimentais ao vivo na marcação,
+    # então nada de errado é agendado. FORM_SLOTS_BUDGET=0 desliga o limite.
+    t0 = time.monotonic()
+    budget = float(getattr(config, "FORM_SLOTS_BUDGET", 70) or 0)
+
     vistos, itens = set(), []
     d = inicio
     while d < fim:                                # cobre as semanas do intervalo
@@ -363,7 +372,8 @@ def available_slots(evo=None, days=10, activity=None, id_activity=None, branch_i
             n_exp = None
             # Só checa experimentais nas turmas que, de outra forma, estariam
             # disponíveis (evita uma chamada /detail por turma já cheia).
-            if disponivel and config.EVO_MAX_EXPERIMENTAIS:
+            if (disponivel and config.EVO_MAX_EXPERIMENTAIS
+                    and (budget <= 0 or time.monotonic() - t0 < budget)):
                 n_exp = _exp_cached(evo, s.get("idConfiguration"), dt, branch_id)
                 if n_exp is not None and n_exp >= config.EVO_MAX_EXPERIMENTAIS:
                     disponivel = False       # já tem 2 experimentais -> indisponível
