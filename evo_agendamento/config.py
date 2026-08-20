@@ -2,9 +2,15 @@
 # Nada de segredo fica no código: DNS/token do EVO e token do ZEE vêm do ambiente.
 import os
 
-from dotenv import load_dotenv
-
-load_dotenv()
+# O python-dotenv é opcional: no VPS o robô (Node) já carrega o .env e passa as
+# variáveis para o processo Python filho, então quando o pacote não está
+# instalado (ex.: python3 do sistema sem dependências) seguimos com o ambiente
+# que já veio pronto, em vez de quebrar na importação.
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ModuleNotFoundError:
+    pass
 
 
 def _clean(name: str, default: str = "") -> str:
