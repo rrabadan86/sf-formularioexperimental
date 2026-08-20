@@ -284,6 +284,79 @@ if os.getenv("FORM_WARMER", "1") not in ("0", "false", "False"):
     threading.Thread(target=_warmer_loop, name="slots-warmer", daemon=True).start()
 
 
+# ============ grade enviada pelo VPS (VPS-push) — via instantânea ============
+# Calcular a grade faz 1 chamada /detail por horário: rápido no VPS (sempre
+# ligado e perto do EVO), lento na Render free. Então o VPS calcula a grade
+# pronta e ENVIA para cá (POST /api/slots/push); o /api/slots serve essa grade
+# NA HORA, sem tocar no EVO. Se a grade enviada envelhecer (o VPS parou de
+# enviar), caímos automaticamente no cálculo local (warming) como reserva.
+SLOTS_PUSH_TOKEN = os.getenv("FORM_SLOTS_TOKEN", "")
+SLOTS_PUSH_TTL = float(os.getenv("FORM_PUSH_TTL", "1800"))   # 30 min de validade
+_PUSH_FILE = os.getenv("FORM_PUSH_FILE", "slots_pushed.json")
+_pushed = {"ts": 0.0, "slots": None}
+
+
+def _pushed_load():
+    try:
+        with open(_PUSH_FILE, encoding="utf-8") as f:
+            d = json.load(f)
+        _pushed["slots"] = d.get("slots")
+        _pushed["ts"] = float(d.get("ts") or 0)
+    except (OSError, ValueError):
+        pass
+
+
+_pushed_load()
+
+
+def _pushed_fresh():
+    return (_pushed["slots"] is not None and SLOTS_PUSH_TTL > 0
+            and (time.time() - _pushed["ts"]) < SLOTS_PUSH_TTL)
+
+
+def _pushed_slice(days):
+    """Fatia a grade enviada (janela cheia) para os próximos `days` dias e tira
+    horários que já passaram."""
+    corte = (datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+             + timedelta(days=days)).strftime("%Y-%m-%d")
+    agora = datetime.now().strftime("%Y-%m-%d %H:%M")
+    return [s for s in (_pushed["slots"] or [])
+            if s.get("activityDate", "") >= agora and s.get("date", "") < corte]
+
+
+def _agrupa_por_dia(slots):
+    dias = {}
+    for s in slots:
+        dias.setdefault(s["date"], []).append({
+            "idConfiguration": s["idConfiguration"],
+            "activityDate": s["activityDate"],
+            "time": s["time"],
+            "activity": s["activity"],
+            "disponivel": s["disponivel"],
+            "freeSpots": s["freeSpots"],
+        })
+    return dias
+
+
+@app.post("/api/slots/push")
+def api_slots_push():
+    """O VPS envia a grade pronta para cá. Protegido por FORM_SLOTS_TOKEN."""
+    if not SLOTS_PUSH_TOKEN or request.args.get("token") != SLOTS_PUSH_TOKEN:
+        return jsonify({"ok": False, "erro": "não autorizado"}), 401
+    body = request.get_json(silent=True) or {}
+    slots = body.get("slots")
+    if not isinstance(slots, list):
+        return jsonify({"ok": False, "erro": "campo 'slots' (lista) obrigatório"}), 400
+    _pushed["slots"] = slots
+    _pushed["ts"] = time.time()
+    try:
+        with open(_PUSH_FILE, "w", encoding="utf-8") as f:
+            json.dump({"ts": _pushed["ts"], "slots": slots}, f, ensure_ascii=False)
+    except OSError:
+        app.logger.exception("Falha ao gravar a grade enviada")
+    return jsonify({"ok": True, "recebidos": len(slots), "ts": _pushed["ts"]})
+
+
 @app.get("/api/diag-evo")
 def api_diag_evo():
     """Cronometra UMA chamada ao EVO (list_schedule) para medir a latência real
@@ -315,6 +388,14 @@ def api_slots():
         days = FORM_FIRST_DAYS
     days = max(1, min(days, FORM_DAYS))     # nunca além da janela configurada
 
+    # 1) Prioridade: grade enviada pelo VPS (instantânea, sem tocar no EVO).
+    if _pushed_fresh():
+        dias = _agrupa_por_dia(_pushed_slice(days))
+        return jsonify({"ok": True, "dias": dias, "maxOcupacao": FORM_MAX_OCUPACAO,
+                        "days": days, "maxDays": FORM_DAYS,
+                        "temMais": days < FORM_DAYS, "fonte": "vps"})
+
+    # 2) Reserva: cálculo local (com "warming") se o VPS não estiver enviando.
     try:
         slots = _get_slots_cached(days)
     except Exception:
@@ -331,16 +412,7 @@ def api_slots():
                         "temMais": days < FORM_DAYS,
                         "_debug": {"error": c.get("error"), "refreshing": c.get("refreshing")}})
 
-    dias = {}
-    for s in slots:
-        dias.setdefault(s["date"], []).append({
-            "idConfiguration": s["idConfiguration"],
-            "activityDate": s["activityDate"],
-            "time": s["time"],
-            "activity": s["activity"],
-            "disponivel": s["disponivel"],
-            "freeSpots": s["freeSpots"],
-        })
+    dias = _agrupa_por_dia(slots)
     resp = {"ok": True, "dias": dias, "maxOcupacao": FORM_MAX_OCUPACAO,
             "days": days, "maxDays": FORM_DAYS, "temMais": days < FORM_DAYS}
     # Se veio vazio, expõe o motivo (erro do cálculo ou ainda aquecendo) para
