@@ -403,6 +403,59 @@ pm2 logs slimfit-exp --lines 50  <span class="c"># sem erros</span></pre>
     </div>
   </section>
 
+  <!-- FASE 6 · INSTAGRAM -->
+  <section>
+    <div class="phase"><span class="pn">Fase 6</span><h2>Instagram — boas-vindas (opcional)</h2></div>
+
+    <div class="stepblock">
+      <p>O Instagram bloqueia login a partir do IP do servidor (datacenter). Em vez de logar no servidor, trazemos a <b>sessão pronta</b>: exportamos os cookies de um navegador do PC já logado e o robô os usa. Assim ele lê os novos seguidores e envia a DM de boas-vindas sem precisar de proxy.</p>
+      <div class="tip">Regra de ouro: comece com <b>volume baixo</b> (<code>IG_MAX_DIA=5</code>) e só <b>seguidoras novas</b>. Mandar muitas DMs rápido é a forma nº 1 de tomar bloqueio.</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">6.1</span> Exportar os cookies (no PC do cliente)</h3>
+      <p>Num navegador <b>logado no Instagram do Studio</b>: instale a extensão <b>Cookie-Editor</b> (grátis), abra <code>instagram.com</code>, clique na extensão → <b>Export</b> → <b>Export as JSON</b> (copia para a área de transferência).</p>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">6.2</span> Colar os cookies no servidor</h3>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body">cd ~/SF-Chat_Experimental-Mensagens/Experimental
+nano instagram-cookies.json   <span class="c"># cole o JSON, Ctrl+O, Enter, Ctrl+X</span>
+
+<span class="c"># confere se tem o sessionid</span>
+python3 -c "import json;d=json.load(open('instagram-cookies.json'));print(len(d),'cookies; sessionid?',any(c['name']=='sessionid' for c in d))"</pre>
+      </div>
+      <div class="tip">Esse arquivo tem o <code>sessionid</code> (acesso à conta) — já está no <code>.gitignore</code>, nunca vai para o GitHub. Fica só no servidor.</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">6.3</span> Testar leitura e um envio</h3>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body"><span class="c"># 1) so leitura (lista os seguidores)</span>
+HEADLESS=true node src/instagram-seguidores.js <b>--user=usuario_do_studio</b>
+
+<span class="c"># 2) um envio de teste para um @ seu</span>
+xvfb-run -a node src/instagram-boasvindas.js <b>--teste=seu_instagram</b></pre>
+      </div>
+      <div class="tip">Leu os seguidores e a DM de teste chegou? Então a sessão e o IP estão ok. Se pedir login/checkpoint, os cookies expiraram (reexporte) ou o IP foi bloqueado (aí só proxy residencial resolve).</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">6.4</span> Ligar o job</h3>
+      <p>No <code>.env</code>, ligue o Instagram e defina o perfil e o limite diário. O job roda sozinho às <b>07:00</b> e só dá boas-vindas a <b>quem passou a seguir</b>.</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">.env</span></div>
+<pre class="term-body">IG_ENABLED=true
+IG_USERNAME=<b>usuario_do_studio</b>
+IG_MAX_DIA=5</pre>
+      </div>
+      <div class="tip">Reinicie com <code>pm2 restart slimfit-exp</code>. Os cookies expiram com o tempo — quando isso acontecer, o alerta no ntfy avisa e é só reexportar (passo 6.1/6.2).</div>
+    </div>
+  </section>
+
   <!-- MANUTENÇÃO -->
   <section>
     <div class="sec-head">
