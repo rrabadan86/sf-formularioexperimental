@@ -165,6 +165,12 @@ def implantacao():
     return send_from_directory(os.path.join(BASE, "templates"), "implantacao.html")
 
 
+@app.get("/cadastro")
+def cadastro():
+    """Formulário que a franquia preenche com os dados da unidade (página estática)."""
+    return send_from_directory(os.path.join(BASE, "templates"), "cadastro.html")
+
+
 # ============ cache "stale-while-revalidate" da grade de horários ============
 # Calcular a grade faz DEZENAS de chamadas ao EVO (lento na carga fria). Para o
 # formulário nunca travar em "Carregando horários...", servimos a última grade

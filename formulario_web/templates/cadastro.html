@@ -1,0 +1,336 @@
+<title>Ficha da Unidade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#FBF6F8; --surface:#FFFFFF; --surface-2:#F6EEF2; --border:#ECDCE4;
+    --text:#241820; --text-soft:#6C5A64; --muted:#9C8A93;
+    --accent:#C33A79; --accent-2:#A72E67; --accent-soft:#FBE6F0;
+    --teal:#0F8A88; --teal-soft:#DCF0EF;
+    --wa:#1E9E52; --wa-strong:#128C7E;
+    --field:#FFFFFF; --field-border:#E1CDD7; --field-focus:#C33A79;
+    --shadow:0 1px 2px rgba(40,20,32,.04),0 6px 22px rgba(40,20,32,.06);
+    --radius:15px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#161016; --surface:#1F1720; --surface-2:#271D27; --border:#362A34;
+      --text:#F4E9F0; --text-soft:#C7B3BF; --muted:#8C7885;
+      --accent:#F16DA2; --accent-2:#F58CB8; --accent-soft:#3A1C2B;
+      --teal:#39B9B3; --teal-soft:#123230;
+      --wa:#37C46C; --wa-strong:#25D366;
+      --field:#241C25; --field-border:#40303E; --field-focus:#F16DA2;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#161016; --surface:#1F1720; --surface-2:#271D27; --border:#362A34;
+    --text:#F4E9F0; --text-soft:#C7B3BF; --muted:#8C7885;
+    --accent:#F16DA2; --accent-2:#F58CB8; --accent-soft:#3A1C2B;
+    --teal:#39B9B3; --teal-soft:#123230;
+    --wa:#37C46C; --wa-strong:#25D366;
+    --field:#241C25; --field-border:#40303E; --field-focus:#F16DA2;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:"Instrument Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    font-size:17px; line-height:1.55; -webkit-font-smoothing:antialiased;
+    padding-bottom:96px;
+  }
+  .wrap{max-width:760px; margin:0 auto; padding:0 20px}
+  h1,h2,h3{font-family:"Bricolage Grotesque",system-ui,sans-serif; font-weight:700; text-wrap:balance; margin:0}
+  .eyebrow{font-family:"JetBrains Mono",monospace; font-size:.7rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted)}
+
+  /* HERO */
+  header.hero{
+    background:
+      radial-gradient(120% 140% at 90% -20%, var(--accent-soft) 0%, transparent 55%),
+      radial-gradient(120% 120% at 0% 0%, var(--teal-soft) 0%, transparent 45%);
+    border-bottom:1px solid var(--border);
+  }
+  .hero-in{padding:44px 0 34px}
+  .brand{display:flex; align-items:baseline; gap:.5ch; font-family:"Bricolage Grotesque",sans-serif; font-weight:800; font-size:1.05rem; letter-spacing:-.01em}
+  .brand .fit{color:var(--teal)}
+  .brand .reg{font-size:.72em; color:var(--muted); font-weight:600}
+  h1{font-size:clamp(1.9rem,5.5vw,2.7rem); line-height:1.05; font-weight:800; letter-spacing:-.02em; margin:.45em 0 .3em; max-width:20ch}
+  h1 .accent{color:var(--accent)}
+  .lede{font-size:1.08rem; color:var(--text-soft); max-width:56ch; margin:0}
+  .hint-top{display:flex;gap:10px;align-items:flex-start;margin-top:20px;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:13px 15px;box-shadow:var(--shadow);font-size:.92rem;color:var(--text-soft)}
+  .hint-top b{color:var(--text);font-weight:600}
+  .hint-top .ic{flex:none;color:var(--accent);font-weight:800}
+
+  /* SECTIONS */
+  section{padding:30px 0}
+  section + section{border-top:1px solid var(--border)}
+  .sec-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .snum{flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1rem;background:var(--accent);color:#fff;box-shadow:0 4px 12px color-mix(in srgb,var(--accent) 32%,transparent)}
+  .sec-head h2{font-size:1.24rem;letter-spacing:-.01em}
+  .sec-head p{margin:2px 0 0;color:var(--muted);font-size:.85rem}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:600px){.grid{grid-template-columns:1fr}}
+  .fld{display:flex;flex-direction:column;gap:5px}
+  .fld.full{grid-column:1/-1}
+  label{font-size:.9rem;font-weight:600;color:var(--text)}
+  label .req{color:var(--accent)}
+  label small{display:block;font-weight:400;color:var(--muted);font-size:.78rem;margin-top:1px}
+  input,textarea,select{
+    font-family:inherit;font-size:.96rem;color:var(--text);
+    background:var(--field);border:1.5px solid var(--field-border);border-radius:11px;
+    padding:11px 13px;width:100%;transition:border-color .12s ease,box-shadow .12s ease;
+  }
+  textarea{min-height:64px;resize:vertical;line-height:1.5}
+  input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--field-focus);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+  .seg{display:flex;gap:8px;flex-wrap:wrap}
+  .seg label{display:inline-flex;align-items:center;gap:7px;font-weight:500;font-size:.9rem;background:var(--field);border:1.5px solid var(--field-border);border-radius:999px;padding:8px 14px;cursor:pointer}
+  .seg input{width:auto;margin:0}
+  .seg input:focus{box-shadow:none}
+  .seg label:has(input:checked){border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+
+  .warnbox{display:flex;gap:10px;margin-top:12px;background:var(--teal-soft);border-radius:11px;padding:11px 13px;font-size:.86rem;color:var(--text-soft);line-height:1.45}
+  .warnbox .ic{flex:none;color:var(--teal);font-weight:800}
+  .warnbox b{color:var(--text);font-weight:600}
+
+  /* STICKY ACTION BAR */
+  .bar{
+    position:fixed;left:0;right:0;bottom:0;z-index:20;
+    background:color-mix(in srgb,var(--surface) 88%,transparent);
+    backdrop-filter:saturate(160%) blur(12px);-webkit-backdrop-filter:saturate(160%) blur(12px);
+    border-top:1px solid var(--border);
+    padding:12px 20px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;
+  }
+  .bar .status{font-size:.82rem;color:var(--muted);margin-right:auto}
+  @media(max-width:640px){.bar .status{display:none}}
+  .btn{display:inline-flex;align-items:center;gap:9px;font-family:inherit;font-weight:700;font-size:1rem;border-radius:999px;padding:12px 22px;cursor:pointer;border:1.5px solid transparent;transition:transform .1s ease,filter .12s ease}
+  .btn:active{transform:translateY(1px)}
+  .btn-wa{background:var(--wa-strong);color:#fff;box-shadow:0 8px 20px color-mix(in srgb,var(--wa-strong) 35%,transparent)}
+  .btn-wa:hover{filter:brightness(1.05)}
+  .btn-wa svg{width:20px;height:20px;flex:none}
+  .btn-ghost{background:var(--surface);color:var(--text);border-color:var(--field-border)}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+  @media (prefers-reduced-motion:reduce){.btn{transition:none}}
+
+  .toast{
+    position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(12px);
+    background:var(--text);color:var(--bg);padding:11px 18px;border-radius:999px;font-size:.9rem;font-weight:600;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;z-index:30;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  footer{padding:26px 0 20px;color:var(--muted);font-size:.82rem;text-align:center;line-height:1.55}
+</style>
+
+<header class="hero">
+  <div class="wrap hero-in">
+    <div class="brand">slim<span class="fit">fit</span> <span class="reg">Robô de WhatsApp</span></div>
+    <h1>Ficha da <span class="accent">sua unidade</span></h1>
+    <p class="lede">Preencha as informações abaixo para deixarmos o robô rodando no seu Studio. Leva uns 5 minutinhos — o que não souber agora, pode deixar em branco e mandar depois.</p>
+    <div class="hint-top"><span class="ic">↓</span><span>Ao terminar, toque em <b>“Enviar no WhatsApp”</b> lá embaixo. Abre a nossa conversa já com tudo preenchido — é só apertar enviar. 💬</span></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <form id="ficha" autocomplete="off">
+
+  <!-- IDENTIFICAÇÃO -->
+  <section>
+    <div class="sec-head"><div class="snum" style="background:var(--teal)">✱</div><div><h2>Quem está preenchendo</h2><p>Para sabermos de qual unidade é</p></div></div>
+    <div class="grid">
+      <div class="fld"><label>Seu nome <span class="req">*</span></label><input data-k="Responsável" placeholder="Ex.: Maria Silva"></div>
+      <div class="fld"><label>Unidade / cidade <span class="req">*</span></label><input data-k="Unidade" placeholder="Ex.: SlimFit Jardim Goiás — Goiânia"></div>
+      <div class="fld full"><label>Seu WhatsApp <span class="req">*</span><small>com DDD, para a gente te retornar</small></label><input data-k="WhatsApp do responsável" placeholder="(62) 99999-9999"></div>
+    </div>
+  </section>
+
+  <!-- A · EVO -->
+  <section>
+    <div class="sec-head"><div class="snum">A</div><div><h2>Acesso ao EVO</h2><p>É de onde o robô lê tudo</p></div></div>
+    <div class="grid">
+      <div class="fld full"><label>Link do seu EVO <span class="req">*</span><small>o endereço do site que você acessa</small></label><input data-k="Link do EVO" placeholder="https://...w12app.com.br"></div>
+      <div class="fld"><label>Usuário / e-mail <span class="req">*</span></label><input data-k="Usuário do EVO" placeholder="seu login do EVO"></div>
+      <div class="fld"><label>Senha</label><input data-k="Senha do EVO" placeholder="pode enviar depois, se preferir"></div>
+    </div>
+    <div class="warnbox"><span class="ic">🔒</span><span>Se não quiser digitar a <b>senha</b> aqui, deixe em branco e nos mande à parte. Depois da instalação, você pode trocar a senha do EVO tranquilamente.</span></div>
+  </section>
+
+  <!-- B · WhatsApp -->
+  <section>
+    <div class="sec-head"><div class="snum">B</div><div><h2>WhatsApp do Studio</h2><p>A linha por onde as mensagens vão sair</p></div></div>
+    <div class="grid">
+      <div class="fld"><label>Número do Studio <span class="req">*</span><small>o WhatsApp que fala com as alunas</small></label><input data-k="WhatsApp do Studio" placeholder="(62) 99999-9999"></div>
+      <div class="fld"><label>É WhatsApp Business?</label>
+        <div class="seg">
+          <label><input type="radio" name="wabiz" data-k="É Business" value="Sim">Sim</label>
+          <label><input type="radio" name="wabiz" data-k="É Business" value="Não">Não</label>
+          <label><input type="radio" name="wabiz" data-k="É Business" value="Não sei">Não sei</label>
+        </div>
+      </div>
+    </div>
+    <div class="warnbox"><span class="ic">📱</span><span>Essa linha fica conectada ao robô o tempo todo. O ideal é ser um <b>número só do Studio</b> (não o celular pessoal de alguém), para a conexão não cair.</span></div>
+  </section>
+
+  <!-- C · Grupo -->
+  <section>
+    <div class="sec-head"><div class="snum">C</div><div><h2>Grupo da equipe</h2><p>Onde caem os avisos internos e resumos</p></div></div>
+    <div class="grid">
+      <div class="fld full"><label>Nome exato do grupo <span class="req">*</span><small>copie e cole do WhatsApp, com emojis se tiver</small></label><input data-k="Nome do grupo da equipe" placeholder="Ex.: Equipe SlimFit 💪"></div>
+    </div>
+    <div class="warnbox"><span class="ic">✅</span><span>Na instalação, vamos <b>adicionar a linha do Studio dentro desse grupo</b> — é assim que o robô consegue postar os avisos. Os parabéns de aniversário são automáticos (ele manda nos grupos que a aluna já tem com o Studio).</span></div>
+  </section>
+
+  <!-- D · Planilha -->
+  <section>
+    <div class="sec-head"><div class="snum">D</div><div><h2>Planilha de aniversários</h2><p>Se você usa uma planilha no Google</p></div></div>
+    <div class="grid">
+      <div class="fld full"><label>Link da planilha (Google Sheets)</label><input data-k="Link da planilha" placeholder="https://docs.google.com/spreadsheets/..."></div>
+      <div class="fld"><label>Nome da aba<small>a página que o robô atualiza</small></label><input data-k="Aba da planilha" placeholder="Ex.: Alunas"></div>
+      <div class="fld"><label>Usa planilha?</label>
+        <div class="seg">
+          <label><input type="radio" name="planilha" data-k="Usa planilha" value="Sim">Sim</label>
+          <label><input type="radio" name="planilha" data-k="Usa planilha" value="Não">Não uso</label>
+        </div>
+      </div>
+    </div>
+    <div class="warnbox"><span class="ic">🔗</span><span>Depois vamos te orientar a <b>dar acesso de edição</b> na planilha para o robô conseguir atualizá-la. É rapidinho.</span></div>
+  </section>
+
+  <!-- E · Professoras -->
+  <section>
+    <div class="sec-head"><div class="snum">E</div><div><h2>Professoras &amp; áudios</h2><p>O follow-up manda um áudio da professora</p></div></div>
+    <div class="grid">
+      <div class="fld full"><label>Nomes das professoras <span class="req">*</span><small>exatamente como aparecem no EVO, uma por linha</small></label><textarea data-k="Professoras" placeholder="Ex.:&#10;Taynara&#10;Luiza&#10;Raíssa"></textarea></div>
+      <div class="fld full"><label>Já tem os áudios gravados?</label>
+        <div class="seg">
+          <label><input type="radio" name="audios" data-k="Áudios gravados" value="Sim, tenho">Sim, tenho</label>
+          <label><input type="radio" name="audios" data-k="Áudios gravados" value="Vou gravar">Vou gravar</label>
+        </div>
+      </div>
+    </div>
+    <div class="warnbox"><span class="ic">🎧</span><span>Cada professora grava <b>um áudio curto</b> (nota de voz), convidando a aluna para a próxima aula. Serve para todas as alunas dela. É só nos enviar depois.</span></div>
+  </section>
+
+  <!-- F · Dados da unidade -->
+  <section>
+    <div class="sec-head"><div class="snum">F</div><div><h2>Dados da unidade</h2><p>Para as mensagens saírem com a sua identidade</p></div></div>
+    <div class="grid">
+      <div class="fld full"><label>Nome do Studio <span class="req">*</span><small>como deve aparecer para a aluna</small></label><input data-k="Nome do Studio" placeholder="Ex.: Studio SlimFit Jardim Goiás"></div>
+      <div class="fld full"><label>Endereço completo <span class="req">*</span></label><input data-k="Endereço" placeholder="Rua, número, bairro, cidade — CEP"></div>
+      <div class="fld"><label>Link do Google Maps</label><input data-k="Link do mapa" placeholder="https://maps.google.com/..."></div>
+      <div class="fld"><label>Nome de quem assina <span class="req">*</span><small>ex.: “Me chamo Juliana...”</small></label><input data-k="Nome que assina" placeholder="Ex.: Juliana"></div>
+      <div class="fld full"><label>WhatsApp da recepção<small>recebe os avisos internos do sistema</small></label><input data-k="WhatsApp da recepção" placeholder="(62) 99999-9999"></div>
+    </div>
+  </section>
+
+  <!-- G · Alertas -->
+  <section>
+    <div class="sec-head"><div class="snum">G</div><div><h2>Quem acompanha os alertas</h2><p>Avisamos no celular se algo falhar</p></div></div>
+    <div class="grid">
+      <div class="fld full"><label>Nome e celular de quem vai receber os alertas<small>instalaremos um app gratuito de avisos nesse celular</small></label><input data-k="Responsável pelos alertas" placeholder="Ex.: Maria — (62) 99999-9999"></div>
+    </div>
+  </section>
+
+  <!-- H · Servidor -->
+  <section>
+    <div class="sec-head"><div class="snum">H</div><div><h2>Servidor</h2><p>Onde o robô fica ligado 24 horas</p></div></div>
+    <div class="grid">
+      <div class="fld"><label>Já tem servidor contratado?</label>
+        <div class="seg">
+          <label><input type="radio" name="servidor" data-k="Tem servidor" value="Sim">Sim</label>
+          <label><input type="radio" name="servidor" data-k="Tem servidor" value="Não, preciso de ajuda">Preciso de ajuda</label>
+        </div>
+      </div>
+      <div class="fld"><label>Observações</label><input data-k="Observações do servidor" placeholder="opcional"></div>
+    </div>
+    <div class="warnbox"><span class="ic">🖥️</span><span>O servidor custa cerca de <b>R$ 30/mês</b>, pago por você direto na plataforma de hospedagem. A gente te orienta a contratar — é simples.</span></div>
+  </section>
+
+  <!-- OBS -->
+  <section>
+    <div class="sec-head"><div class="snum" style="background:var(--muted)">＋</div><div><h2>Mais alguma coisa?</h2><p>Opcional</p></div></div>
+    <div class="grid">
+      <div class="fld full"><label>Observações gerais</label><textarea data-k="Observações gerais" placeholder="Alguma dúvida ou informação extra que queira nos passar"></textarea></div>
+    </div>
+  </section>
+
+  </form>
+
+  <footer>
+    Ficha de implantação do robô SlimFit · suas informações vão direto para o nosso WhatsApp quando você tocar em enviar.
+  </footer>
+</main>
+
+<div class="bar">
+  <span class="status" id="status">Preencha e envie quando quiser 💬</span>
+  <button type="button" class="btn btn-ghost" id="btnCopy">Copiar tudo</button>
+  <button type="button" class="btn btn-wa" id="btnWa">
+    <svg viewBox="0 0 32 32" fill="#fff" aria-hidden="true"><path d="M16.04 3C9.4 3 4 8.4 4 15.04c0 2.12.56 4.13 1.62 5.92L4 29l8.23-1.58a12 12 0 0 0 3.8.62h.01c6.64 0 12.04-5.4 12.04-12.04C28.08 8.4 22.68 3 16.04 3zm0 21.96c-1.18 0-2.34-.24-3.42-.7l-.24-.1-4.88.94.98-4.76-.16-.25a9.9 9.9 0 0 1-1.54-5.29c0-5.5 4.48-9.98 9.98-9.98 2.67 0 5.17 1.04 7.06 2.93a9.92 9.92 0 0 1 2.92 7.06c0 5.5-4.48 9.98-9.98 9.98zm5.48-7.48c-.3-.15-1.78-.88-2.05-.98-.28-.1-.48-.15-.68.15-.2.3-.78.98-.96 1.18-.18.2-.35.22-.65.07-.3-.15-1.27-.47-2.42-1.5-.9-.8-1.5-1.78-1.67-2.08-.18-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.68-1.63-.93-2.23-.24-.58-.5-.5-.68-.51h-.58c-.2 0-.53.07-.8.38-.28.3-1.05 1.03-1.05 2.5 0 1.48 1.08 2.9 1.23 3.1.15.2 2.12 3.24 5.14 4.54.72.31 1.28.5 1.72.63.72.23 1.38.2 1.9.12.58-.09 1.78-.73 2.03-1.43.25-.7.25-1.3.18-1.43-.07-.13-.27-.2-.57-.35z"/></svg>
+    Enviar no WhatsApp
+  </button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const DEST = "5562981718205"; // WhatsApp de destino (implantação)
+
+  function coletar(){
+    const linhas = [];
+    // agrupa por seção usando os <section>
+    document.querySelectorAll("form#ficha [data-k]").forEach(el => {
+      // radios: só o marcado
+      if(el.type === "radio"){ if(!el.checked) return; }
+      const v = (el.value || "").trim();
+      if(!v) return;
+      linhas.push("• " + el.getAttribute("data-k") + ": " + v);
+    });
+    return linhas;
+  }
+
+  function mensagem(){
+    const linhas = coletar();
+    const cab = "*Ficha de implantação — Robô SlimFit*\n(enviada pelo formulário)\n\n";
+    if(linhas.length === 0) return cab + "_(nenhum campo preenchido ainda)_";
+    return cab + linhas.join("\n");
+  }
+
+  function toast(txt){
+    const t = document.getElementById("toast");
+    t.textContent = txt; t.classList.add("show");
+    clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 2200);
+  }
+
+  function atualizarStatus(){
+    const n = coletar().length;
+    document.getElementById("status").textContent =
+      n === 0 ? "Preencha e envie quando quiser 💬" : (n + " campo" + (n>1?"s":"") + " preenchido" + (n>1?"s":""));
+  }
+  document.getElementById("ficha").addEventListener("input", atualizarStatus);
+  document.getElementById("ficha").addEventListener("change", atualizarStatus);
+
+  document.getElementById("btnWa").addEventListener("click", () => {
+    const url = "https://wa.me/" + DEST + "?text=" + encodeURIComponent(mensagem());
+    window.open(url, "_blank", "noopener");
+  });
+
+  document.getElementById("btnCopy").addEventListener("click", async () => {
+    const txt = mensagem();
+    try{
+      await navigator.clipboard.writeText(txt);
+      toast("Copiado! Cole no WhatsApp ou e-mail ✅");
+    }catch(e){
+      // fallback
+      const ta = document.createElement("textarea");
+      ta.value = txt; ta.style.position="fixed"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.select();
+      try{ document.execCommand("copy"); toast("Copiado! ✅"); }
+      catch(_){ toast("Não consegui copiar — selecione e copie manualmente"); }
+      document.body.removeChild(ta);
+    }
+  });
+</script>
