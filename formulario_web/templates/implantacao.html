@@ -1,4 +1,4 @@
-<title>Guia de Implantação</title>
+<title>Runbook de Instalação</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
@@ -8,11 +8,10 @@
     --text:#241820; --text-soft:#6C5A64; --muted:#9C8A93;
     --accent:#C33A79; --accent-2:#A72E67; --accent-soft:#FBE6F0;
     --teal:#0F8A88; --teal-soft:#DCF0EF;
-    --wa:#1E9E52; --wa-soft:#E3F4E9;
     --amber:#A9711A; --amber-soft:#F6EAD6;
-    --slot:#C9B3BE;
+    --term-bg:#241820; --term-text:#F4E9F0; --term-muted:#B79FAC; --term-accent:#F58CB8; --term-green:#7DDF9E;
     --shadow:0 1px 2px rgba(40,20,32,.04),0 6px 22px rgba(40,20,32,.06);
-    --radius:16px;
+    --radius:15px;
   }
   @media (prefers-color-scheme:dark){
     :root:not([data-theme="light"]){
@@ -20,9 +19,8 @@
       --text:#F4E9F0; --text-soft:#C7B3BF; --muted:#8C7885;
       --accent:#F16DA2; --accent-2:#F58CB8; --accent-soft:#3A1C2B;
       --teal:#39B9B3; --teal-soft:#123230;
-      --wa:#37C46C; --wa-soft:#123021;
       --amber:#E1A945; --amber-soft:#332610;
-      --slot:#6A5560;
+      --term-bg:#0F0A0F; --term-text:#F4E9F0; --term-muted:#9C8A93; --term-accent:#F58CB8; --term-green:#7DDF9E;
       --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
     }
   }
@@ -31,9 +29,8 @@
     --text:#F4E9F0; --text-soft:#C7B3BF; --muted:#8C7885;
     --accent:#F16DA2; --accent-2:#F58CB8; --accent-soft:#3A1C2B;
     --teal:#39B9B3; --teal-soft:#123230;
-    --wa:#37C46C; --wa-soft:#123021;
     --amber:#E1A945; --amber-soft:#332610;
-    --slot:#6A5560;
+    --term-bg:#0F0A0F; --term-text:#F4E9F0; --term-muted:#9C8A93; --term-accent:#F58CB8; --term-green:#7DDF9E;
     --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
   }
 
@@ -42,14 +39,14 @@
   body{
     margin:0; background:var(--bg); color:var(--text);
     font-family:"Instrument Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-    font-size:17px; line-height:1.6; letter-spacing:.002em;
-    -webkit-font-smoothing:antialiased;
+    font-size:17px; line-height:1.6; -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:940px; margin:0 auto; padding:0 22px}
+  .wrap{max-width:900px; margin:0 auto; padding:0 22px}
   h1,h2,h3{font-family:"Bricolage Grotesque",system-ui,sans-serif; font-weight:700; text-wrap:balance; margin:0}
   a{color:var(--accent)}
   code,.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
   .eyebrow{font-family:"JetBrains Mono",monospace; font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted)}
+  :not(pre) > code{background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:.08em .4em;font-size:.85em;color:var(--accent)}
 
   /* HERO */
   header.hero{
@@ -64,468 +61,388 @@
   .brand .reg{font-size:.72em; color:var(--muted); font-weight:600}
   h1{font-size:clamp(2rem,5.5vw,3.1rem); line-height:1.04; font-weight:800; letter-spacing:-.02em; margin:.5em 0 .3em; max-width:18ch}
   h1 .accent{color:var(--accent)}
-  .lede{font-size:1.12rem; color:var(--text-soft); max-width:62ch; margin:0}
+  .lede{font-size:1.1rem; color:var(--text-soft); max-width:62ch; margin:0}
+  .facts{display:flex;flex-wrap:wrap;gap:9px;margin-top:22px}
+  .fact{font-size:.84rem;font-family:"JetBrains Mono",monospace;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:6px 13px;box-shadow:var(--shadow);color:var(--text-soft)}
+  .fact b{color:var(--text);font-weight:700}
 
-  section{padding:48px 0}
+  section{padding:44px 0}
   section + section{border-top:1px solid var(--border)}
-  .sec-head{margin-bottom:26px}
+  .sec-head{margin-bottom:22px}
   .sec-head h2{font-size:clamp(1.4rem,3.4vw,1.95rem); letter-spacing:-.015em}
-  .sec-head p{color:var(--text-soft); margin:.5em 0 0; max-width:64ch}
+  .sec-head p{color:var(--text-soft); margin:.5em 0 0; max-width:66ch}
 
-  /* RESPONSABILIDADES split */
-  .split{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-  @media(max-width:720px){.split{grid-template-columns:1fr}}
-  .rcard{border:1px solid var(--border);border-radius:var(--radius);padding:22px 22px;background:var(--surface);box-shadow:var(--shadow)}
-  .rcard.you{border-color:color-mix(in srgb,var(--teal) 40%,transparent);background:linear-gradient(180deg,var(--teal-soft),var(--surface) 60%)}
-  .rcard h3{font-size:1.06rem;display:flex;align-items:center;gap:9px}
-  .rcard .who{font-family:"JetBrains Mono",monospace;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px}
-  .rcard.you .who{color:var(--teal)}
-  .rcard ul{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:9px}
-  .rcard li{font-size:.94rem;color:var(--text-soft);padding-left:24px;position:relative;line-height:1.45}
-  .rcard li::before{content:"›";position:absolute;left:2px;top:-1px;color:var(--accent);font-weight:800}
-  .rcard.you li::before{color:var(--teal)}
+  /* callout */
+  .call{display:flex;gap:14px;border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
+  .call.danger{background:var(--amber-soft);border:1px solid color-mix(in srgb,var(--amber) 34%,transparent)}
+  .call.info{background:var(--teal-soft);border:1px solid color-mix(in srgb,var(--teal) 30%,transparent)}
+  .call .ic{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-weight:800;color:#fff}
+  .call.danger .ic{background:var(--amber)}
+  .call.info .ic{background:var(--teal)}
+  .call h3{font-size:1.02rem;margin-bottom:5px}
+  .call p{margin:0;color:var(--text-soft);font-size:.94rem}
+  .call ul{margin:8px 0 0;padding-left:18px;color:var(--text-soft);font-size:.93rem;display:flex;flex-direction:column;gap:5px}
+  .call b{color:var(--text);font-weight:600}
 
-  /* COLLECTION BLOCKS */
-  .blocks{display:flex;flex-direction:column;gap:16px}
-  .block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
-  .block-head{display:flex;align-items:flex-start;gap:14px;padding:18px 20px;border-bottom:1px solid var(--border);background:var(--surface-2)}
-  .badge{flex:none;width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1.15rem;background:var(--accent);color:#fff;box-shadow:0 4px 12px color-mix(in srgb,var(--accent) 35%,transparent)}
-  .block-head .t{flex:1;min-width:0}
-  .block-head h3{font-size:1.12rem;letter-spacing:-.01em}
-  .block-head .sub{color:var(--text-soft);font-size:.92rem;margin-top:2px}
-  .pill{flex:none;align-self:center;font-size:.7rem;font-weight:700;font-family:"JetBrains Mono",monospace;letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border-radius:999px;white-space:nowrap}
-  .pill.crit{background:var(--accent-soft);color:var(--accent)}
-  .pill.opt{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
-  .block-body{padding:18px 20px}
-  .why{display:flex;gap:10px;font-size:.92rem;color:var(--text-soft);background:var(--teal-soft);border-radius:11px;padding:11px 13px;margin-bottom:16px;line-height:1.45}
-  .why b{color:var(--text);font-weight:600}
-  .why .ic{flex:none;color:var(--teal);font-weight:800}
+  /* phase */
+  .phase{display:flex;align-items:center;gap:13px;margin:8px 0 20px}
+  .phase .pn{flex:none;font-family:"JetBrains Mono",monospace;font-weight:700;font-size:.72rem;letter-spacing:.1em;color:#fff;background:var(--accent);padding:6px 12px;border-radius:8px;text-transform:uppercase}
+  .phase h2{font-size:1.5rem;letter-spacing:-.015em}
 
-  .how{margin:0 0 4px;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:7px}
-  .how li{font-size:.93rem;color:var(--text-soft);padding-left:22px;position:relative}
-  .how li::before{content:"→";position:absolute;left:0;top:0;color:var(--accent);opacity:.75}
-  .how b{color:var(--text);font-weight:600}
+  .stepblock{margin:0 0 22px}
+  .stepblock > h3{font-size:1.08rem;display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+  .stepblock > h3 .num{font-family:"JetBrains Mono",monospace;font-size:.8rem;color:var(--accent);font-weight:700}
+  .stepblock > p{margin:0 0 12px;color:var(--text-soft);font-size:.95rem;max-width:64ch}
 
-  /* fields to collect */
-  .fields{margin-top:16px;border-top:1px dashed var(--border);padding-top:14px;display:flex;flex-direction:column;gap:11px}
-  .fields .flabel{font-family:"JetBrains Mono",monospace;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
-  .field{display:grid;grid-template-columns:190px 1fr;gap:12px;align-items:baseline}
-  @media(max-width:600px){.field{grid-template-columns:1fr}}
-  .field .k{font-size:.9rem;color:var(--text);font-weight:600}
-  .field .k small{display:block;font-weight:400;color:var(--muted);font-size:.78rem;margin-top:1px}
-  .slot{border-bottom:2px dotted var(--slot);min-height:1.5em;font-family:"JetBrains Mono",monospace;font-size:.82rem;color:var(--muted)}
-  .slot::before{content:"";}
+  /* terminal */
+  .term{background:var(--term-bg);border-radius:13px;overflow:hidden;box-shadow:var(--shadow);margin:12px 0}
+  .term-bar{display:flex;align-items:center;gap:7px;padding:9px 14px;background:color-mix(in srgb,var(--term-bg) 78%,#fff);border-bottom:1px solid rgba(255,255,255,.06)}
+  .term-bar .d{width:11px;height:11px;border-radius:50%;background:#5a4650}
+  .term-bar .d:nth-child(1){background:#E5574B}.term-bar .d:nth-child(2){background:#E0A93B}.term-bar .d:nth-child(3){background:#5FC26B}
+  .term-bar .lbl{margin-left:8px;font-family:"JetBrains Mono",monospace;font-size:.7rem;color:var(--term-muted);letter-spacing:.05em}
+  pre.term-body{margin:0;padding:15px 16px;overflow-x:auto;font-family:"JetBrains Mono",monospace;font-size:.82rem;line-height:1.75;color:var(--term-text)}
+  pre.term-body .c{color:var(--term-muted)}
+  pre.term-body .p{color:var(--term-green)}
+  pre.term-body b{color:var(--term-accent);font-weight:500}
 
-  /* SEQUENCE */
-  .steps{display:flex;flex-direction:column;gap:2px;counter-reset:step}
-  .step{display:grid;grid-template-columns:46px 1fr;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)}
-  .step:last-child{border-bottom:0}
-  .step .n{counter-increment:step;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1.05rem;color:var(--accent);width:36px;height:36px;border-radius:10px;background:var(--accent-soft);display:grid;place-items:center}
-  .step .n::before{content:counter(step,decimal-leading-zero)}
-  .step h3{font-size:1.02rem;letter-spacing:-.01em}
-  .step p{margin:4px 0 0;color:var(--text-soft);font-size:.93rem}
-  .step .tag{display:inline-block;margin-top:7px;font-size:.72rem;font-weight:600;font-family:"JetBrains Mono",monospace;color:var(--teal);background:var(--teal-soft);padding:3px 9px;border-radius:999px}
+  .fieldnote{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:12px 0}
+  .fieldnote .fnh{background:var(--surface-2);padding:9px 14px;font-family:"JetBrains Mono",monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+  .fieldnote table{width:100%;border-collapse:collapse;font-size:.9rem}
+  .fieldnote td{padding:9px 14px;border-top:1px solid var(--border);vertical-align:top;color:var(--text-soft)}
+  .fieldnote td:first-child{font-family:"JetBrains Mono",monospace;font-size:.82rem;color:var(--text);white-space:nowrap;width:1%}
+  .fieldnote td b{color:var(--text);font-weight:600}
 
-  /* FICHA (compact table) */
-  .ficha{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
-  .ficha .fh{background:var(--accent);color:#fff;padding:14px 18px;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1.05rem;display:flex;align-items:center;gap:10px}
-  .frow{display:grid;grid-template-columns:230px 1fr;gap:0;border-top:1px solid var(--border)}
-  @media(max-width:600px){.frow{grid-template-columns:1fr}}
-  .frow .fk{padding:11px 18px;font-size:.86rem;font-weight:600;background:var(--surface-2);color:var(--text);border-right:1px solid var(--border)}
-  @media(max-width:600px){.frow .fk{border-right:0;border-bottom:1px dashed var(--border)}}
-  .frow .fv{padding:11px 18px;min-height:2.6em;background:var(--surface)}
-  .frow .fk small{display:block;font-weight:400;color:var(--muted);font-size:.75rem}
-  .fgroup{font-family:"JetBrains Mono",monospace;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);padding:14px 18px 6px;background:var(--surface)}
+  .tip{font-size:.9rem;color:var(--text-soft);background:var(--surface);border-left:3px solid var(--teal);border-radius:0 10px 10px 0;padding:10px 14px;margin:10px 0}
+  .tip b{color:var(--text);font-weight:600}
 
-  /* ALERTAS de atenção */
-  .warns{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  @media(max-width:720px){.warns{grid-template-columns:1fr}}
-  .warn{display:flex;gap:12px;background:var(--amber-soft);border:1px solid color-mix(in srgb,var(--amber) 30%,transparent);border-radius:13px;padding:15px 16px}
-  .warn .ic{flex:none;width:28px;height:28px;border-radius:8px;background:var(--amber);color:#fff;display:grid;place-items:center;font-weight:800;font-size:.9rem}
-  .warn p{margin:0;font-size:.9rem;color:var(--text-soft);line-height:1.45}
-  .warn b{color:var(--text);font-weight:600}
+  /* checklist */
+  .chk{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px}
+  .chk li{display:flex;gap:11px;align-items:flex-start;font-size:.95rem;color:var(--text-soft)}
+  .chk .box{flex:none;width:22px;height:22px;border-radius:7px;border:2px solid var(--accent);display:grid;place-items:center;color:var(--accent);font-weight:800;font-size:.8rem;margin-top:1px}
+  .chk li b{color:var(--text);font-weight:600}
 
-  .note{font-size:.86rem;color:var(--muted);margin-top:16px}
   footer{padding:34px 0 60px;color:var(--muted);font-size:.85rem;text-align:center;line-height:1.6}
 
   @media print{
-    body{font-size:12px}
-    header.hero,section{padding:16px 0;break-inside:avoid}
-    .block,.ficha,.step,.rcard{break-inside:avoid}
-    a{color:inherit}
+    header.hero,section{padding:14px 0;break-inside:avoid}
+    .term,.stepblock,.call,.fieldnote{break-inside:avoid}
+    pre.term-body{white-space:pre-wrap}
   }
 </style>
 
 <header class="hero">
   <div class="wrap hero-in">
-    <div class="brand">slim<span class="fit">fit</span> <span class="reg">Robô · rede de franquias</span></div>
-    <h1>Guia de <span class="accent">implantação</span> do robô</h1>
-    <p class="lede">Tudo o que você precisa coletar e organizar de cada nova franquia para instalar o robô sem sustos — o que pedir, por que precisa, como conseguir e uma ficha final para preencher a cada venda.</p>
+    <div class="brand">slim<span class="fit">fit</span> <span class="reg">Robô · instalação</span></div>
+    <h1>Runbook de <span class="accent">instalação</span></h1>
+    <p class="lede">Passo a passo para colocar o robô rodando na franquia nova — do servidor zerado até tudo no ar, usando os comandos já validados em produção. Faça depois de receber a ficha da unidade preenchida.</p>
+    <div class="facts">
+      <span class="fact"><b>Ubuntu</b> + Node 20</span>
+      <span class="fact"><b>PM2</b> 24/7</span>
+      <span class="fact"><b>Xvfb</b> (tela virtual)</span>
+      <span class="fact">≈ <b>1 dia</b> de trabalho</span>
+    </div>
   </div>
 </header>
 
 <main class="wrap">
 
-  <!-- COMO SE DIVIDE -->
+  <!-- PRINCÍPIO -->
+  <section>
+    <div class="call danger">
+      <div class="ic">!</div>
+      <div>
+        <h3>Nunca copie o disco da sua VPS para a do cliente</h3>
+        <p>Parece atalho, mas arrasta três coisas que não podem ir para outra unidade:</p>
+        <ul>
+          <li>🚨 <b>A sessão do seu WhatsApp</b> — o robô do cliente conectaria no <b>seu</b> número (e ele sumiria da sua VPS).</li>
+          <li>🔑 <b>O seu <code>.env</code></b> com as senhas do seu EVO, seus alertas e sua planilha.</li>
+          <li>🗑️ Logs, filas de mensagens, cache do navegador e <code>node_modules</code> — só dão problema.</li>
+        </ul>
+        <p style="margin-top:8px">O caminho certo: <b>clonar do GitHub → criar um <code>.env</code> novo → escanear o QR do WhatsApp dele → testar.</b> Sempre na versão mais atual do código.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ANTES -->
   <section>
     <div class="sec-head">
       <span class="eyebrow">Antes de começar</span>
-      <h2>Quem entrega o quê</h2>
-      <p>A implantação é rápida quando cada lado chega com a sua parte pronta. Combine isso logo no fechamento.</p>
+      <h2>O que ter em mãos</h2>
     </div>
-    <div class="split">
-      <div class="rcard">
-        <span class="who">A franquia fornece</span>
-        <h3>🗂️ O que você pede ao cliente</h3>
-        <ul>
-          <li>Acesso ao <b>EVO</b> da unidade (usuário e senha)</li>
-          <li>Uma <b>linha de WhatsApp</b> dedicada ao Studio</li>
-          <li>O <b>grupo da equipe</b> no WhatsApp (e adicionar a linha nele)</li>
-          <li>A <b>planilha de aniversários</b> no Google Sheets</li>
-          <li>Os <b>áudios das professoras</b> (pós-aula)</li>
-          <li>Dados da unidade: <b>nome, endereço, mapa, nome da recepção</b></li>
-          <li>Contratar e pagar o <b>servidor</b> (direto na plataforma)</li>
-        </ul>
+    <ul class="chk">
+      <li><span class="box">✓</span><span>A <b>ficha da unidade</b> preenchida (o cliente envia pelo <code>/cadastro</code>): EVO, grupo, planilha, professoras, dados da unidade, alertas.</span></li>
+      <li><span class="box">✓</span><span>O <b>servidor (VPS) contratado</b> pelo cliente — Ubuntu, com o <b>acesso SSH</b> (IP + senha/chave) em mãos.</span></li>
+      <li><span class="box">✓</span><span>A <b>linha de WhatsApp do Studio</b> disponível para escanear o QR (com alguém do lado do cliente para confirmar no celular).</span></li>
+      <li><span class="box">✓</span><span>Os <b>áudios das professoras</b> e a <b>chave da conta de serviço do Google</b> (se for usar planilha).</span></li>
+    </ul>
+  </section>
+
+  <!-- FASE 1 -->
+  <section>
+    <div class="phase"><span class="pn">Fase 1</span><h2>Preparar o servidor</h2></div>
+
+    <div class="stepblock">
+      <h3><span class="num">1.1</span> Acessar, ajustar fuso e atualizar</h3>
+      <p>Conecte no servidor do cliente por SSH e deixe tudo em dia. O fuso de Brasília mantém os horários dos jobs certos.</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">no seu PC → servidor do cliente</span></div>
+<pre class="term-body"><span class="c"># conecte no servidor (troque pelo IP do cliente)</span>
+<span class="p">ssh</span> root@<b>IP-DO-CLIENTE</b>
+
+<span class="c"># fuso de Brasília + atualizações + git</span>
+timedatectl set-timezone America/Sao_Paulo
+apt update && apt upgrade -y
+apt install -y git</pre>
       </div>
-      <div class="rcard you">
-        <span class="who">Você executa</span>
-        <h3>🛠️ O que fica com você</h3>
-        <ul>
-          <li>Preparar o <b>servidor</b> (Node, PM2, navegador)</li>
-          <li>Instalar o robô e preencher o <b>arquivo de configuração</b></li>
-          <li><b>Conectar o WhatsApp</b> (leitura do QR) e testar cada fluxo</li>
-          <li><b>Personalizar as mensagens</b> com os dados da unidade</li>
-          <li>Configurar os <b>alertas</b> no celular do dono (app ntfy)</li>
-          <li>Publicar o <b>formulário</b> de agendamento online (opcional)</li>
-          <li>Entregar o <b>manual</b> e treinar a recepção</li>
-        </ul>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">1.2</span> Node 20 + ferramentas de build</h3>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body">curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt install -y nodejs build-essential python3
+node -v   <span class="c"># deve mostrar v20.x</span></pre>
+      </div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">1.3</span> Tela virtual (Xvfb) + bibliotecas do navegador</h3>
+      <p>O EVO (Angular) é instável em modo headless puro. A configuração validada roda com <b>tela virtual (Xvfb)</b>. Instale o Xvfb e as libs do Chromium.</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body">apt install -y xvfb \
+  ca-certificates fonts-liberation libasound2t64 libatk-bridge2.0-0t64 \
+  libatk1.0-0t64 libc6 libcairo2 libcups2t64 libdbus-1-3 libexpat1 \
+  libfontconfig1 libgbm1 libglib2.0-0t64 libgtk-3-0t64 libnspr4 libnss3 \
+  libpango-1.0-0 libx11-6 libxcomposite1 libxdamage1 libxext6 libxfixes3 \
+  libxrandr2 libxkbcommon0 xdg-utils wget</pre>
+      </div>
+      <div class="tip"><b>Ubuntu mais antigo?</b> Se algum pacote com sufixo <code>t64</code> não for encontrado, instale a versão sem o sufixo (ex.: <code>libasound2</code>). Os nomes variam por versão do Ubuntu.</div>
+    </div>
+  </section>
+
+  <!-- FASE 2 -->
+  <section>
+    <div class="phase"><span class="pn">Fase 2</span><h2>Instalar o robô</h2></div>
+
+    <div class="stepblock">
+      <h3><span class="num">2.1</span> Clonar o código e instalar dependências</h3>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body">cd ~
+git clone https://github.com/rrabadan86/SF-Chat_Experimental-Mensagens.git
+cd SF-Chat_Experimental-Mensagens
+git checkout main            <span class="c"># versao estavel (tudo mesclado)</span>
+cd Experimental
+npm install                  <span class="c"># baixa o Chromium do Puppeteer (uns minutos)</span></pre>
+      </div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">2.2</span> Criar o <code>.env</code> a partir do modelo</h3>
+      <p>Copie o modelo e preencha com os dados da ficha da unidade. É aqui que a unidade ganha a própria identidade — <b>sem tocar em código</b>.</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body">cp .env.example .env
+nano .env                    <span class="c"># preencha; salve com Ctrl+O, Enter, Ctrl+X</span></pre>
+      </div>
+      <div class="fieldnote">
+        <div class="fnh">Os campos que mudam por unidade</div>
+        <table>
+          <tr><td>STUDIO_NOME</td><td>Nome do Studio como aparece para a aluna. Ex.: <b>Studio SlimFit Jardim Goiás</b>.</td></tr>
+          <tr><td>EVO_URL</td><td>Use <b>https://evo5.w12app.com.br</b> (o login acontece no evo5; o domínio seguro é capturado sozinho).</td></tr>
+          <tr><td>EVO_EMAIL / EVO_PASSWORD</td><td>Login do EVO da unidade.</td></tr>
+          <tr><td>EVO_EXPERIMENTAL_PATH</td><td>Troque o <b>número da filial</b> no caminho pelo da unidade.</td></tr>
+          <tr><td>HEADLESS</td><td>Deixe <b>false</b> — a instalação roda com Xvfb (tela virtual).</td></tr>
+          <tr><td>GRUPO_EQUIPE</td><td>Nome exato do grupo da equipe no WhatsApp.</td></tr>
+          <tr><td>SHEETS_ID / SHEETS_ABA / GOOGLE_SA_KEY</td><td>Planilha de aniversários (ver passo 2.4).</td></tr>
+          <tr><td>NTFY_TOPIC</td><td>Tópico exclusivo de alertas da unidade (nome secreto).</td></tr>
+          <tr><td>AUDIO_MAP</td><td>JSON professora→arquivo de áudio (ver passo 2.3).</td></tr>
+          <tr><td>FORM_OUTBOX_TOKEN</td><td>Token secreto — o <b>mesmo</b> valor aqui e no formulário na Render.</td></tr>
+        </table>
+      </div>
+      <div class="tip">O <code>.env</code> nunca vai para o GitHub (está no <code>.gitignore</code>). Ele fica só no servidor.</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">2.3</span> Colocar os áudios das professoras</h3>
+      <p>Coloque os arquivos de áudio na pasta <code>audios/</code> e ligue cada professora ao seu arquivo no <code>AUDIO_MAP</code> do <code>.env</code>. A chave é o nome da professora <b>como aparece no EVO</b> (minúsculo).</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">no seu PC → servidor</span></div>
+<pre class="term-body"><span class="c"># envie os audios do seu PC para o servidor do cliente</span>
+scp *.ogg root@<b>IP-DO-CLIENTE</b>:~/SF-Chat_Experimental-Mensagens/Experimental/audios/
+
+<span class="c"># no .env, mapeie professora -> arquivo (sem extensao):</span>
+<span class="c"># AUDIO_MAP={"ana":"A-Ana-Pos","carla":"A-Carla-Pos"}</span></pre>
+      </div>
+      <div class="tip"><b>Formato do áudio:</b> nota de voz em <code>.ogg</code> (Opus). Se o cliente mandar MP3, converta antes com o mesmo comando que usamos na sua unidade (remove metadados que travam a reprodução).</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">2.4</span> Chave do Google + compartilhar a planilha</h3>
+      <p>Só se a unidade usar a planilha de aniversários. Envie a chave da conta de serviço e compartilhe a planilha com o e-mail dela.</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">no seu PC → servidor</span></div>
+<pre class="term-body"><span class="c"># envie a chave JSON da conta de servico</span>
+scp google-sa.json root@<b>IP-DO-CLIENTE</b>:~/SF-Chat_Experimental-Mensagens/Experimental/</pre>
+      </div>
+      <div class="tip">Abra a planilha do cliente → <b>Compartilhar</b> → cole o <b>e-mail da conta de serviço</b> (está dentro do <code>google-sa.json</code>, campo <code>client_email</code>) como <b>Editor</b>. Sem isso, o robô lê mas não escreve.</div>
+    </div>
+  </section>
+
+  <!-- FASE 3 -->
+  <section>
+    <div class="phase"><span class="pn">Fase 3</span><h2>Conectar e testar</h2></div>
+
+    <div class="stepblock">
+      <h3><span class="num">3.1</span> Escanear o QR do WhatsApp da unidade</h3>
+      <p>Rode a conexão inicial. Um QR aparece no terminal — quem estiver com o celular do Studio escaneia.</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body">cd ~/SF-Chat_Experimental-Mensagens/Experimental
+xvfb-run -a node src/run-now.js whatsapp</pre>
+      </div>
+      <div class="tip">No celular do Studio: <b>WhatsApp → Aparelhos conectados → Conectar um aparelho</b> e aponte para o QR no terminal. Conectou? A sessão fica salva. Encerre com <code>Ctrl+C</code>.</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">3.2</span> Confirmar a linha dentro do grupo da equipe</h3>
+      <p>Garanta que a <b>linha do Studio</b> (a que você acabou de conectar) está <b>dentro do grupo da equipe</b> — senão os avisos internos não saem. Confira também que o nome do grupo no <code>.env</code> bate exatamente.</p>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">3.3</span> Testar sem e com envio</h3>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body"><span class="c"># 1) so leitura do EVO (nao envia nada)</span>
+xvfb-run -a node src/run-now.js scrape
+
+<span class="c"># 2) uma mensagem de teste para um numero seu</span>
+xvfb-run -a node src/run-now.js whatsapp <b>5562XXXXXXXXX</b> 08:00 Teste
+
+<span class="c"># 3) o job da manha inteiro, agora (envia de verdade!)</span>
+xvfb-run -a node src/run-now.js morning</pre>
+      </div>
+      <div class="tip">Confirme: login no EVO ok, as experimentais aparecem na listagem, e a mensagem de teste chega no WhatsApp.</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">3.4</span> Configurar os alertas (ntfy)</h3>
+      <p>O cliente instala o app <b>ntfy</b> (grátis) e se inscreve no tópico que você definiu no <code>.env</code> (<code>NTFY_TOPIC</code>). Faça um alerta de teste na frente dele.</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body"><span class="c"># dispara um alerta de teste no topico da unidade</span>
+curl -d "Instalacao concluida — teste de alerta" ntfy.sh/<b>SEU_NTFY_TOPIC</b></pre>
       </div>
     </div>
   </section>
 
-  <!-- CHECKLIST DE COLETA -->
+  <!-- FASE 4 -->
   <section>
-    <div class="sec-head">
-      <span class="eyebrow">Checklist de coleta</span>
-      <h2>Os 8 blocos que você precisa reunir</h2>
-      <p>Cada bloco tem: <b>por que precisa</b>, <b>como conseguir</b> e os <b>campos exatos</b> a anotar. As tarjas <span style="color:var(--accent);font-weight:600">Obrigatório</span> travam a instalação se faltarem; as <span style="color:var(--muted);font-weight:600">Opcional</span> podem entrar depois.</p>
+    <div class="phase"><span class="pn">Fase 4</span><h2>Deixar rodando 24/7</h2></div>
+
+    <div class="stepblock">
+      <h3><span class="num">4.1</span> Subir com o PM2 (e voltar sozinho após reboot)</h3>
+      <p>O agendador roda sob o PM2 via o wrapper <code>scheduler-vps.sh</code> (que já embrulha em <code>xvfb-run</code>).</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body">npm install -g pm2
+cd ~/SF-Chat_Experimental-Mensagens/Experimental
+
+pm2 start ./scheduler-vps.sh --name <b>slimfit-exp</b> --interpreter bash --time
+pm2 save
+pm2 startup systemd -u root --hp /root
+<span class="c"># ↑ copie e rode a linha que ele imprimir (registra no boot)</span></pre>
+      </div>
     </div>
 
-    <div class="blocks">
-
-      <!-- A · EVO -->
-      <div class="block">
-        <div class="block-head">
-          <div class="badge">A</div>
-          <div class="t">
-            <h3>Acesso ao EVO</h3>
-            <div class="sub">É de onde o robô lê tudo: experimentais, presenças, faltas, contratos, aniversários, ausentes e trancamentos.</div>
-          </div>
-          <span class="pill crit">Obrigatório</span>
-        </div>
-        <div class="block-body">
-          <div class="why"><span class="ic">i</span><span>Sem o EVO da unidade, <b>nada</b> funciona — todas as leituras vêm dele. Peça um login que enxergue a agenda, o comercial (experimentais) e o gerencial (suspensões/faltantes).</span></div>
-          <ul class="how">
-            <li>Peça ao cliente para <b>criar (ou liberar) um usuário</b> do EVO para o robô, com acesso de leitura à unidade.</li>
-            <li>Abrindo o EVO logado, a URL mostra o <b>número da filial</b> — ex.: <code>.../app/slimfit/<b>15</b>/...</code>. Anote esse número.</li>
-            <li>Para a busca de telefone na renovação, o robô usa a <b>API do EVO</b>: isso é capturado automaticamente na 1ª execução dentro da sessão logada — você não precisa pedir token ao cliente, só garantir que o login funciona.</li>
-          </ul>
-          <div class="fields">
-            <div class="flabel">Anote</div>
-            <div class="field"><div class="k">Endereço do EVO<small>o subdomínio da unidade</small></div><div class="slot"></div></div>
-            <div class="field"><div class="k">Usuário / e-mail</div><div class="slot"></div></div>
-            <div class="field"><div class="k">Senha</div><div class="slot"></div></div>
-            <div class="field"><div class="k">Número da filial<small>o número na URL</small></div><div class="slot"></div></div>
-          </div>
-        </div>
+    <div class="stepblock">
+      <h3><span class="num">4.2</span> Verificação final</h3>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body">pm2 status                       <span class="c"># slimfit-exp = online</span>
+timedatectl                      <span class="c"># America/Sao_Paulo</span>
+pm2 logs slimfit-exp --lines 50  <span class="c"># sem erros</span></pre>
       </div>
-
-      <!-- B · WhatsApp -->
-      <div class="block">
-        <div class="block-head">
-          <div class="badge">B</div>
-          <div class="t">
-            <h3>Linha de WhatsApp do Studio</h3>
-            <div class="sub">É por onde todas as mensagens saem — confirmações, follow-up, faltas, renovação e avisos nos grupos.</div>
-          </div>
-          <span class="pill crit">Obrigatório</span>
-        </div>
-        <div class="block-body">
-          <div class="why"><span class="ic">i</span><span>Use uma linha <b>dedicada</b> ao Studio (de preferência WhatsApp Business). O robô fica conectado nela 24h no servidor — <b>não pode ser o celular pessoal</b> de ninguém, senão a conexão cai quando esse aparelho usa o WhatsApp.</span></div>
-          <ul class="how">
-            <li>O cliente escolhe/prepara o <b>chip e o número</b> do Studio (o mesmo que ele já usa para falar com as alunas, idealmente).</li>
-            <li>Na instalação, você <b>lê o QR code</b> uma vez no servidor para conectar. Depois disso ele se mantém sozinho (reinicia todo dia às 03:00).</li>
-            <li>Se o WhatsApp cair e pedir QR de novo, chega um <b>alerta no celular do dono</b> para reconectar.</li>
-          </ul>
-          <div class="fields">
-            <div class="flabel">Anote</div>
-            <div class="field"><div class="k">Número do WhatsApp<small>com DDD</small></div><div class="slot"></div></div>
-            <div class="field"><div class="k">É Business?<small>recomendado</small></div><div class="slot"></div></div>
-            <div class="field"><div class="k">Quem tem o aparelho<small>para ler o QR</small></div><div class="slot"></div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- C · Grupo da equipe -->
-      <div class="block">
-        <div class="block-head">
-          <div class="badge">C</div>
-          <div class="t">
-            <h3>Grupo da equipe</h3>
-            <div class="sub">Onde caem os avisos internos: aniversariantes, ausentes 10 dias, presentes pendentes e os resumos do dia e da semana.</div>
-          </div>
-          <span class="pill crit">Obrigatório</span>
-        </div>
-        <div class="block-body">
-          <div class="why"><span class="ic">i</span><span>O robô procura o grupo <b>pelo nome exato</b>. Se o nome estiver diferente de uma letra, ele não encontra e o aviso não sai. Confirme o nome com a tela do WhatsApp aberta.</span></div>
-          <ul class="how">
-            <li>Peça o <b>nome exato</b> do grupo interno da equipe (copie e cole, com emojis se tiver).</li>
-            <li><b>Adicione a linha do Studio</b> (a do bloco B) dentro desse grupo — o robô só posta em grupos onde o número dele participa.</li>
-            <li>Os <b>parabéns de aniversário não precisam de grupo próprio</b>: o robô lê o contato da aniversariante e manda em <b>todos os grupos que ela tem em comum</b> com a linha do Studio, marcando ela com @.</li>
-          </ul>
-          <div class="fields">
-            <div class="flabel">Anote</div>
-            <div class="field"><div class="k">Nome do grupo da equipe</div><div class="slot"></div></div>
-            <div class="field"><div class="k">Linha já está no grupo?</div><div class="slot"></div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- D · Planilha -->
-      <div class="block">
-        <div class="block-head">
-          <div class="badge">D</div>
-          <div class="t">
-            <h3>Planilha de aniversários (Google Sheets)</h3>
-            <div class="sub">O robô atualiza diariamente a lista de alunas ativas e aniversários, sem bagunçar as colunas preenchidas à mão.</div>
-          </div>
-          <span class="pill opt">Se usar planilha</span>
-        </div>
-        <div class="block-body">
-          <div class="why"><span class="ic">i</span><span>Para o robô <b>escrever</b> na planilha, ela precisa ser <b>compartilhada com o e-mail técnico</b> (conta de serviço do Google). Sem esse compartilhamento, ele lê mas não consegue atualizar.</span></div>
-          <ul class="how">
-            <li>Pegue o <b>link da planilha</b> do cliente (o ID fica no meio da URL) e o <b>nome da aba</b> que o robô deve atualizar.</li>
-            <li>Você gera (ou reusa) uma <b>conta de serviço do Google</b> e compartilha a planilha com o e-mail dela, como <b>Editor</b>.</li>
-            <li>Combine com o cliente <b>quais colunas são do robô</b> e quais são preenchidas por eles, para nada ser sobrescrito.</li>
-          </ul>
-          <div class="fields">
-            <div class="flabel">Anote</div>
-            <div class="field"><div class="k">Link / ID da planilha</div><div class="slot"></div></div>
-            <div class="field"><div class="k">Nome da aba</div><div class="slot"></div></div>
-            <div class="field"><div class="k">Compartilhada com a conta de serviço?</div><div class="slot"></div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- E · Áudios -->
-      <div class="block">
-        <div class="block-head">
-          <div class="badge">E</div>
-          <div class="t">
-            <h3>Áudios das professoras (pós-aula)</h3>
-            <div class="sub">O follow-up envia um áudio da professora que deu a aula experimental, para aquecer a matrícula.</div>
-          </div>
-          <span class="pill crit">Obrigatório</span>
-        </div>
-        <div class="block-body">
-          <div class="why"><span class="ic">i</span><span>Cada professora grava <b>um áudio genérico</b> (serve para todas as alunas dela). O robô escolhe o áudio pelo nome da professora que aparece na aula no EVO — por isso os <b>nomes precisam bater</b>.</span></div>
-          <ul class="how">
-            <li>Peça <b>um áudio por professora</b>, gravado como nota de voz (curto, caloroso, convidando para a próxima aula).</li>
-            <li>Liste os <b>nomes das professoras</b> exatamente como aparecem no EVO — é assim que o robô liga a professora ao áudio dela.</li>
-            <li>Você converte os áudios para o formato certo e cadastra o mapeamento <b>professora → arquivo</b>.</li>
-          </ul>
-          <div class="fields">
-            <div class="flabel">Anote</div>
-            <div class="field"><div class="k">Professoras (nomes no EVO)</div><div class="slot"></div></div>
-            <div class="field"><div class="k">Recebeu 1 áudio de cada?</div><div class="slot"></div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- F · Personalização -->
-      <div class="block">
-        <div class="block-head">
-          <div class="badge">F</div>
-          <div class="t">
-            <h3>Dados da unidade (personalização)</h3>
-            <div class="sub">Os textos das mensagens citam o nome do Studio, o endereço e o nome de quem atende. Tudo isso muda por unidade.</div>
-          </div>
-          <span class="pill crit">Obrigatório</span>
-        </div>
-        <div class="block-body">
-          <div class="why"><span class="ic">i</span><span>Se você esquecer de trocar, a unidade nova sai mandando mensagem com o nome e o endereço de <b>outra</b> franquia. É a checagem final antes de ligar.</span></div>
-          <ul class="how">
-            <li>Colete o <b>nome do Studio</b> como deve aparecer para a aluna (ex.: “Studio SlimFit Jardim Goiás”).</li>
-            <li>Colete o <b>endereço completo</b> e o <b>link do Google Maps</b> (usados na confirmação do formulário).</li>
-            <li>Colete o <b>nome da recepção/persona</b> que assina as mensagens (ex.: “Me chamo Juliana…”).</li>
-            <li>Confirme o <b>número da recepção</b> que recebe alertas internos do sistema.</li>
-          </ul>
-          <div class="fields">
-            <div class="flabel">Anote</div>
-            <div class="field"><div class="k">Nome do Studio</div><div class="slot"></div></div>
-            <div class="field"><div class="k">Endereço completo</div><div class="slot"></div></div>
-            <div class="field"><div class="k">Link do mapa</div><div class="slot"></div></div>
-            <div class="field"><div class="k">Nome que assina<small>persona da recepção</small></div><div class="slot"></div></div>
-            <div class="field"><div class="k">WhatsApp da recepção<small>para alertas</small></div><div class="slot"></div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- G · Alertas -->
-      <div class="block">
-        <div class="block-head">
-          <div class="badge">G</div>
-          <div class="t">
-            <h3>Alertas no celular (app ntfy)</h3>
-            <div class="sub">O sistema avisa o dono quando algo falha: WhatsApp caiu, tarefa deu erro, confirmação se perdeu.</div>
-          </div>
-          <span class="pill opt">Recomendado</span>
-        </div>
-        <div class="block-body">
-          <div class="why"><span class="ic">i</span><span>É o que dá <b>tranquilidade</b> ao cliente: se algo parar, ele fica sabendo na hora, no celular — em vez de descobrir dias depois que as mensagens não saíram.</span></div>
-          <ul class="how">
-            <li>Peça o cliente para instalar o app <b>ntfy</b> (grátis, iPhone e Android).</li>
-            <li>Você define um <b>tópico exclusivo</b> da unidade (um nome secreto, difícil de adivinhar) e o cliente se inscreve nele no app.</li>
-            <li>Faça um <b>teste de alerta</b> na frente do cliente para ele ver a notificação chegar.</li>
-          </ul>
-          <div class="fields">
-            <div class="flabel">Anote</div>
-            <div class="field"><div class="k">Tópico ntfy da unidade</div><div class="slot"></div></div>
-            <div class="field"><div class="k">Cliente já se inscreveu?</div><div class="slot"></div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- H · Servidor -->
-      <div class="block">
-        <div class="block-head">
-          <div class="badge">H</div>
-          <div class="t">
-            <h3>Servidor (onde o robô roda 24h)</h3>
-            <div class="sub">Um computador na nuvem sempre ligado. É o único custo mensal e é pago direto à plataforma pelo cliente.</div>
-          </div>
-          <span class="pill crit">Obrigatório</span>
-        </div>
-        <div class="block-body">
-          <div class="why"><span class="ic">i</span><span>O servidor fica <b>no nome do cliente</b> e é pago por ele (~R$ 30/mês, direto na plataforma). Assim você não intermedia cobrança e ele mantém o controle. Você só precisa do <b>acesso</b> para instalar.</span></div>
-          <ul class="how">
-            <li>Oriente a contratação de um <b>servidor (VPS) Linux</b> simples — o cliente contrata e paga direto na plataforma de hospedagem.</li>
-            <li>Você recebe o <b>acesso (IP + login)</b> e prepara o ambiente: Node, PM2 e o navegador que o robô usa.</li>
-            <li>Instala o robô, preenche a configuração com tudo que coletou e deixa rodando como serviço (reinicia sozinho se o servidor reiniciar).</li>
-          </ul>
-          <div class="fields">
-            <div class="flabel">Anote</div>
-            <div class="field"><div class="k">Plataforma / plano</div><div class="slot"></div></div>
-            <div class="field"><div class="k">IP do servidor</div><div class="slot"></div></div>
-            <div class="field"><div class="k">Acesso (login)</div><div class="slot"></div></div>
-          </div>
-        </div>
-      </div>
-
+      <div class="tip">Deixe rodar até o próximo horário agendado e confirme no <code>pm2 logs</code> que o job disparou.</div>
     </div>
   </section>
 
-  <!-- FORMULÁRIO opcional -->
+  <!-- FASE 5 -->
   <section>
-    <div class="sec-head">
-      <span class="eyebrow">Extra do pacote</span>
-      <h2>Formulário de agendamento online</h2>
-      <p>Opcional, mas é um baita diferencial: a lead escolhe o horário num site, o sistema cadastra e matricula no EVO e dispara a confirmação. Se for vender junto, colete também:</p>
+    <div class="phase"><span class="pn">Fase 5</span><h2>Formulário na nuvem (opcional)</h2></div>
+    <p class="sec-head" style="color:var(--text-soft);max-width:66ch">Se você vender o agendamento online junto, publique o formulário na Render (é separado do servidor). Ele reusa o mesmo pacote de agendamento.</p>
+
+    <div class="stepblock">
+      <h3><span class="num">5.1</span> Criar o serviço na Render</h3>
+      <ul class="chk">
+        <li><span class="box">✓</span><span>Crie um <b>Web Service</b> na Render apontando para o repositório do formulário.</span></li>
+        <li><span class="box">✓</span><span>Comando de start (já usado): <code>gunicorn app:app --workers 1 --timeout 120</code>.</span></li>
+      </ul>
     </div>
-    <div class="fields" style="border-top:0;padding-top:0">
-      <div class="field"><div class="k">Serviço da experimental no EVO<small>qual atividade/serviço representa a aula experimental</small></div><div class="slot"></div></div>
-      <div class="field"><div class="k">Regras da grade<small>ocupação máxima, quantos dias mostrar</small></div><div class="slot"></div></div>
-      <div class="field"><div class="k">Onde publicar<small>conta na plataforma de hospedagem do site</small></div><div class="slot"></div></div>
+
+    <div class="stepblock">
+      <h3><span class="num">5.2</span> Variáveis de ambiente do formulário (na Render)</h3>
+      <div class="fieldnote">
+        <div class="fnh">Environment · Render</div>
+        <table>
+          <tr><td>EVO_URL / EVO_TOKEN / EVO_DNS</td><td>Acesso do EVO da unidade para a API de agendamento.</td></tr>
+          <tr><td>ZEE_CONFIRM_TEMPLATE</td><td>O <b>texto da confirmação</b> com o nome, endereço, mapa e persona <b>da unidade</b> (é aqui que personaliza a mensagem do formulário — sem editar código).</td></tr>
+          <tr><td>ZEE_STUDIO_PHONE</td><td>Número da recepção que recebe os alertas de turma lotada.</td></tr>
+          <tr><td>FORM_OUTBOX_TOKEN</td><td>O <b>mesmo</b> token do <code>.env</code> da VPS — é o que liga o formulário ao robô.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">5.3</span> Ligar a ponte formulário → robô</h3>
+      <p>No <code>.env</code> da VPS, aponte <code>FORM_CLOUD_URL</code> para o endereço da Render e use o <b>mesmo</b> <code>FORM_OUTBOX_TOKEN</code>. A ponte roda a cada minuto e puxa as marcações para a fila de envio.</p>
     </div>
   </section>
 
-  <!-- SEQUÊNCIA -->
+  <!-- MANUTENÇÃO -->
   <section>
     <div class="sec-head">
-      <span class="eyebrow">Passo a passo</span>
-      <h2>A ordem da implantação</h2>
-      <p>Seguindo nesta sequência, uma unidade nova entra no ar em cerca de um dia de trabalho — depois de você já ter tudo dos 8 blocos em mãos.</p>
+      <span class="eyebrow">Referência rápida</span>
+      <h2>Manutenção do dia a dia</h2>
     </div>
-    <div class="steps">
-      <div class="step"><div class="n"></div><div><h3>Coletar os 8 blocos</h3><p>Use a ficha do fim desta página. Só comece a instalar com tudo preenchido — é o que evita idas e vindas.</p><span class="tag">com o cliente</span></div></div>
-      <div class="step"><div class="n"></div><div><h3>Preparar o servidor</h3><p>Receber o acesso do cliente, instalar Node, PM2 e o navegador, e subir o robô no servidor.</p><span class="tag">você</span></div></div>
-      <div class="step"><div class="n"></div><div><h3>Preencher a configuração</h3><p>Colocar EVO, grupo, planilha, tópico de alertas e as regras da unidade no arquivo de configuração.</p><span class="tag">você</span></div></div>
-      <div class="step"><div class="n"></div><div><h3>Personalizar as mensagens</h3><p>Trocar nome do Studio, endereço, mapa e o nome de quem assina. Ler tudo uma vez em voz alta antes de ligar.</p><span class="tag">você</span></div></div>
-      <div class="step"><div class="n"></div><div><h3>Conectar o WhatsApp</h3><p>Ler o QR code com a linha do Studio e confirmar que o número está dentro do grupo da equipe.</p><span class="tag">com o cliente</span></div></div>
-      <div class="step"><div class="n"></div><div><h3>Cadastrar os áudios</h3><p>Converter os áudios das professoras e ligar cada um ao nome correto no mapeamento.</p><span class="tag">você</span></div></div>
-      <div class="step"><div class="n"></div><div><h3>Testar cada fluxo em modo simulação</h3><p>Rodar confirmação, follow-up, faltas, renovação, aniversários e resumos sem enviar, conferindo os resultados.</p><span class="tag">você</span></div></div>
-      <div class="step"><div class="n"></div><div><h3>Configurar os alertas</h3><p>Cliente instala o ntfy, se inscreve no tópico e vê um alerta de teste chegar no celular.</p><span class="tag">com o cliente</span></div></div>
-      <div class="step"><div class="n"></div><div><h3>Publicar o formulário</h3><p>Se estiver no pacote, subir o site de agendamento e testar uma marcação de ponta a ponta.</p><span class="tag">opcional</span></div></div>
-      <div class="step"><div class="n"></div><div><h3>Ligar e entregar</h3><p>Ativar de verdade, mandar o link do manual e treinar a recepção. Acompanhar os primeiros dias de perto.</p><span class="tag">entrega</span></div></div>
+    <div class="term">
+      <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body"><span class="c"># acompanhar ao vivo</span>
+pm2 logs slimfit-exp
+
+<span class="c"># atualizar para a versao mais nova do codigo</span>
+cd ~/SF-Chat_Experimental-Mensagens && git pull
+cd Experimental && npm install && pm2 restart slimfit-exp
+
+<span class="c"># reiniciar / parar</span>
+pm2 restart slimfit-exp
+pm2 stop slimfit-exp</pre>
     </div>
   </section>
 
-  <!-- ATENÇÃO -->
+  <!-- CHECKLIST FINAL -->
   <section>
     <div class="sec-head">
-      <span class="eyebrow">O que costuma travar</span>
-      <h2>Pontos de atenção</h2>
-      <p>Os detalhes que, se você conferir na coleta, evitam 90% dos problemas na hora de ligar.</p>
+      <span class="eyebrow">Ligado e entregue</span>
+      <h2>Checklist final</h2>
     </div>
-    <div class="warns">
-      <div class="warn"><div class="ic">!</div><p><b>Nome do grupo errado.</b> Uma letra ou emoji diferente e o robô não acha o grupo. Copie e cole, não digite.</p></div>
-      <div class="warn"><div class="ic">!</div><p><b>Planilha não compartilhada.</b> Sem compartilhar com a conta de serviço, o robô não escreve. É o esquecimento mais comum.</p></div>
-      <div class="warn"><div class="ic">!</div><p><b>Nome da professora não bate.</b> Se o nome no áudio for diferente do que está no EVO, o follow-up sai sem áudio.</p></div>
-      <div class="warn"><div class="ic">!</div><p><b>WhatsApp no celular pessoal.</b> A linha precisa ser dedicada ao servidor; usada em outro aparelho, a conexão cai.</p></div>
-      <div class="warn"><div class="ic">!</div><p><b>Mensagens não personalizadas.</b> Sempre releia os textos: nome do Studio, endereço e persona precisam ser os da unidade nova.</p></div>
-      <div class="warn"><div class="ic">!</div><p><b>Instabilidade do EVO.</b> Às vezes o EVO fica fora do ar (do lado deles). O robô tenta de novo sozinho e avisa você — não é falha da instalação.</p></div>
-    </div>
-  </section>
-
-  <!-- FICHA DE COLETA -->
-  <section>
-    <div class="sec-head">
-      <span class="eyebrow">Para preencher a cada venda</span>
-      <h2>Ficha de coleta da unidade</h2>
-      <p>Imprima ou copie esta ficha para cada franquia nova. Com ela 100% preenchida, a instalação corre sem travas.</p>
-    </div>
-    <div class="ficha">
-      <div class="fh">📋 Unidade: <span class="slot" style="border-bottom-color:rgba(255,255,255,.6);color:rgba(255,255,255,.85);min-width:200px"></span></div>
-
-      <div class="fgroup">A · EVO</div>
-      <div class="frow"><div class="fk">Endereço do EVO</div><div class="fv"></div></div>
-      <div class="frow"><div class="fk">Usuário / e-mail</div><div class="fv"></div></div>
-      <div class="frow"><div class="fk">Senha</div><div class="fv"></div></div>
-      <div class="frow"><div class="fk">Número da filial</div><div class="fv"></div></div>
-
-      <div class="fgroup">B · WhatsApp</div>
-      <div class="frow"><div class="fk">Número do Studio</div><div class="fv"></div></div>
-      <div class="frow"><div class="fk">É Business? / quem lê o QR</div><div class="fv"></div></div>
-
-      <div class="fgroup">C · Grupo da equipe</div>
-      <div class="frow"><div class="fk">Nome exato do grupo</div><div class="fv"></div></div>
-      <div class="frow"><div class="fk">Linha do Studio já está no grupo?</div><div class="fv"></div></div>
-
-      <div class="fgroup">D · Planilha</div>
-      <div class="frow"><div class="fk">Link / ID</div><div class="fv"></div></div>
-      <div class="frow"><div class="fk">Nome da aba</div><div class="fv"></div></div>
-
-      <div class="fgroup">E · Áudios</div>
-      <div class="frow"><div class="fk">Professoras (nomes no EVO)</div><div class="fv"></div></div>
-
-      <div class="fgroup">F · Unidade</div>
-      <div class="frow"><div class="fk">Nome do Studio</div><div class="fv"></div></div>
-      <div class="frow"><div class="fk">Endereço + mapa</div><div class="fv"></div></div>
-      <div class="frow"><div class="fk">Nome que assina</div><div class="fv"></div></div>
-      <div class="frow"><div class="fk">WhatsApp da recepção</div><div class="fv"></div></div>
-
-      <div class="fgroup">G · Alertas</div>
-      <div class="frow"><div class="fk">Tópico ntfy</div><div class="fv"></div></div>
-
-      <div class="fgroup">H · Servidor</div>
-      <div class="frow"><div class="fk">Plataforma / IP / acesso</div><div class="fv"></div></div>
-    </div>
-    <p class="note">Guarde a ficha preenchida em local seguro — ela reúne senhas e acessos. Depois de instalar, o ideal é o cliente <b>trocar a senha do EVO</b> e você atualizar só no servidor.</p>
+    <ul class="chk">
+      <li><span class="box">✓</span><span>Servidor preparado (Node, Xvfb, libs) e fuso em Brasília.</span></li>
+      <li><span class="box">✓</span><span><code>.env</code> preenchido com os dados da unidade; <b>STUDIO_NOME</b> e áudios conferidos.</span></li>
+      <li><span class="box">✓</span><span>WhatsApp da unidade conectado e <b>dentro do grupo da equipe</b>.</span></li>
+      <li><span class="box">✓</span><span>Testes <code>scrape</code> e <code>morning</code> ok; mensagem de teste recebida.</span></li>
+      <li><span class="box">✓</span><span>Alertas ntfy no celular do dono, com teste recebido.</span></li>
+      <li><span class="box">✓</span><span>PM2 <b>online</b> + autostart configurado.</span></li>
+      <li><span class="box">✓</span><span>(Se vendeu) formulário na Render no ar e ponte ligada.</span></li>
+      <li><span class="box">✓</span><span>Manual entregue e recepção treinada. Acompanhe os primeiros dias.</span></li>
+    </ul>
   </section>
 
   <footer>
-    Guia de implantação do robô SlimFit · uso interno para a rede de franquias.<br>
-    Companion do manual comercial. Colete os 8 blocos, siga a sequência e ligue com segurança.
+    Runbook de instalação do robô SlimFit · uso interno para a rede de franquias.<br>
+    Baseado na configuração validada em produção (Xvfb + PM2). Clone do GitHub, nunca copie disco.
   </footer>
 
 </main>
