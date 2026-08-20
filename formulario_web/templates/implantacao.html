@@ -1,0 +1,531 @@
+<title>Guia de Implantação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#FBF6F8; --surface:#FFFFFF; --surface-2:#F6EEF2; --border:#ECDCE4;
+    --text:#241820; --text-soft:#6C5A64; --muted:#9C8A93;
+    --accent:#C33A79; --accent-2:#A72E67; --accent-soft:#FBE6F0;
+    --teal:#0F8A88; --teal-soft:#DCF0EF;
+    --wa:#1E9E52; --wa-soft:#E3F4E9;
+    --amber:#A9711A; --amber-soft:#F6EAD6;
+    --slot:#C9B3BE;
+    --shadow:0 1px 2px rgba(40,20,32,.04),0 6px 22px rgba(40,20,32,.06);
+    --radius:16px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#161016; --surface:#1F1720; --surface-2:#271D27; --border:#362A34;
+      --text:#F4E9F0; --text-soft:#C7B3BF; --muted:#8C7885;
+      --accent:#F16DA2; --accent-2:#F58CB8; --accent-soft:#3A1C2B;
+      --teal:#39B9B3; --teal-soft:#123230;
+      --wa:#37C46C; --wa-soft:#123021;
+      --amber:#E1A945; --amber-soft:#332610;
+      --slot:#6A5560;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#161016; --surface:#1F1720; --surface-2:#271D27; --border:#362A34;
+    --text:#F4E9F0; --text-soft:#C7B3BF; --muted:#8C7885;
+    --accent:#F16DA2; --accent-2:#F58CB8; --accent-soft:#3A1C2B;
+    --teal:#39B9B3; --teal-soft:#123230;
+    --wa:#37C46C; --wa-soft:#123021;
+    --amber:#E1A945; --amber-soft:#332610;
+    --slot:#6A5560;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:"Instrument Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    font-size:17px; line-height:1.6; letter-spacing:.002em;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:940px; margin:0 auto; padding:0 22px}
+  h1,h2,h3{font-family:"Bricolage Grotesque",system-ui,sans-serif; font-weight:700; text-wrap:balance; margin:0}
+  a{color:var(--accent)}
+  code,.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+  .eyebrow{font-family:"JetBrains Mono",monospace; font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted)}
+
+  /* HERO */
+  header.hero{
+    background:
+      radial-gradient(120% 140% at 88% -20%, var(--accent-soft) 0%, transparent 55%),
+      radial-gradient(120% 120% at 0% 0%, var(--teal-soft) 0%, transparent 45%);
+    border-bottom:1px solid var(--border);
+  }
+  .hero-in{padding:50px 0 42px}
+  .brand{display:flex; align-items:baseline; gap:.5ch; font-family:"Bricolage Grotesque",sans-serif; font-weight:800; font-size:1.1rem; letter-spacing:-.01em}
+  .brand .fit{color:var(--teal)}
+  .brand .reg{font-size:.72em; color:var(--muted); font-weight:600}
+  h1{font-size:clamp(2rem,5.5vw,3.1rem); line-height:1.04; font-weight:800; letter-spacing:-.02em; margin:.5em 0 .3em; max-width:18ch}
+  h1 .accent{color:var(--accent)}
+  .lede{font-size:1.12rem; color:var(--text-soft); max-width:62ch; margin:0}
+
+  section{padding:48px 0}
+  section + section{border-top:1px solid var(--border)}
+  .sec-head{margin-bottom:26px}
+  .sec-head h2{font-size:clamp(1.4rem,3.4vw,1.95rem); letter-spacing:-.015em}
+  .sec-head p{color:var(--text-soft); margin:.5em 0 0; max-width:64ch}
+
+  /* RESPONSABILIDADES split */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:720px){.split{grid-template-columns:1fr}}
+  .rcard{border:1px solid var(--border);border-radius:var(--radius);padding:22px 22px;background:var(--surface);box-shadow:var(--shadow)}
+  .rcard.you{border-color:color-mix(in srgb,var(--teal) 40%,transparent);background:linear-gradient(180deg,var(--teal-soft),var(--surface) 60%)}
+  .rcard h3{font-size:1.06rem;display:flex;align-items:center;gap:9px}
+  .rcard .who{font-family:"JetBrains Mono",monospace;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px}
+  .rcard.you .who{color:var(--teal)}
+  .rcard ul{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:9px}
+  .rcard li{font-size:.94rem;color:var(--text-soft);padding-left:24px;position:relative;line-height:1.45}
+  .rcard li::before{content:"›";position:absolute;left:2px;top:-1px;color:var(--accent);font-weight:800}
+  .rcard.you li::before{color:var(--teal)}
+
+  /* COLLECTION BLOCKS */
+  .blocks{display:flex;flex-direction:column;gap:16px}
+  .block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .block-head{display:flex;align-items:flex-start;gap:14px;padding:18px 20px;border-bottom:1px solid var(--border);background:var(--surface-2)}
+  .badge{flex:none;width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1.15rem;background:var(--accent);color:#fff;box-shadow:0 4px 12px color-mix(in srgb,var(--accent) 35%,transparent)}
+  .block-head .t{flex:1;min-width:0}
+  .block-head h3{font-size:1.12rem;letter-spacing:-.01em}
+  .block-head .sub{color:var(--text-soft);font-size:.92rem;margin-top:2px}
+  .pill{flex:none;align-self:center;font-size:.7rem;font-weight:700;font-family:"JetBrains Mono",monospace;letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border-radius:999px;white-space:nowrap}
+  .pill.crit{background:var(--accent-soft);color:var(--accent)}
+  .pill.opt{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+  .block-body{padding:18px 20px}
+  .why{display:flex;gap:10px;font-size:.92rem;color:var(--text-soft);background:var(--teal-soft);border-radius:11px;padding:11px 13px;margin-bottom:16px;line-height:1.45}
+  .why b{color:var(--text);font-weight:600}
+  .why .ic{flex:none;color:var(--teal);font-weight:800}
+
+  .how{margin:0 0 4px;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:7px}
+  .how li{font-size:.93rem;color:var(--text-soft);padding-left:22px;position:relative}
+  .how li::before{content:"→";position:absolute;left:0;top:0;color:var(--accent);opacity:.75}
+  .how b{color:var(--text);font-weight:600}
+
+  /* fields to collect */
+  .fields{margin-top:16px;border-top:1px dashed var(--border);padding-top:14px;display:flex;flex-direction:column;gap:11px}
+  .fields .flabel{font-family:"JetBrains Mono",monospace;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+  .field{display:grid;grid-template-columns:190px 1fr;gap:12px;align-items:baseline}
+  @media(max-width:600px){.field{grid-template-columns:1fr}}
+  .field .k{font-size:.9rem;color:var(--text);font-weight:600}
+  .field .k small{display:block;font-weight:400;color:var(--muted);font-size:.78rem;margin-top:1px}
+  .slot{border-bottom:2px dotted var(--slot);min-height:1.5em;font-family:"JetBrains Mono",monospace;font-size:.82rem;color:var(--muted)}
+  .slot::before{content:"";}
+
+  /* SEQUENCE */
+  .steps{display:flex;flex-direction:column;gap:2px;counter-reset:step}
+  .step{display:grid;grid-template-columns:46px 1fr;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)}
+  .step:last-child{border-bottom:0}
+  .step .n{counter-increment:step;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1.05rem;color:var(--accent);width:36px;height:36px;border-radius:10px;background:var(--accent-soft);display:grid;place-items:center}
+  .step .n::before{content:counter(step,decimal-leading-zero)}
+  .step h3{font-size:1.02rem;letter-spacing:-.01em}
+  .step p{margin:4px 0 0;color:var(--text-soft);font-size:.93rem}
+  .step .tag{display:inline-block;margin-top:7px;font-size:.72rem;font-weight:600;font-family:"JetBrains Mono",monospace;color:var(--teal);background:var(--teal-soft);padding:3px 9px;border-radius:999px}
+
+  /* FICHA (compact table) */
+  .ficha{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+  .ficha .fh{background:var(--accent);color:#fff;padding:14px 18px;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1.05rem;display:flex;align-items:center;gap:10px}
+  .frow{display:grid;grid-template-columns:230px 1fr;gap:0;border-top:1px solid var(--border)}
+  @media(max-width:600px){.frow{grid-template-columns:1fr}}
+  .frow .fk{padding:11px 18px;font-size:.86rem;font-weight:600;background:var(--surface-2);color:var(--text);border-right:1px solid var(--border)}
+  @media(max-width:600px){.frow .fk{border-right:0;border-bottom:1px dashed var(--border)}}
+  .frow .fv{padding:11px 18px;min-height:2.6em;background:var(--surface)}
+  .frow .fk small{display:block;font-weight:400;color:var(--muted);font-size:.75rem}
+  .fgroup{font-family:"JetBrains Mono",monospace;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);padding:14px 18px 6px;background:var(--surface)}
+
+  /* ALERTAS de atenção */
+  .warns{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.warns{grid-template-columns:1fr}}
+  .warn{display:flex;gap:12px;background:var(--amber-soft);border:1px solid color-mix(in srgb,var(--amber) 30%,transparent);border-radius:13px;padding:15px 16px}
+  .warn .ic{flex:none;width:28px;height:28px;border-radius:8px;background:var(--amber);color:#fff;display:grid;place-items:center;font-weight:800;font-size:.9rem}
+  .warn p{margin:0;font-size:.9rem;color:var(--text-soft);line-height:1.45}
+  .warn b{color:var(--text);font-weight:600}
+
+  .note{font-size:.86rem;color:var(--muted);margin-top:16px}
+  footer{padding:34px 0 60px;color:var(--muted);font-size:.85rem;text-align:center;line-height:1.6}
+
+  @media print{
+    body{font-size:12px}
+    header.hero,section{padding:16px 0;break-inside:avoid}
+    .block,.ficha,.step,.rcard{break-inside:avoid}
+    a{color:inherit}
+  }
+</style>
+
+<header class="hero">
+  <div class="wrap hero-in">
+    <div class="brand">slim<span class="fit">fit</span> <span class="reg">Robô · rede de franquias</span></div>
+    <h1>Guia de <span class="accent">implantação</span> do robô</h1>
+    <p class="lede">Tudo o que você precisa coletar e organizar de cada nova franquia para instalar o robô sem sustos — o que pedir, por que precisa, como conseguir e uma ficha final para preencher a cada venda.</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- COMO SE DIVIDE -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Antes de começar</span>
+      <h2>Quem entrega o quê</h2>
+      <p>A implantação é rápida quando cada lado chega com a sua parte pronta. Combine isso logo no fechamento.</p>
+    </div>
+    <div class="split">
+      <div class="rcard">
+        <span class="who">A franquia fornece</span>
+        <h3>🗂️ O que você pede ao cliente</h3>
+        <ul>
+          <li>Acesso ao <b>EVO</b> da unidade (usuário e senha)</li>
+          <li>Uma <b>linha de WhatsApp</b> dedicada ao Studio</li>
+          <li>O <b>grupo da equipe</b> no WhatsApp (e adicionar a linha nele)</li>
+          <li>A <b>planilha de aniversários</b> no Google Sheets</li>
+          <li>Os <b>áudios das professoras</b> (pós-aula)</li>
+          <li>Dados da unidade: <b>nome, endereço, mapa, nome da recepção</b></li>
+          <li>Contratar e pagar o <b>servidor</b> (direto na plataforma)</li>
+        </ul>
+      </div>
+      <div class="rcard you">
+        <span class="who">Você executa</span>
+        <h3>🛠️ O que fica com você</h3>
+        <ul>
+          <li>Preparar o <b>servidor</b> (Node, PM2, navegador)</li>
+          <li>Instalar o robô e preencher o <b>arquivo de configuração</b></li>
+          <li><b>Conectar o WhatsApp</b> (leitura do QR) e testar cada fluxo</li>
+          <li><b>Personalizar as mensagens</b> com os dados da unidade</li>
+          <li>Configurar os <b>alertas</b> no celular do dono (app ntfy)</li>
+          <li>Publicar o <b>formulário</b> de agendamento online (opcional)</li>
+          <li>Entregar o <b>manual</b> e treinar a recepção</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHECKLIST DE COLETA -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Checklist de coleta</span>
+      <h2>Os 8 blocos que você precisa reunir</h2>
+      <p>Cada bloco tem: <b>por que precisa</b>, <b>como conseguir</b> e os <b>campos exatos</b> a anotar. As tarjas <span style="color:var(--accent);font-weight:600">Obrigatório</span> travam a instalação se faltarem; as <span style="color:var(--muted);font-weight:600">Opcional</span> podem entrar depois.</p>
+    </div>
+
+    <div class="blocks">
+
+      <!-- A · EVO -->
+      <div class="block">
+        <div class="block-head">
+          <div class="badge">A</div>
+          <div class="t">
+            <h3>Acesso ao EVO</h3>
+            <div class="sub">É de onde o robô lê tudo: experimentais, presenças, faltas, contratos, aniversários, ausentes e trancamentos.</div>
+          </div>
+          <span class="pill crit">Obrigatório</span>
+        </div>
+        <div class="block-body">
+          <div class="why"><span class="ic">i</span><span>Sem o EVO da unidade, <b>nada</b> funciona — todas as leituras vêm dele. Peça um login que enxergue a agenda, o comercial (experimentais) e o gerencial (suspensões/faltantes).</span></div>
+          <ul class="how">
+            <li>Peça ao cliente para <b>criar (ou liberar) um usuário</b> do EVO para o robô, com acesso de leitura à unidade.</li>
+            <li>Abrindo o EVO logado, a URL mostra o <b>número da filial</b> — ex.: <code>.../app/slimfit/<b>15</b>/...</code>. Anote esse número.</li>
+            <li>Para a busca de telefone na renovação, o robô usa a <b>API do EVO</b>: isso é capturado automaticamente na 1ª execução dentro da sessão logada — você não precisa pedir token ao cliente, só garantir que o login funciona.</li>
+          </ul>
+          <div class="fields">
+            <div class="flabel">Anote</div>
+            <div class="field"><div class="k">Endereço do EVO<small>o subdomínio da unidade</small></div><div class="slot"></div></div>
+            <div class="field"><div class="k">Usuário / e-mail</div><div class="slot"></div></div>
+            <div class="field"><div class="k">Senha</div><div class="slot"></div></div>
+            <div class="field"><div class="k">Número da filial<small>o número na URL</small></div><div class="slot"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B · WhatsApp -->
+      <div class="block">
+        <div class="block-head">
+          <div class="badge">B</div>
+          <div class="t">
+            <h3>Linha de WhatsApp do Studio</h3>
+            <div class="sub">É por onde todas as mensagens saem — confirmações, follow-up, faltas, renovação e avisos nos grupos.</div>
+          </div>
+          <span class="pill crit">Obrigatório</span>
+        </div>
+        <div class="block-body">
+          <div class="why"><span class="ic">i</span><span>Use uma linha <b>dedicada</b> ao Studio (de preferência WhatsApp Business). O robô fica conectado nela 24h no servidor — <b>não pode ser o celular pessoal</b> de ninguém, senão a conexão cai quando esse aparelho usa o WhatsApp.</span></div>
+          <ul class="how">
+            <li>O cliente escolhe/prepara o <b>chip e o número</b> do Studio (o mesmo que ele já usa para falar com as alunas, idealmente).</li>
+            <li>Na instalação, você <b>lê o QR code</b> uma vez no servidor para conectar. Depois disso ele se mantém sozinho (reinicia todo dia às 03:00).</li>
+            <li>Se o WhatsApp cair e pedir QR de novo, chega um <b>alerta no celular do dono</b> para reconectar.</li>
+          </ul>
+          <div class="fields">
+            <div class="flabel">Anote</div>
+            <div class="field"><div class="k">Número do WhatsApp<small>com DDD</small></div><div class="slot"></div></div>
+            <div class="field"><div class="k">É Business?<small>recomendado</small></div><div class="slot"></div></div>
+            <div class="field"><div class="k">Quem tem o aparelho<small>para ler o QR</small></div><div class="slot"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C · Grupo da equipe -->
+      <div class="block">
+        <div class="block-head">
+          <div class="badge">C</div>
+          <div class="t">
+            <h3>Grupo da equipe</h3>
+            <div class="sub">Onde caem os avisos internos: aniversariantes, ausentes 10 dias, presentes pendentes e os resumos do dia e da semana.</div>
+          </div>
+          <span class="pill crit">Obrigatório</span>
+        </div>
+        <div class="block-body">
+          <div class="why"><span class="ic">i</span><span>O robô procura o grupo <b>pelo nome exato</b>. Se o nome estiver diferente de uma letra, ele não encontra e o aviso não sai. Confirme o nome com a tela do WhatsApp aberta.</span></div>
+          <ul class="how">
+            <li>Peça o <b>nome exato</b> do grupo interno da equipe (copie e cole, com emojis se tiver).</li>
+            <li><b>Adicione a linha do Studio</b> (a do bloco B) dentro desse grupo — o robô só posta em grupos onde o número dele participa.</li>
+            <li>Os <b>parabéns de aniversário não precisam de grupo próprio</b>: o robô lê o contato da aniversariante e manda em <b>todos os grupos que ela tem em comum</b> com a linha do Studio, marcando ela com @.</li>
+          </ul>
+          <div class="fields">
+            <div class="flabel">Anote</div>
+            <div class="field"><div class="k">Nome do grupo da equipe</div><div class="slot"></div></div>
+            <div class="field"><div class="k">Linha já está no grupo?</div><div class="slot"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- D · Planilha -->
+      <div class="block">
+        <div class="block-head">
+          <div class="badge">D</div>
+          <div class="t">
+            <h3>Planilha de aniversários (Google Sheets)</h3>
+            <div class="sub">O robô atualiza diariamente a lista de alunas ativas e aniversários, sem bagunçar as colunas preenchidas à mão.</div>
+          </div>
+          <span class="pill opt">Se usar planilha</span>
+        </div>
+        <div class="block-body">
+          <div class="why"><span class="ic">i</span><span>Para o robô <b>escrever</b> na planilha, ela precisa ser <b>compartilhada com o e-mail técnico</b> (conta de serviço do Google). Sem esse compartilhamento, ele lê mas não consegue atualizar.</span></div>
+          <ul class="how">
+            <li>Pegue o <b>link da planilha</b> do cliente (o ID fica no meio da URL) e o <b>nome da aba</b> que o robô deve atualizar.</li>
+            <li>Você gera (ou reusa) uma <b>conta de serviço do Google</b> e compartilha a planilha com o e-mail dela, como <b>Editor</b>.</li>
+            <li>Combine com o cliente <b>quais colunas são do robô</b> e quais são preenchidas por eles, para nada ser sobrescrito.</li>
+          </ul>
+          <div class="fields">
+            <div class="flabel">Anote</div>
+            <div class="field"><div class="k">Link / ID da planilha</div><div class="slot"></div></div>
+            <div class="field"><div class="k">Nome da aba</div><div class="slot"></div></div>
+            <div class="field"><div class="k">Compartilhada com a conta de serviço?</div><div class="slot"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- E · Áudios -->
+      <div class="block">
+        <div class="block-head">
+          <div class="badge">E</div>
+          <div class="t">
+            <h3>Áudios das professoras (pós-aula)</h3>
+            <div class="sub">O follow-up envia um áudio da professora que deu a aula experimental, para aquecer a matrícula.</div>
+          </div>
+          <span class="pill crit">Obrigatório</span>
+        </div>
+        <div class="block-body">
+          <div class="why"><span class="ic">i</span><span>Cada professora grava <b>um áudio genérico</b> (serve para todas as alunas dela). O robô escolhe o áudio pelo nome da professora que aparece na aula no EVO — por isso os <b>nomes precisam bater</b>.</span></div>
+          <ul class="how">
+            <li>Peça <b>um áudio por professora</b>, gravado como nota de voz (curto, caloroso, convidando para a próxima aula).</li>
+            <li>Liste os <b>nomes das professoras</b> exatamente como aparecem no EVO — é assim que o robô liga a professora ao áudio dela.</li>
+            <li>Você converte os áudios para o formato certo e cadastra o mapeamento <b>professora → arquivo</b>.</li>
+          </ul>
+          <div class="fields">
+            <div class="flabel">Anote</div>
+            <div class="field"><div class="k">Professoras (nomes no EVO)</div><div class="slot"></div></div>
+            <div class="field"><div class="k">Recebeu 1 áudio de cada?</div><div class="slot"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- F · Personalização -->
+      <div class="block">
+        <div class="block-head">
+          <div class="badge">F</div>
+          <div class="t">
+            <h3>Dados da unidade (personalização)</h3>
+            <div class="sub">Os textos das mensagens citam o nome do Studio, o endereço e o nome de quem atende. Tudo isso muda por unidade.</div>
+          </div>
+          <span class="pill crit">Obrigatório</span>
+        </div>
+        <div class="block-body">
+          <div class="why"><span class="ic">i</span><span>Se você esquecer de trocar, a unidade nova sai mandando mensagem com o nome e o endereço de <b>outra</b> franquia. É a checagem final antes de ligar.</span></div>
+          <ul class="how">
+            <li>Colete o <b>nome do Studio</b> como deve aparecer para a aluna (ex.: “Studio SlimFit Jardim Goiás”).</li>
+            <li>Colete o <b>endereço completo</b> e o <b>link do Google Maps</b> (usados na confirmação do formulário).</li>
+            <li>Colete o <b>nome da recepção/persona</b> que assina as mensagens (ex.: “Me chamo Juliana…”).</li>
+            <li>Confirme o <b>número da recepção</b> que recebe alertas internos do sistema.</li>
+          </ul>
+          <div class="fields">
+            <div class="flabel">Anote</div>
+            <div class="field"><div class="k">Nome do Studio</div><div class="slot"></div></div>
+            <div class="field"><div class="k">Endereço completo</div><div class="slot"></div></div>
+            <div class="field"><div class="k">Link do mapa</div><div class="slot"></div></div>
+            <div class="field"><div class="k">Nome que assina<small>persona da recepção</small></div><div class="slot"></div></div>
+            <div class="field"><div class="k">WhatsApp da recepção<small>para alertas</small></div><div class="slot"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- G · Alertas -->
+      <div class="block">
+        <div class="block-head">
+          <div class="badge">G</div>
+          <div class="t">
+            <h3>Alertas no celular (app ntfy)</h3>
+            <div class="sub">O sistema avisa o dono quando algo falha: WhatsApp caiu, tarefa deu erro, confirmação se perdeu.</div>
+          </div>
+          <span class="pill opt">Recomendado</span>
+        </div>
+        <div class="block-body">
+          <div class="why"><span class="ic">i</span><span>É o que dá <b>tranquilidade</b> ao cliente: se algo parar, ele fica sabendo na hora, no celular — em vez de descobrir dias depois que as mensagens não saíram.</span></div>
+          <ul class="how">
+            <li>Peça o cliente para instalar o app <b>ntfy</b> (grátis, iPhone e Android).</li>
+            <li>Você define um <b>tópico exclusivo</b> da unidade (um nome secreto, difícil de adivinhar) e o cliente se inscreve nele no app.</li>
+            <li>Faça um <b>teste de alerta</b> na frente do cliente para ele ver a notificação chegar.</li>
+          </ul>
+          <div class="fields">
+            <div class="flabel">Anote</div>
+            <div class="field"><div class="k">Tópico ntfy da unidade</div><div class="slot"></div></div>
+            <div class="field"><div class="k">Cliente já se inscreveu?</div><div class="slot"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- H · Servidor -->
+      <div class="block">
+        <div class="block-head">
+          <div class="badge">H</div>
+          <div class="t">
+            <h3>Servidor (onde o robô roda 24h)</h3>
+            <div class="sub">Um computador na nuvem sempre ligado. É o único custo mensal e é pago direto à plataforma pelo cliente.</div>
+          </div>
+          <span class="pill crit">Obrigatório</span>
+        </div>
+        <div class="block-body">
+          <div class="why"><span class="ic">i</span><span>O servidor fica <b>no nome do cliente</b> e é pago por ele (~R$ 30/mês, direto na plataforma). Assim você não intermedia cobrança e ele mantém o controle. Você só precisa do <b>acesso</b> para instalar.</span></div>
+          <ul class="how">
+            <li>Oriente a contratação de um <b>servidor (VPS) Linux</b> simples — o cliente contrata e paga direto na plataforma de hospedagem.</li>
+            <li>Você recebe o <b>acesso (IP + login)</b> e prepara o ambiente: Node, PM2 e o navegador que o robô usa.</li>
+            <li>Instala o robô, preenche a configuração com tudo que coletou e deixa rodando como serviço (reinicia sozinho se o servidor reiniciar).</li>
+          </ul>
+          <div class="fields">
+            <div class="flabel">Anote</div>
+            <div class="field"><div class="k">Plataforma / plano</div><div class="slot"></div></div>
+            <div class="field"><div class="k">IP do servidor</div><div class="slot"></div></div>
+            <div class="field"><div class="k">Acesso (login)</div><div class="slot"></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FORMULÁRIO opcional -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Extra do pacote</span>
+      <h2>Formulário de agendamento online</h2>
+      <p>Opcional, mas é um baita diferencial: a lead escolhe o horário num site, o sistema cadastra e matricula no EVO e dispara a confirmação. Se for vender junto, colete também:</p>
+    </div>
+    <div class="fields" style="border-top:0;padding-top:0">
+      <div class="field"><div class="k">Serviço da experimental no EVO<small>qual atividade/serviço representa a aula experimental</small></div><div class="slot"></div></div>
+      <div class="field"><div class="k">Regras da grade<small>ocupação máxima, quantos dias mostrar</small></div><div class="slot"></div></div>
+      <div class="field"><div class="k">Onde publicar<small>conta na plataforma de hospedagem do site</small></div><div class="slot"></div></div>
+    </div>
+  </section>
+
+  <!-- SEQUÊNCIA -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Passo a passo</span>
+      <h2>A ordem da implantação</h2>
+      <p>Seguindo nesta sequência, uma unidade nova entra no ar em cerca de um dia de trabalho — depois de você já ter tudo dos 8 blocos em mãos.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="n"></div><div><h3>Coletar os 8 blocos</h3><p>Use a ficha do fim desta página. Só comece a instalar com tudo preenchido — é o que evita idas e vindas.</p><span class="tag">com o cliente</span></div></div>
+      <div class="step"><div class="n"></div><div><h3>Preparar o servidor</h3><p>Receber o acesso do cliente, instalar Node, PM2 e o navegador, e subir o robô no servidor.</p><span class="tag">você</span></div></div>
+      <div class="step"><div class="n"></div><div><h3>Preencher a configuração</h3><p>Colocar EVO, grupo, planilha, tópico de alertas e as regras da unidade no arquivo de configuração.</p><span class="tag">você</span></div></div>
+      <div class="step"><div class="n"></div><div><h3>Personalizar as mensagens</h3><p>Trocar nome do Studio, endereço, mapa e o nome de quem assina. Ler tudo uma vez em voz alta antes de ligar.</p><span class="tag">você</span></div></div>
+      <div class="step"><div class="n"></div><div><h3>Conectar o WhatsApp</h3><p>Ler o QR code com a linha do Studio e confirmar que o número está dentro do grupo da equipe.</p><span class="tag">com o cliente</span></div></div>
+      <div class="step"><div class="n"></div><div><h3>Cadastrar os áudios</h3><p>Converter os áudios das professoras e ligar cada um ao nome correto no mapeamento.</p><span class="tag">você</span></div></div>
+      <div class="step"><div class="n"></div><div><h3>Testar cada fluxo em modo simulação</h3><p>Rodar confirmação, follow-up, faltas, renovação, aniversários e resumos sem enviar, conferindo os resultados.</p><span class="tag">você</span></div></div>
+      <div class="step"><div class="n"></div><div><h3>Configurar os alertas</h3><p>Cliente instala o ntfy, se inscreve no tópico e vê um alerta de teste chegar no celular.</p><span class="tag">com o cliente</span></div></div>
+      <div class="step"><div class="n"></div><div><h3>Publicar o formulário</h3><p>Se estiver no pacote, subir o site de agendamento e testar uma marcação de ponta a ponta.</p><span class="tag">opcional</span></div></div>
+      <div class="step"><div class="n"></div><div><h3>Ligar e entregar</h3><p>Ativar de verdade, mandar o link do manual e treinar a recepção. Acompanhar os primeiros dias de perto.</p><span class="tag">entrega</span></div></div>
+    </div>
+  </section>
+
+  <!-- ATENÇÃO -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">O que costuma travar</span>
+      <h2>Pontos de atenção</h2>
+      <p>Os detalhes que, se você conferir na coleta, evitam 90% dos problemas na hora de ligar.</p>
+    </div>
+    <div class="warns">
+      <div class="warn"><div class="ic">!</div><p><b>Nome do grupo errado.</b> Uma letra ou emoji diferente e o robô não acha o grupo. Copie e cole, não digite.</p></div>
+      <div class="warn"><div class="ic">!</div><p><b>Planilha não compartilhada.</b> Sem compartilhar com a conta de serviço, o robô não escreve. É o esquecimento mais comum.</p></div>
+      <div class="warn"><div class="ic">!</div><p><b>Nome da professora não bate.</b> Se o nome no áudio for diferente do que está no EVO, o follow-up sai sem áudio.</p></div>
+      <div class="warn"><div class="ic">!</div><p><b>WhatsApp no celular pessoal.</b> A linha precisa ser dedicada ao servidor; usada em outro aparelho, a conexão cai.</p></div>
+      <div class="warn"><div class="ic">!</div><p><b>Mensagens não personalizadas.</b> Sempre releia os textos: nome do Studio, endereço e persona precisam ser os da unidade nova.</p></div>
+      <div class="warn"><div class="ic">!</div><p><b>Instabilidade do EVO.</b> Às vezes o EVO fica fora do ar (do lado deles). O robô tenta de novo sozinho e avisa você — não é falha da instalação.</p></div>
+    </div>
+  </section>
+
+  <!-- FICHA DE COLETA -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Para preencher a cada venda</span>
+      <h2>Ficha de coleta da unidade</h2>
+      <p>Imprima ou copie esta ficha para cada franquia nova. Com ela 100% preenchida, a instalação corre sem travas.</p>
+    </div>
+    <div class="ficha">
+      <div class="fh">📋 Unidade: <span class="slot" style="border-bottom-color:rgba(255,255,255,.6);color:rgba(255,255,255,.85);min-width:200px"></span></div>
+
+      <div class="fgroup">A · EVO</div>
+      <div class="frow"><div class="fk">Endereço do EVO</div><div class="fv"></div></div>
+      <div class="frow"><div class="fk">Usuário / e-mail</div><div class="fv"></div></div>
+      <div class="frow"><div class="fk">Senha</div><div class="fv"></div></div>
+      <div class="frow"><div class="fk">Número da filial</div><div class="fv"></div></div>
+
+      <div class="fgroup">B · WhatsApp</div>
+      <div class="frow"><div class="fk">Número do Studio</div><div class="fv"></div></div>
+      <div class="frow"><div class="fk">É Business? / quem lê o QR</div><div class="fv"></div></div>
+
+      <div class="fgroup">C · Grupo da equipe</div>
+      <div class="frow"><div class="fk">Nome exato do grupo</div><div class="fv"></div></div>
+      <div class="frow"><div class="fk">Linha do Studio já está no grupo?</div><div class="fv"></div></div>
+
+      <div class="fgroup">D · Planilha</div>
+      <div class="frow"><div class="fk">Link / ID</div><div class="fv"></div></div>
+      <div class="frow"><div class="fk">Nome da aba</div><div class="fv"></div></div>
+
+      <div class="fgroup">E · Áudios</div>
+      <div class="frow"><div class="fk">Professoras (nomes no EVO)</div><div class="fv"></div></div>
+
+      <div class="fgroup">F · Unidade</div>
+      <div class="frow"><div class="fk">Nome do Studio</div><div class="fv"></div></div>
+      <div class="frow"><div class="fk">Endereço + mapa</div><div class="fv"></div></div>
+      <div class="frow"><div class="fk">Nome que assina</div><div class="fv"></div></div>
+      <div class="frow"><div class="fk">WhatsApp da recepção</div><div class="fv"></div></div>
+
+      <div class="fgroup">G · Alertas</div>
+      <div class="frow"><div class="fk">Tópico ntfy</div><div class="fv"></div></div>
+
+      <div class="fgroup">H · Servidor</div>
+      <div class="frow"><div class="fk">Plataforma / IP / acesso</div><div class="fv"></div></div>
+    </div>
+    <p class="note">Guarde a ficha preenchida em local seguro — ela reúne senhas e acessos. Depois de instalar, o ideal é o cliente <b>trocar a senha do EVO</b> e você atualizar só no servidor.</p>
+  </section>
+
+  <footer>
+    Guia de implantação do robô SlimFit · uso interno para a rede de franquias.<br>
+    Companion do manual comercial. Colete os 8 blocos, siga a sequência e ligue com segurança.
+  </footer>
+
+</main>
