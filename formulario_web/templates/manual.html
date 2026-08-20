@@ -1,0 +1,628 @@
+<title>Manual do Robô SlimFit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#FBF6F8; --surface:#FFFFFF; --surface-2:#F6EEF2; --border:#ECDCE4;
+    --text:#241820; --text-soft:#6C5A64; --muted:#9C8A93;
+    --accent:#C33A79; --accent-2:#A72E67; --accent-soft:#FBE6F0;
+    --teal:#0F8A88; --teal-soft:#DCF0EF;
+    --wa:#1E9E52; --wa-soft:#E3F4E9;
+    --amber:#A9711A; --amber-soft:#F6EAD6;
+    --shadow:0 1px 2px rgba(40,20,32,.04),0 6px 22px rgba(40,20,32,.06);
+    --radius:16px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#161016; --surface:#1F1720; --surface-2:#271D27; --border:#362A34;
+      --text:#F4E9F0; --text-soft:#C7B3BF; --muted:#8C7885;
+      --accent:#F16DA2; --accent-2:#F58CB8; --accent-soft:#3A1C2B;
+      --teal:#39B9B3; --teal-soft:#123230;
+      --wa:#37C46C; --wa-soft:#123021;
+      --amber:#E1A945; --amber-soft:#332610;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#161016; --surface:#1F1720; --surface-2:#271D27; --border:#362A34;
+    --text:#F4E9F0; --text-soft:#C7B3BF; --muted:#8C7885;
+    --accent:#F16DA2; --accent-2:#F58CB8; --accent-soft:#3A1C2B;
+    --teal:#39B9B3; --teal-soft:#123230;
+    --wa:#37C46C; --wa-soft:#123021;
+    --amber:#E1A945; --amber-soft:#332610;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:"Instrument Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    font-size:17px; line-height:1.6; letter-spacing:.002em;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1020px; margin:0 auto; padding:0 22px}
+  h1,h2,h3{font-family:"Bricolage Grotesque",system-ui,sans-serif; font-weight:700; text-wrap:balance; margin:0}
+  a{color:var(--accent); text-decoration:none}
+  a:hover{text-decoration:underline}
+  code,.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+  .eyebrow{font-family:"JetBrains Mono",monospace; font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted)}
+
+  /* HERO */
+  header.hero{
+    background:
+      radial-gradient(120% 140% at 88% -20%, var(--accent-soft) 0%, transparent 55%),
+      radial-gradient(120% 120% at 0% 0%, var(--teal-soft) 0%, transparent 45%);
+    border-bottom:1px solid var(--border);
+  }
+  .hero-in{padding:54px 0 46px}
+  .brand{display:flex; align-items:baseline; gap:.5ch; font-family:"Bricolage Grotesque",sans-serif; font-weight:800; font-size:1.15rem; letter-spacing:-.01em}
+  .brand .fit{color:var(--teal)}
+  .brand .reg{font-size:.7em; color:var(--muted); font-weight:600}
+  h1{font-size:clamp(2.1rem,6vw,3.5rem); line-height:1.02; font-weight:800; letter-spacing:-.02em; margin:.5em 0 .35em; max-width:16ch}
+  h1 .accent{color:var(--accent)}
+  .lede{font-size:1.16rem; color:var(--text-soft); max-width:60ch; margin:0}
+  .facts{display:flex; flex-wrap:wrap; gap:10px; margin-top:26px}
+  .fact{display:flex; align-items:center; gap:9px; background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:8px 15px 8px 12px; font-size:.9rem; box-shadow:var(--shadow)}
+  .fact b{font-weight:600}
+  .fact .dot{width:8px;height:8px;border-radius:50%;background:var(--wa);flex:none;box-shadow:0 0 0 4px var(--wa-soft)}
+
+  section{padding:52px 0}
+  section + section{border-top:1px solid var(--border)}
+  .sec-head{margin-bottom:30px}
+  .sec-head h2{font-size:clamp(1.5rem,3.5vw,2.05rem); letter-spacing:-.015em}
+  .sec-head p{color:var(--text-soft); margin:.5em 0 0; max-width:64ch}
+
+  /* legend chips */
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .chip{display:inline-flex;align-items:center;gap:7px;font-size:.8rem;font-weight:600;padding:5px 11px;border-radius:999px;border:1px solid transparent;white-space:nowrap}
+  .chip .sw{width:9px;height:9px;border-radius:3px;flex:none}
+  .c-aluna{background:var(--wa-soft);color:var(--wa);border-color:color-mix(in srgb,var(--wa) 22%,transparent)}
+  .c-aluna .sw{background:var(--wa)}
+  .c-grupo{background:var(--amber-soft);color:var(--amber);border-color:color-mix(in srgb,var(--amber) 22%,transparent)}
+  .c-grupo .sw{background:var(--amber)}
+  .c-sistema{background:var(--teal-soft);color:var(--teal);border-color:color-mix(in srgb,var(--teal) 22%,transparent)}
+  .c-sistema .sw{background:var(--teal)}
+  .c-off{background:var(--surface-2);color:var(--muted);border-color:var(--border)}
+  .c-off .sw{background:var(--muted)}
+
+  /* TIMELINE */
+  .timeline{display:flex;flex-direction:column;gap:14px}
+  .tl{display:grid;grid-template-columns:96px 1fr;gap:18px;align-items:start}
+  .tl-time{text-align:right;padding-top:16px}
+  .tl-time .hr{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:1.12rem;font-variant-numeric:tabular-nums;color:var(--text)}
+  .tl-time .days{font-size:.72rem;color:var(--muted);margin-top:2px}
+  .card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
+  .card::before{content:"";position:absolute;left:-1px;top:14px;bottom:14px;width:3px;border-radius:3px;background:var(--accent)}
+  .card.k-aluna::before{background:var(--wa)}
+  .card.k-grupo::before{background:var(--amber)}
+  .card.k-sistema::before{background:var(--teal)}
+  .card.k-off::before{background:var(--muted)}
+  .card-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .card h3{font-size:1.06rem;font-weight:700;letter-spacing:-.01em}
+  .card .to{margin-left:auto}
+  .card p{margin:8px 0 0;color:var(--text-soft);font-size:.96rem}
+  .tag{font-size:.72rem;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--surface-2);color:var(--text-soft);border:1px solid var(--border)}
+  .msg-ref{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:.82rem;font-weight:600;color:var(--accent)}
+  .msg-ref::before{content:"↳";opacity:.7}
+
+  /* continuous grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+  .mini{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:15px 16px;box-shadow:var(--shadow)}
+  .mini .freq{font-family:"JetBrains Mono",monospace;font-weight:700;color:var(--accent);font-size:.92rem}
+  .mini h3{font-size:1rem;margin:6px 0 4px}
+  .mini p{margin:0;color:var(--text-soft);font-size:.9rem}
+
+  /* MESSAGES */
+  .msgs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+  .mcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}
+  .mcard .mhead{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+  .mcard .mhead h3{font-size:1rem}
+  .mcard .mhead .when{margin-left:auto;font-size:.74rem;color:var(--muted);font-family:"JetBrains Mono",monospace}
+  .bubble-wrap{padding:16px;background:
+     repeating-linear-gradient(0deg,transparent,transparent 22px,color-mix(in srgb,var(--border) 30%,transparent) 22px,color-mix(in srgb,var(--border) 30%,transparent) 23px);
+     background-color:var(--surface-2);flex:1}
+  .bubble{background:var(--wa-soft);border:1px solid color-mix(in srgb,var(--wa) 25%,transparent);border-radius:4px 14px 14px 14px;padding:12px 14px;font-size:.92rem;line-height:1.5;white-space:pre-wrap;color:var(--text);max-width:46ch}
+  .bubble.grp{background:var(--amber-soft);border-color:color-mix(in srgb,var(--amber) 25%,transparent)}
+  .bubble .ph{color:var(--accent);font-weight:600}
+  .bubble .aud{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:7px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--border);font-size:.82rem;color:var(--text-soft)}
+  .note{font-size:.82rem;color:var(--muted);padding:10px 16px;border-top:1px dashed var(--border)}
+
+  /* alerts + commands */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media(max-width:760px){.cols{grid-template-columns:1fr}}
+  ul.clean{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+  ul.clean li{display:flex;gap:11px;align-items:flex-start;font-size:.95rem;color:var(--text-soft)}
+  ul.clean li b{color:var(--text);font-weight:600}
+  ul.clean .ic{flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:.9rem;background:var(--accent-soft);color:var(--accent);margin-top:1px}
+  ul.clean .ic.warn{background:var(--amber-soft);color:var(--amber)}
+  ul.clean .ic.crit{background:color-mix(in srgb,#e5484d 16%,transparent);color:#d33}
+
+  pre.cmd{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;overflow-x:auto;font-family:"JetBrains Mono",monospace;font-size:.82rem;line-height:1.7;color:var(--text);box-shadow:var(--shadow)}
+  pre.cmd .c{color:var(--muted)}
+  pre.cmd b{color:var(--accent);font-weight:500}
+
+  /* PRICING */
+  .price{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:680px){.price{grid-template-columns:1fr}}
+  .pcard{border:1px solid var(--border);border-radius:var(--radius);padding:26px;background:var(--surface);box-shadow:var(--shadow);display:flex;flex-direction:column}
+  .pcard.feat{border-color:color-mix(in srgb,var(--accent) 45%,transparent);background:linear-gradient(180deg,var(--accent-soft),var(--surface) 62%)}
+  .pcard .ptag{font-family:"JetBrains Mono",monospace;font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+  .pcard .amount{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:2.5rem;letter-spacing:-.02em;line-height:1;margin:12px 0 4px;color:var(--text)}
+  .pcard .amount small{font-size:.82rem;font-weight:600;color:var(--muted);letter-spacing:0}
+  .pcard .sub{color:var(--text-soft);font-size:.95rem;margin:0 0 6px}
+  .pcard ul{list-style:none;padding:0;margin:12px 0 0;display:flex;flex-direction:column;gap:8px}
+  .pcard ul li{font-size:.9rem;color:var(--text-soft);padding-left:22px;position:relative}
+  .pcard ul li::before{content:"✓";position:absolute;left:0;top:-1px;color:var(--wa);font-weight:800}
+  .terms{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+  .term{flex:1 1 260px;display:flex;gap:12px;align-items:flex-start;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;font-size:.92rem;color:var(--text-soft)}
+  .term b{color:var(--text);font-weight:600}
+  .term .ic{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:1rem;background:var(--teal-soft);color:var(--teal)}
+
+  /* SERVER compare */
+  .banner{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;box-shadow:var(--shadow);margin-bottom:20px}
+  .banner .big{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1.9rem;letter-spacing:-.02em;color:var(--accent);line-height:1}
+  .banner .big small{font-size:.5em;font-weight:600;color:var(--muted)}
+  .banner .txt{flex:1 1 300px;color:var(--text-soft);font-size:.95rem}
+  .banner .txt b{color:var(--text);font-weight:600}
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:680px){.compare{grid-template-columns:1fr}}
+  .ccard{border:1px solid var(--border);border-radius:var(--radius);padding:24px;background:var(--surface);box-shadow:var(--shadow);display:flex;flex-direction:column}
+  .ccard.good{border-color:color-mix(in srgb,var(--wa) 42%,transparent);background:linear-gradient(180deg,var(--wa-soft),var(--surface) 60%)}
+  .ccard .clabel{font-family:"JetBrains Mono",monospace;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .ccard.good .clabel{color:var(--wa)}
+  .ccard .cost{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-.01em;margin:8px 0 2px;color:var(--text)}
+  .ccard .cost small{font-size:.6em;font-weight:600;color:var(--muted)}
+  .ccard .verdict{font-size:.86rem;font-weight:600;margin:0 0 4px}
+  .ccard.warn .verdict{color:var(--amber)}
+  .ccard.good .verdict{color:var(--wa)}
+  .ccard ul{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--border);padding-top:14px}
+  .ccard ul li{font-size:.92rem;color:var(--text-soft);padding-left:26px;position:relative;line-height:1.45}
+  .ccard.warn ul li::before{content:"✗";position:absolute;left:0;top:-1px;color:var(--amber);font-weight:800}
+  .ccard.good ul li::before{content:"✓";position:absolute;left:0;top:-1px;color:var(--wa);font-weight:800}
+
+  /* CTA */
+  .cta{background:linear-gradient(135deg,var(--accent),var(--accent-2));border-radius:22px;padding:46px 28px;text-align:center;box-shadow:0 14px 40px color-mix(in srgb,var(--accent) 35%,transparent);margin:8px 0 4px}
+  .cta h2{color:#fff;font-size:clamp(1.5rem,4vw,2.2rem);letter-spacing:-.015em}
+  .cta p{color:rgba(255,255,255,.92);max-width:54ch;margin:12px auto 0;font-size:1.05rem}
+  .wa-btn{display:inline-flex;align-items:center;gap:11px;margin-top:24px;background:#fff;color:#B12E67;font-weight:700;font-size:1.06rem;padding:15px 28px;border-radius:999px;text-decoration:none;box-shadow:0 10px 26px rgba(0,0,0,.22);transition:transform .12s ease}
+  .wa-btn:hover{text-decoration:none;transform:translateY(-2px)}
+  .wa-btn svg{width:22px;height:22px;flex:none}
+  @media (prefers-reduced-motion:reduce){.wa-btn{transition:none}}
+
+  footer{padding:36px 0 60px;color:var(--muted);font-size:.85rem;text-align:center}
+  .divlabel{display:flex;align-items:center;gap:14px;margin:6px 0 20px}
+  .divlabel::after{content:"";height:1px;background:var(--border);flex:1}
+  .divlabel .eyebrow{color:var(--accent)}
+</style>
+
+<header class="hero">
+  <div class="wrap hero-in">
+    <div class="brand">slim<span class="fit">fit</span> <span class="reg">Setor Bueno</span></div>
+    <h1>Manual do <span class="accent">robô</span> do Studio</h1>
+    <p class="lede">Tudo o que a automação faz sozinha — cada tarefa, o horário em que roda e a mensagem exata que envia para as alunas, as leads e a equipe.</p>
+    <div class="facts">
+      <span class="fact"><span class="dot"></span><b>Roda 24h</b>&nbsp;no servidor (VPS), sem depender do PC</span>
+      <span class="fact"><b>WhatsApp</b>&nbsp;do Studio sempre conectado</span>
+      <span class="fact"><b>EVO</b>&nbsp;+ <b>formulário</b> de agendamento</span>
+      <span class="fact"><b>Alertas</b>&nbsp;no seu celular se algo falhar</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- COMO FUNCIONA -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Visão geral</span>
+      <h2>Como o sistema funciona</h2>
+      <p>Um único programa fica ligado o tempo todo no servidor. Nos horários certos, ele entra no EVO para ler as informações, e envia as mensagens pela linha de WhatsApp do Studio. Nada precisa estar aberto no seu computador.</p>
+    </div>
+    <div class="grid">
+      <div class="mini"><div class="freq">EVO</div><h3>De onde ele lê</h3><p>Aulas experimentais, presenças e faltas, contratos vencendo, aniversários, alunas ausentes e trancamentos.</p></div>
+      <div class="mini"><div class="freq">WhatsApp</div><h3>Por onde ele fala</h3><p>Uma conexão única e persistente do WhatsApp do Studio, reaproveitada por todos os envios.</p></div>
+      <div class="mini"><div class="freq">Formulário</div><h3>Agendamento online</h3><p>A lead escolhe o horário no site; o sistema cadastra e matricula no EVO e envia a confirmação.</p></div>
+      <div class="mini"><div class="freq">03:00</div><h3>Manutenção diária</h3><p>Todo dia de madrugada o WhatsApp reinicia sozinho para manter a conexão saudável.</p></div>
+    </div>
+    <div class="legend" aria-label="legenda de destinos">
+      <span class="chip c-aluna"><span class="sw"></span>Mensagem para a aluna / lead</span>
+      <span class="chip c-grupo"><span class="sw"></span>Aviso no grupo da equipe</span>
+      <span class="chip c-sistema"><span class="sw"></span>Interno / planilha</span>
+      <span class="chip c-off"><span class="sw"></span>Desligado</span>
+    </div>
+  </section>
+
+  <!-- LINHA DO TEMPO -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Agenda do dia</span>
+      <h2>Linha do tempo — o que roda e quando</h2>
+      <p>Horários no fuso de Brasília. A tarja colorida à esquerda de cada cartão indica o destino da ação.</p>
+    </div>
+
+    <div class="timeline">
+
+      <div class="tl">
+        <div class="tl-time"><div class="hr">05:30</div><div class="days">dia 28</div></div>
+        <div class="card k-grupo">
+          <div class="card-top"><h3>Aniversariantes do mês</h3><span class="chip c-grupo to"><span class="sw"></span>Grupo Equipe</span></div>
+          <p>Lista de todas as alunas que fazem aniversário no mês seguinte, para a equipe se organizar.</p>
+        </div>
+      </div>
+
+      <div class="tl">
+        <div class="tl-time"><div class="hr">06:10</div><div class="days">segunda</div></div>
+        <div class="card k-grupo">
+          <div class="card-top"><h3>Ausentes há 10+ dias</h3><span class="chip c-grupo to"><span class="sw"></span>Grupo Equipe</span></div>
+          <p>Lista as alunas <b>ativas</b> sem presença há 10 dias ou mais, com a data da última vinda. Quem está <b>trancada</b> é separada numa lista à parte (“não cobrar”), com a data de retorno.</p>
+          <a class="msg-ref" href="#m-ausentes">ver texto no grupo</a>
+        </div>
+      </div>
+
+      <div class="tl">
+        <div class="tl-time"><div class="hr">06:45</div><div class="days">segunda</div></div>
+        <div class="card k-grupo">
+          <div class="card-top"><h3>Presentes de tempo de casa</h3><span class="chip c-grupo to"><span class="sw"></span>Grupo Equipe</span></div>
+          <p>Alunas com presente de tempo de casa pendente (1, 2, 3 ou 4 anos), para a equipe entregar.</p>
+        </div>
+      </div>
+
+      <div class="tl">
+        <div class="tl-time"><div class="hr">07:00</div><div class="days">todos</div></div>
+        <div class="card k-off">
+          <div class="card-top"><h3>Instagram — boas-vindas</h3><span class="chip c-off to"><span class="sw"></span>Desligado</span></div>
+          <p>Daria boas-vindas a novos seguidores. <b>Desligado</b>: a Meta bloqueia o acesso a partir do servidor. Pode ser religado com um proxy/IP residencial.</p>
+        </div>
+      </div>
+
+      <div class="tl">
+        <div class="tl-time"><div class="hr">08:00</div><div class="days">todos</div></div>
+        <div class="card k-grupo">
+          <div class="card-top"><h3>Parabéns às aniversariantes</h3><span class="chip c-grupo to"><span class="sw"></span>Grupos</span></div>
+          <p>Marca a aniversariante (@) nos grupos em comum e manda os parabéns.</p>
+          <a class="msg-ref" href="#m-aniv">ver mensagem</a>
+        </div>
+      </div>
+
+      <div class="tl">
+        <div class="tl-time"><div class="hr">08:30</div><div class="days">seg–sáb</div></div>
+        <div class="card k-aluna">
+          <div class="card-top"><h3>Confirmação — aula de hoje</h3><span class="chip c-aluna to"><span class="sw"></span>Aluna</span></div>
+          <p>Confirma com a lead a aula experimental agendada para <b>hoje</b> (aulas a partir das 12h).</p>
+          <a class="msg-ref" href="#m-hoje">ver mensagem</a>
+        </div>
+      </div>
+
+      <div class="tl">
+        <div class="tl-time"><div class="hr">10:30</div><div class="days">seg–sáb</div></div>
+        <div class="card k-aluna">
+          <div class="card-top"><h3>Follow-up pós-aula — manhã</h3><span class="chip c-aluna to"><span class="sw"></span>Aluna</span></div>
+          <p>Para quem fez a experimental <b>ontem de manhã</b>: manda um áudio da professora + convite para dar andamento na matrícula.</p>
+          <a class="msg-ref" href="#m-follow">ver mensagem + áudio</a>
+        </div>
+      </div>
+
+      <div class="tl">
+        <div class="tl-time"><div class="hr">11:30</div><div class="days">seg–sáb</div></div>
+        <div class="card k-aluna">
+          <div class="card-top"><h3>Faltas (no-show) — manhã</h3><span class="chip c-aluna to"><span class="sw"></span>Aluna</span></div>
+          <p>Quem faltou à experimental da manhã recebe um convite carinhoso para remarcar.</p>
+          <a class="msg-ref" href="#m-noshow">ver mensagem</a>
+        </div>
+      </div>
+
+      <div class="tl">
+        <div class="tl-time"><div class="hr">14:00</div><div class="days">todos</div></div>
+        <div class="card k-sistema">
+          <div class="card-top"><h3>Planilha de alunas &amp; aniversários</h3><span class="chip c-sistema to"><span class="sw"></span>Google Sheets</span></div>
+          <p>Atualiza a planilha com alunas ativas e aniversários, sem desalinhar as colunas que você preenche à mão.</p>
+        </div>
+      </div>
+
+      <div class="tl">
+        <div class="tl-time"><div class="hr">14:30</div><div class="days">todos</div></div>
+        <div class="card k-aluna">
+          <div class="card-top"><h3>Renovação de contrato</h3><span class="chip c-aluna to"><span class="sw"></span>Aluna</span></div>
+          <p>Avisa a aluna cujo contrato vence em <b>exatos 7 dias</b> e convida para renovar.</p>
+          <a class="msg-ref" href="#m-renov">ver mensagem</a>
+        </div>
+      </div>
+
+      <div class="tl">
+        <div class="tl-time"><div class="hr">15:30</div><div class="days">dom–sex</div></div>
+        <div class="card k-aluna">
+          <div class="card-top"><h3>Confirmação — aula de amanhã</h3><span class="chip c-aluna to"><span class="sw"></span>Aluna</span></div>
+          <p>Confirma com a lead a aula experimental agendada para <b>amanhã</b> (até 11:30).</p>
+          <a class="msg-ref" href="#m-amanha">ver mensagem</a>
+        </div>
+      </div>
+
+      <div class="tl">
+        <div class="tl-time"><div class="hr">16:00</div><div class="days">seg–sáb</div></div>
+        <div class="card k-aluna">
+          <div class="card-top"><h3>Follow-up pós-aula — tarde</h3><span class="chip c-aluna to"><span class="sw"></span>Aluna</span></div>
+          <p>Mesmo follow-up com áudio da professora, para quem fez a experimental <b>ontem à tarde</b>.</p>
+          <a class="msg-ref" href="#m-follow">ver mensagem + áudio</a>
+        </div>
+      </div>
+
+      <div class="tl">
+        <div class="tl-time"><div class="hr">16:30</div><div class="days">sexta</div></div>
+        <div class="card k-grupo">
+          <div class="card-top"><h3>Resumo da semana</h3><span class="chip c-grupo to"><span class="sw"></span>Grupo Equipe</span></div>
+          <p>Fecha a semana das experimentais: agendadas, presenças, faltas e matrículas, com percentuais de conversão.</p>
+        </div>
+      </div>
+
+      <div class="tl">
+        <div class="tl-time"><div class="hr">19:30</div><div class="days">seg–sáb</div></div>
+        <div class="card k-aluna">
+          <div class="card-top"><h3>Faltas (no-show) — tarde/noite</h3><span class="chip c-aluna to"><span class="sw"></span>Aluna</span></div>
+          <p>Quem faltou à experimental da tarde/noite recebe o convite para remarcar.</p>
+          <a class="msg-ref" href="#m-noshow">ver mensagem</a>
+        </div>
+      </div>
+
+      <div class="tl">
+        <div class="tl-time"><div class="hr">19:45</div><div class="days">todos</div></div>
+        <div class="card k-grupo">
+          <div class="card-top"><h3>Resumo do dia</h3><span class="chip c-grupo to"><span class="sw"></span>Grupo Equipe</span></div>
+          <p>Panorama do dia em 7 blocos: reposições, experimentais que fizeram / faltaram, quem fechou contrato, rescisões, experimentais de amanhã e <b>quem está trancada hoje</b>.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CONTÍNUOS -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">O tempo todo</span>
+      <h2>Rotinas contínuas</h2>
+      <p>Além dos horários fixos, algumas tarefas rodam em ciclos curtos para o agendamento online funcionar em tempo quase real.</p>
+    </div>
+    <div class="grid">
+      <div class="mini"><div class="freq">a cada 1 min</div><h3>Ponte do formulário</h3><p>Puxa da nuvem as marcações feitas no formulário de agendamento e coloca na fila de envio.</p></div>
+      <div class="mini"><div class="freq">a cada 5 min</div><h3>Agendamento automático</h3><p>Lê as conversas do ZEE e agenda a aula experimental direto no EVO.</p></div>
+      <div class="mini"><div class="freq">a cada 15 min</div><h3>Envio das confirmações</h3><p>Manda para a lead a confirmação da aula experimental agendada pelo formulário / ZEE.</p></div>
+      <div class="mini"><div class="freq">a cada 15 min</div><h3>Sinal de vida</h3><p>Registra memória e tempo ligado — usado para o alerta e para detectar tarefas perdidas.</p></div>
+    </div>
+  </section>
+
+  <!-- MENSAGENS -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Texto exato</span>
+      <h2>As mensagens que ele envia</h2>
+      <p>Os textos abaixo saem exatamente assim. As partes em <span style="color:var(--accent);font-weight:600">rosa</span> são preenchidas automaticamente (nome, horário, data).</p>
+    </div>
+
+    <div class="msgs">
+
+      <div class="mcard" id="m-hoje">
+        <div class="mhead"><h3>Confirmação — hoje</h3><span class="when">08:30 · seg–sáb</span></div>
+        <div class="bubble-wrap"><div class="bubble">Olá, <span class="ph">{nome}</span>! 😊
+
+Tudo bem? Aqui é do Studio Slimfit Setor Bueno!
+
+Estamos mandando essa mensagem para confirmar a sua aula experimental de logo mais que está agendada para hoje às <span class="ph">{horário}</span>.
+
+Pode confirmar sua presença? Estamos te esperando! 💪</div></div>
+      </div>
+
+      <div class="mcard" id="m-amanha">
+        <div class="mhead"><h3>Confirmação — amanhã</h3><span class="when">15:30 · dom–sex</span></div>
+        <div class="bubble-wrap"><div class="bubble">Olá, <span class="ph">{nome}</span>! 😊
+
+Tudo bem? Aqui é do Studio Slimfit Setor Bueno!
+
+Estamos mandando essa mensagem para confirmar a sua aula experimental que está agendada para amanhã às <span class="ph">{horário}</span>.
+
+Pode confirmar sua presença? Estamos te esperando! 💪</div></div>
+      </div>
+
+      <div class="mcard" id="m-form">
+        <div class="mhead"><h3>Confirmação do formulário</h3><span class="when">agendamento online</span></div>
+        <div class="bubble-wrap"><div class="bubble">Oie, <span class="ph">{nome}</span>! 🎉 Tudo bem? Me chamo Juliana e sou do *Studio Slim Fit* do Setor Bueno.
+
+Estou mandando essa mensagem para informar que a sua aula experimental está confirmada para *<span class="ph">{data e hora}</span>*.
+Qualquer dúvida que tiver, ou precisar remarcar a sua aula, pode me chamar por aqui.❤️
+
+*Endereço:* R. C-235, 846, Setor Bueno, Goiânia-GO.
+*Localização:* (link do mapa)
+
+Se possível, tente chegar 10 minutos antes para você conhecer o Studio e conversarmos! 💪
+Muito bem vinda ao #SlimFit! ❤️</div></div>
+      </div>
+
+      <div class="mcard" id="m-follow">
+        <div class="mhead"><h3>Follow-up pós-aula</h3><span class="when">10:30 e 16:00 · seg–sáb</span></div>
+        <div class="bubble-wrap"><div class="bubble">Oie! Tudo bem?
+
+Segue áudio que a professora <span class="ph">{professora}</span> fez sobre a sua aula experimental! =)
+
+Sei que a primeira aula sempre é mais difícil, principalmente por ser uma metodologia nova!
+
+Mas agora que você já deu o primeiro passo 👏, o que acha de vir para mais uma aula e darmos andamento da sua matrícula?
+
+Te aguardo!!! 🥰<span class="aud">🎧 áudio da professora (nota de voz)</span></div></div>
+        <div class="note">Se a aluna já fechou contrato, o texto muda para uma mensagem de boas-vindas (“Que alegria ter você com a gente!”).</div>
+      </div>
+
+      <div class="mcard" id="m-noshow">
+        <div class="mhead"><h3>Faltou (no-show)</h3><span class="when">11:30 e 19:30 · seg–sáb</span></div>
+        <div class="bubble-wrap"><div class="bubble">Oi, <span class="ph">{nome}</span>! 😊 Tudo bem?
+
+Notamos que você não conseguiu comparecer à sua aula experimental de hoje (<span class="ph">{horário}</span>). Acontece! 💛
+
+Que tal remarcar? Vai ser um prazer te receber. É só me responder por aqui que a gente encontra um novo horário pra você! 🙌</div></div>
+      </div>
+
+      <div class="mcard" id="m-renov">
+        <div class="mhead"><h3>Renovação de contrato</h3><span class="when">14:30 · todos os dias</span></div>
+        <div class="bubble-wrap"><div class="bubble">Oi, <span class="ph">{nome}</span>! Tudo bem? 😊
+Que alegria ter você no SlimFit! 🥳
+Estou enviando essa mensagem para avisar que o seu plano vence no dia <span class="ph">{data}</span>. A gente ia adorar continuar com você firme nos treinos! ❤️
+Podemos dar andamento na renovação? Prefere manter o mesmo plano ou aumentar a frequência? 💪
+Qualquer dúvida, é só me chamar! 😉</div></div>
+      </div>
+
+      <div class="mcard" id="m-aniv">
+        <div class="mhead"><h3>Aniversário (nos grupos)</h3><span class="when">08:00 · todos os dias</span></div>
+        <div class="bubble-wrap"><div class="bubble grp">Hoje é aniversário da <span class="ph">@aluna</span>! 🥳🎉
+
+Muitas felicidades, saúde e sucesso!!! Que este novo ciclo venha repleto de conquistas e alegria!! Aproveite o seu dia! ❤️</div></div>
+      </div>
+
+      <div class="mcard" id="m-ausentes">
+        <div class="mhead"><h3>Ausentes 10 dias (equipe)</h3><span class="when">06:10 · segunda</span></div>
+        <div class="bubble-wrap"><div class="bubble grp">Professoras, segue abaixo a listagem de alunas faltantes a mais de 10 dias, com a data da última presença dela. Por favor, entrem em contato no privado para entender o que está acontecendo e incentivar a retomada às aulas:
+<span class="ph">• (lista de alunas)</span>
+
+🔒 Trancadas no período (não cobrar):
+<span class="ph">• (lista + data de retorno)</span></div></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ALERTAS + MANUTENÇÃO -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Segurança</span>
+      <h2>Alertas &amp; manutenção</h2>
+      <p>O sistema se vigia sozinho e avisa você no celular (app ntfy) quando precisa de atenção.</p>
+    </div>
+    <div class="cols">
+      <div>
+        <div class="divlabel"><span class="eyebrow">Você é avisado quando…</span></div>
+        <ul class="clean">
+          <li><span class="ic crit">!</span><span><b>O WhatsApp cai</b> e precisa de QR — o robô fica parado até alguém escanear no servidor.</span></li>
+          <li><span class="ic crit">!</span><span><b>O reconector automático falha</b> — precisa de reinício manual.</span></li>
+          <li><span class="ic warn">▲</span><span><b>Uma tarefa dá erro</b> ao rodar (ex.: instabilidade do EVO).</span></li>
+          <li><span class="ic warn">▲</span><span><b>Uma confirmação se perde</b> (número sem WhatsApp ou tentativas esgotadas).</span></li>
+          <li><span class="ic warn">▲</span><span><b>Follow-up, faltas ou renovação</b> tiveram falhas — um resumo (“2 de 8 falharam”).</span></li>
+          <li><span class="ic warn">▲</span><span><b>O formulário fica fora do ar</b> por muito tempo.</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="divlabel"><span class="eyebrow">Comandos úteis (no servidor)</span></div>
+        <pre class="cmd"><span class="c"># ver o que está acontecendo, ao vivo</span>
+pm2 logs slimfit-exp
+
+<span class="c"># reiniciar o robô (após atualizar)</span>
+git pull
+pm2 restart slimfit-exp
+
+<span class="c"># enviar renovação de uma data específica</span>
+node src/renovar-contratos.js <b>--data=18/08</b>       <span class="c"># simula</span>
+node src/renovar-contratos.js --data=18/08 <b>--enviar</b>
+
+<span class="c"># mensagem pontual para números específicos</span>
+node src/enviar-mensagem.js <b>--arquivo</b>=msg.txt \
+  <b>--para</b>=6299..., 6299... <b>--enviar</b></pre>
+        <div class="note" style="border:0;padding-left:0">Envios manuais compartilham a conexão do WhatsApp: pare o robô antes (<code>pm2 stop slimfit-exp</code>) e religue depois (<code>pm2 start slimfit-exp</code>).</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INVESTIMENTO -->
+  <section id="investimento">
+    <div class="sec-head">
+      <span class="eyebrow">Investimento</span>
+      <h2>Quanto custa para o seu Studio</h2>
+      <p>Um robô que confirma experimentais, recupera faltas, faz follow-up com áudio, avisa renovações e cuida da retenção — trabalhando sozinho, 24 horas por dia.</p>
+    </div>
+
+    <div class="price">
+      <div class="pcard feat">
+        <span class="ptag">1º ano · implementação</span>
+        <div class="amount">R$ 1.000<small> / ano</small></div>
+        <p class="sub">Tudo instalado, configurado e funcionando no seu EVO e no seu WhatsApp.</p>
+        <ul>
+          <li>Instalação e configuração completa</li>
+          <li>Todos os fluxos ativos (confirmação, follow-up, faltas, renovação, aniversários, resumos)</li>
+          <li>Formulário de agendamento online</li>
+          <li>Alertas de saúde no seu celular</li>
+        </ul>
+      </div>
+      <div class="pcard">
+        <span class="ptag">Anos seguintes · opcional</span>
+        <div class="amount">R$ 600 <small>+ IPCA / ano</small></div>
+        <p class="sub">Continuidade e manutenção. Você decide se renova a cada ano.</p>
+        <ul>
+          <li>Manutenção e ajustes de funcionamento</li>
+          <li>Acompanhamento das mudanças do EVO / WhatsApp</li>
+          <li>Reajuste apenas pela inflação (IPCA)</li>
+          <li>Sem compromisso — renova só se quiser</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="terms">
+      <div class="term"><span class="ic">💳</span><span><b>Pagamento anual</b>, não mensal — um único valor por ano, sem mensalidade.</span></div>
+      <div class="term"><span class="ic">🖥️</span><span><b>Servidor à parte:</b> contratado e pago diretamente por quem contrata (custo baixo, fora deste valor).</span></div>
+    </div>
+  </section>
+
+  <!-- SERVIDOR -->
+  <section id="servidor">
+    <div class="sec-head">
+      <span class="eyebrow">O servidor</span>
+      <h2>Onde o robô fica ligado 24h</h2>
+      <p>O robô roda num servidor na nuvem (um computador dedicado, sempre ligado). Esse é o único custo mensal — e ele é pago <b>diretamente à plataforma de hospedagem</b>.</p>
+    </div>
+
+    <div class="banner">
+      <div class="big">~R$ 30<small>/mês</small></div>
+      <div class="txt">Valor aproximado no plano de 12 a 24 meses. <b>O pagamento é feito direto à plataforma de hospedagem</b> — não passa por quem implementa o robô. Você contrata em seu nome e mantém o controle.</div>
+    </div>
+
+    <div class="compare">
+      <div class="ccard warn">
+        <span class="clabel">No seu computador</span>
+        <div class="cost">~R$ 15<small> /mês de energia</small></div>
+        <p class="verdict">Dá para usar? Sim. Recomendo? Não.</p>
+        <ul>
+          <li>A recepcionista fica <b>sem usar o computador</b> enquanto os jobs estão rodando.</li>
+          <li>Se o computador estiver <b>desligado, nada funciona</b> — nada de parabéns no fim de semana ou confirmação fora do horário.</li>
+          <li>Qualquer alteração exige <b>acessar o computador da recepção</b>.</li>
+        </ul>
+      </div>
+      <div class="ccard good">
+        <span class="clabel">No servidor · recomendado</span>
+        <div class="cost">~R$ 30<small> /mês, direto à plataforma</small></div>
+        <p class="verdict">A melhor escolha para o Studio.</p>
+        <ul>
+          <li>Funciona <b>24 horas</b>: os parabéns saem no fim de semana e as confirmações de aula também.</li>
+          <li>Independente do PC da recepção — <b>libera a recepcionista</b> para funções realmente efetivas.</li>
+          <li><b>Manutenção muito mais fácil</b>: nenhuma alteração precisa mexer no computador do Studio.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="terms">
+      <div class="term"><span class="ic">💡</span><span>Na prática, a diferença é de apenas <b>~R$ 15/mês</b> frente a deixar o seu PC ligado o tempo todo — e o servidor entrega tranquilidade e libera a equipe.</span></div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section>
+    <div class="cta">
+      <h2>Quer o robô no seu Studio?</h2>
+      <p>Implantação completa, no seu EVO e no seu WhatsApp, com tudo funcionando 24 horas. Me chama que eu te explico como colocar pra rodar.</p>
+      <a class="wa-btn" href="https://wa.me/5562981718205?text=Ol%C3%A1!%20Vi%20o%20manual%20do%20rob%C3%B4%20SlimFit%20e%20quero%20saber%20mais." target="_blank" rel="noopener">
+        <svg viewBox="0 0 32 32" fill="#25D366" aria-hidden="true"><path d="M16.04 3C9.4 3 4 8.4 4 15.04c0 2.12.56 4.13 1.62 5.92L4 29l8.23-1.58a12 12 0 0 0 3.8.62h.01c6.64 0 12.04-5.4 12.04-12.04C28.08 8.4 22.68 3 16.04 3zm0 21.96c-1.18 0-2.34-.24-3.42-.7l-.24-.1-4.88.94.98-4.76-.16-.25a9.9 9.9 0 0 1-1.54-5.29c0-5.5 4.48-9.98 9.98-9.98 2.67 0 5.17 1.04 7.06 2.93a9.92 9.92 0 0 1 2.92 7.06c0 5.5-4.48 9.98-9.98 9.98zm5.48-7.48c-.3-.15-1.78-.88-2.05-.98-.28-.1-.48-.15-.68.15-.2.3-.78.98-.96 1.18-.18.2-.35.22-.65.07-.3-.15-1.27-.47-2.42-1.5-.9-.8-1.5-1.78-1.67-2.08-.18-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.68-1.63-.93-2.23-.24-.58-.5-.5-.68-.51h-.58c-.2 0-.53.07-.8.38-.28.3-1.05 1.03-1.05 2.5 0 1.48 1.08 2.9 1.23 3.1.15.2 2.12 3.24 5.14 4.54.72.31 1.28.5 1.72.63.72.23 1.38.2 1.9.12.58-.09 1.78-.73 2.03-1.43.25-.7.25-1.3.18-1.43-.07-.13-.27-.2-.57-.35z"/></svg>
+        Fale comigo no WhatsApp
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    Studio SlimFit · Setor Bueno · Goiânia — manual da automação de WhatsApp.<br>
+    Horários no fuso de Brasília. Todas as leituras vêm do EVO em tempo real; os envios saem pela linha do Studio.
+  </footer>
+
+</main>

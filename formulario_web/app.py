@@ -153,6 +153,12 @@ def index():
     return send_from_directory(os.path.join(BASE, "templates"), "index.html")
 
 
+@app.get("/manual")
+def manual():
+    """Manual/proposta comercial do robô (página estática para divulgação)."""
+    return send_from_directory(os.path.join(BASE, "templates"), "manual.html")
+
+
 # ============ cache "stale-while-revalidate" da grade de horários ============
 # Calcular a grade faz DEZENAS de chamadas ao EVO (lento na carga fria). Para o
 # formulário nunca travar em "Carregando horários...", servimos a última grade
