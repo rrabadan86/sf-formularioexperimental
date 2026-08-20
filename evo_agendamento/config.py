@@ -10,7 +10,33 @@ try:
     from dotenv import load_dotenv
     load_dotenv()
 except ModuleNotFoundError:
-    pass
+    # Sem o pacote python-dotenv: carrega o .env do robô na mão. Sobe a partir
+    # deste arquivo procurando um .env (Experimental/.env) e aplica só o que
+    # ainda não veio do ambiente (setdefault não sobrescreve o que o Node passou).
+    def _apply_env_file(path):
+        try:
+            with open(path, encoding="utf-8") as f:
+                for raw in f:
+                    line = raw.strip()
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    k, v = line.split("=", 1)
+                    k, v = k.strip(), v.strip()
+                    if v[:1] in ('"', "'") and v[-1:] == v[:1]:
+                        v = v[1:-1]                       # valor entre aspas
+                    else:
+                        v = v.split(" #", 1)[0].rstrip()  # tira comentário inline
+                    os.environ.setdefault(k, v)
+        except OSError:
+            pass
+
+    _here = os.path.dirname(os.path.abspath(__file__))
+    for _ in range(6):                                    # sobe até achar o .env
+        _cand = os.path.join(_here, ".env")
+        if os.path.isfile(_cand):
+            _apply_env_file(_cand)
+            break
+        _here = os.path.dirname(_here)
 
 
 def _clean(name: str, default: str = "") -> str:
