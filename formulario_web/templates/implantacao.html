@@ -408,8 +408,12 @@ pm2 logs slimfit-exp --lines 50  <span class="c"># sem erros</span></pre>
     <div class="phase"><span class="pn">Fase 6</span><h2>Instagram — boas-vindas (opcional)</h2></div>
 
     <div class="stepblock">
-      <p>O Instagram bloqueia login a partir do IP do servidor (datacenter). Em vez de logar no servidor, trazemos a <b>sessão pronta</b>: exportamos os cookies de um navegador do PC já logado e o robô os usa. Assim ele lê os novos seguidores e envia a DM de boas-vindas sem precisar de proxy.</p>
-      <div class="tip">Regra de ouro: comece com <b>volume baixo</b> (<code>IG_MAX_DIA=5</code>) e só <b>seguidoras novas</b>. Mandar muitas DMs rápido é a forma nº 1 de tomar bloqueio.</div>
+      <p>O Instagram trata o IP de servidor (datacenter) como robô e bloqueia. Por isso são <b>duas peças</b>, que resolvem coisas diferentes:</p>
+      <ul style="margin:8px 0 0;padding-left:18px;color:var(--text-soft);font-size:.95rem;line-height:1.5">
+        <li><b>Cookies</b> = QUEM você é (sessão já logada, sem digitar senha → não dispara 2FA/checkpoint).</li>
+        <li><b>Proxy residencial/móvel do Brasil</b> = DE ONDE você acessa (um IP de "gente de verdade", não de datacenter).</li>
+      </ul>
+      <div class="tip">⚠️ Sem o proxy, mandar DMs do servidor <b>bloqueia a conta</b> (aprendido na prática). Regra de ouro: proxy BR + <b>volume baixo</b> (<code>IG_MAX_DIA=5</code>, subindo aos poucos) + só <b>seguidoras novas</b>.</div>
     </div>
 
     <div class="stepblock">
@@ -431,7 +435,23 @@ python3 -c "import json;d=json.load(open('instagram-cookies.json'));print(len(d)
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">6.3</span> Testar leitura e um envio</h3>
+      <h3><span class="num">6.3</span> Proxy residencial/móvel (Brasil)</h3>
+      <p>Contrate um <b>proxy móvel do Brasil</b> (ex.: DataImpulse, ~US$ 5) no modo <b>Fixo/sticky</b>. Ele te dá <code>host:porta:usuário:senha</code>. Confirme que sai do Brasil e coloque no <code>.env</code>.</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body"><span class="c"># testa o proxy (tem que dizer "Brazil")</span>
+curl -x "http://<b>USUARIO</b>:<b>SENHA</b>@<b>HOST</b>:<b>PORTA</b>" http://ip-api.com/json ; echo
+
+<span class="c"># no .env:</span>
+IG_PROXY=<b>HOST:PORTA</b>
+IG_PROXY_USER=<b>USUARIO</b>
+IG_PROXY_PASS=<b>SENHA</b></pre>
+      </div>
+      <div class="tip">O robô já baixa <b>sem imagens</b> pelo proxy (economiza dados). 5 GB duram vários meses no nosso volume.</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">6.4</span> Testar leitura e um envio</h3>
       <div class="term">
         <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
 <pre class="term-body"><span class="c"># 1) so leitura (lista os seguidores)</span>
@@ -444,8 +464,8 @@ xvfb-run -a node src/instagram-boasvindas.js <b>--teste=seu_instagram</b></pre>
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">6.4</span> Ligar o job</h3>
-      <p>No <code>.env</code>, ligue o Instagram e defina o perfil e o limite diário. O job roda sozinho às <b>07:00</b> e só dá boas-vindas a <b>quem passou a seguir</b>.</p>
+      <h3><span class="num">6.5</span> Ligar o job</h3>
+      <p>No <code>.env</code>, ligue o Instagram e defina o perfil e o limite diário (o <code>IG_PROXY</code> já foi posto no 6.3). O job roda sozinho às <b>07:00</b> e só dá boas-vindas a <b>quem passou a seguir</b>.</p>
       <div class="term">
         <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">.env</span></div>
 <pre class="term-body">IG_ENABLED=true
