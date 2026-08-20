@@ -76,6 +76,10 @@ class EvoClient:
                     espera = float(ra) if ra else min(8 * tentativa, 30)
                 except (TypeError, ValueError):
                     espera = min(8 * tentativa, 30)
+                # Piso de espera: o EVO às vezes devolve Retry-After: 0, e repetir
+                # na hora só toma 429 de novo (foi o que esvaziou as 3 tentativas
+                # instantaneamente). Espera crescente para a cota se recuperar.
+                espera = max(espera, min(5 * tentativa, 30))
                 log.warning("EVO 429 (limite 40/min). Aguardando %.0fs e tentando de novo (%d/3)...",
                             espera, tentativa)
                 time.sleep(espera)

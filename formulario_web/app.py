@@ -274,7 +274,11 @@ def _warmer_loop():
     intervalo = max(30.0, FORM_SLOTS_TTL - 20)
     while True:
         try:
-            _refresh_slots_bg(dias_warm)
+            # Se o VPS está enviando a grade pronta, a Render NÃO calcula nada
+            # (evita competir pela cota de 40/min do EVO com o VPS). Só aquece
+            # localmente como reserva quando não há grade enviada fresca.
+            if not _pushed_fresh():
+                _refresh_slots_bg(dias_warm)
         except Exception:
             app.logger.exception("Aquecedor da grade falhou")
         time.sleep(intervalo)
