@@ -444,9 +444,9 @@ def api_book():
     evo = EvoClient()
 
     # limite: 1 aula experimental por pessoa. Se já foi vendido o serviço da
-    # experimental para esse e-mail/telefone, bloqueia (sem cadastrar nem vender).
+    # experimental para esse e-mail, telefone OU CPF, bloqueia (sem cadastrar nem vender).
     try:
-        idp = evo.find_prospect_id(email=limpo["email"], phone=limpo["telefone"])
+        idp = evo.find_prospect_id(email=limpo["email"], phone=limpo["telefone"], document=limpo["cpf"])
         if idp and _ja_tem_experimental(evo, idp):
             return jsonify({"ok": False, "bloqueio": "ja_tem_experimental", "erro": BLOCK_MSG}), 409
     except Exception:
