@@ -62,6 +62,16 @@
   .nav a{white-space:nowrap; font-family:"Montserrat",sans-serif; font-weight:700; font-size:.82rem; color:var(--text-soft); text-decoration:none; padding:7px 14px; border-radius:999px; border:1px solid transparent; transition:.14s}
   .nav a:hover{color:var(--teal); background:var(--teal-soft); text-decoration:none}
   .nav a.on{color:#fff; background:var(--teal); border-color:var(--teal)}
+  /* fade nas bordas: indica que a barra rola p/ os lados (aparece só onde há mais) */
+  .nav::before,.nav::after{content:""; position:absolute; top:0; bottom:1px; width:40px; pointer-events:none; z-index:2; opacity:0; transition:opacity .2s}
+  .nav::before{left:0; background:linear-gradient(90deg, var(--surface), color-mix(in srgb, var(--surface), transparent 100%))}
+  .nav::after{right:0; background:linear-gradient(270deg, var(--surface), color-mix(in srgb, var(--surface), transparent 100%))}
+  .nav.can-left::before{opacity:1}
+  .nav.can-right::after{opacity:1}
+  .nav .chev{position:absolute; top:50%; right:9px; transform:translateY(-50%); z-index:3; pointer-events:none; color:var(--teal); font-size:1.1rem; font-weight:800; opacity:0; transition:opacity .2s; font-family:"Montserrat",sans-serif}
+  .nav.can-right .chev{opacity:.9; animation:chevpulse 1.4s ease-in-out infinite}
+  @keyframes chevpulse{0%,100%{transform:translateY(-50%) translateX(0)}50%{transform:translateY(-50%) translateX(3px)}}
+  @media(prefers-reduced-motion:reduce){ .nav.can-right .chev{animation:none} }
   section[id]{scroll-margin-top:62px}
   @media(max-width:560px){ .nav-in{padding:8px 14px} }
 
@@ -241,6 +251,7 @@
     <a href="#investimento">Investimento</a>
     <a href="#servidor">Servidor</a>
   </div>
+  <span class="chev" aria-hidden="true">›</span>
 </nav>
 
 <header class="hero">
@@ -803,5 +814,21 @@ node src/enviar-mensagem.js <b>--arquivo</b>=msg.txt \
       });
     }, { rootMargin: '-45% 0px -50% 0px' });
     document.querySelectorAll('section[id]').forEach(function(s){ obs.observe(s); });
+  })();
+
+  // Mostra o fade/seta nas bordas conforme a barra pode rolar para os lados.
+  (function(){
+    var nav = document.querySelector('.nav');
+    var sc = nav && nav.querySelector('.nav-in');
+    if (!nav || !sc) return;
+    function upd(){
+      var max = sc.scrollWidth - sc.clientWidth - 1;
+      nav.classList.toggle('can-left', sc.scrollLeft > 2);
+      nav.classList.toggle('can-right', sc.scrollLeft < max);
+    }
+    sc.addEventListener('scroll', upd, { passive: true });
+    window.addEventListener('resize', upd);
+    upd();
+    setTimeout(upd, 400); // recalcula depois que as fontes carregam
   })();
 </script>
