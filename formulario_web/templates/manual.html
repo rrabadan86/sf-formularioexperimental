@@ -55,8 +55,8 @@
   .eyebrow{font-family:"Montserrat",sans-serif; font-weight:700; font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--teal)}
   html{scroll-behavior:smooth}
 
-  /* NAV fixa (atalhos por seção) */
-  .nav{position:sticky; top:0; z-index:50; background:color-mix(in srgb,var(--surface) 90%,transparent); backdrop-filter:saturate(1.2) blur(8px); -webkit-backdrop-filter:saturate(1.2) blur(8px); border-bottom:1px solid var(--border)}
+  /* NAV fixa (atalhos por seção) — fixed p/ funcionar mesmo sem <html>/<body> (quirks) */
+  .nav{position:fixed; top:0; left:0; right:0; z-index:50; background:color-mix(in srgb,var(--surface) 92%,transparent); backdrop-filter:saturate(1.2) blur(8px); -webkit-backdrop-filter:saturate(1.2) blur(8px); border-bottom:1px solid var(--border)}
   .nav-in{display:flex; gap:6px; max-width:1020px; margin:0 auto; padding:9px 22px; overflow-x:auto; scrollbar-width:none}
   .nav-in::-webkit-scrollbar{display:none}
   .nav a{white-space:nowrap; font-family:"Montserrat",sans-serif; font-weight:700; font-size:.82rem; color:var(--text-soft); text-decoration:none; padding:7px 14px; border-radius:999px; border:1px solid transparent; transition:.14s}
@@ -72,7 +72,7 @@
       radial-gradient(120% 120% at 0% 0%, var(--teal-soft) 0%, transparent 45%);
     border-bottom:1px solid var(--border);
   }
-  .hero-in{padding:54px 0 46px}
+  .hero-in{padding:66px 0 46px}
   .brand{display:flex; align-items:center; gap:10px; font-family:"Montserrat",sans-serif; font-weight:800; font-size:1.15rem; letter-spacing:-.01em}
   .brand .brand-logo{height:30px; width:auto; display:block}
   .brand .fit{color:var(--teal)}
