@@ -481,8 +481,8 @@ IG_MAX_DIA=5</pre>
 
   <!-- FASE 7 -->
   <section>
-    <div class="phase"><span class="pn">Fase 7</span><h2>Painel de mensagens (opcional)</h2></div>
-    <p class="sec-head" style="color:var(--text-soft);max-width:66ch">Uma tela com login onde o dono edita os textos das mensagens principais (confirmações, follow-up, faltas, renovação, aniversário, Instagram, Circuito) sem tocar em código. As edições ficam em <code>data/mensagens.json</code> e valem no próximo envio, sem reiniciar.</p>
+    <div class="phase"><span class="pn">Fase 7</span><h2>Painel do Studio (opcional)</h2></div>
+    <p class="sec-head" style="color:var(--text-soft);max-width:66ch">Uma tela com login e duas abas: <b>Mensagens</b> (edita os textos do robô — confirmações, follow-up, faltas, renovação, aniversário, Instagram, Circuito — em <code>data/mensagens.json</code>, vale no próximo envio sem reiniciar) e <b>Agendar envios</b> (mensagens pontuais por WhatsApp: número, texto e foto opcional, por dia e turno — disparadas às 10:45 e 15:45, uma de cada vez com intervalo entre elas).</p>
 
     <div class="stepblock">
       <h3><span class="num">7.1</span> Definir login e subir o painel</h3>
@@ -545,6 +545,19 @@ curl -sI https://painel-unidade.duckdns.org | head -3   <span class="c"># HTTP/2
         </div>
       </div>
       <div class="tip">Pronto: abra <b>https://painel-unidade.duckdns.org</b> no celular ou PC, faça login e edite. As mudanças valem no próximo envio.</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">7.5</span> Envios agendados (aba "Agendar envios")</h3>
+      <p>A segunda aba do painel agenda mensagens pontuais. O robô dispara os pendentes do dia às <b>10:45</b> (manhã) e <b>15:45</b> (tarde) — já ligados no scheduler. Se houver várias no mesmo turno, envia uma de cada vez, com intervalo aleatório entre elas (padrão 20-40s, ajustável no <code>.env</code>).</p>
+      <div class="fieldnote">
+        <div class="fnh">.env (opcional) · intervalo entre envios agendados</div>
+        <table>
+          <tr><td>AGENDADOS_INTERVALO_MIN</td><td>Segundos mínimos entre um envio e o próximo (padrão <b>20</b>).</td></tr>
+          <tr><td>AGENDADOS_INTERVALO_MAX</td><td>Segundos máximos (padrão <b>40</b>). O robô sorteia um valor nessa faixa.</td></tr>
+        </table>
+      </div>
+      <div class="tip">Guardado em <code>data/agendamentos.json</code> (+ pasta <code>data/agendamentos-fotos/</code>). Teste manual: <code>pm2 stop slimfit-exp</code> → <code>xvfb-run -a node src/enviar-agendados.js --turno=tarde --enviar</code> → <code>pm2 start slimfit-exp</code> (a conexão do WhatsApp é única, então pare o robô antes de rodar o script na mão).</div>
     </div>
   </section>
 
