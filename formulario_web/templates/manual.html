@@ -53,6 +53,17 @@
   a:hover{text-decoration:underline}
   code,.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
   .eyebrow{font-family:"Montserrat",sans-serif; font-weight:700; font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--teal)}
+  html{scroll-behavior:smooth}
+
+  /* NAV fixa (atalhos por seção) */
+  .nav{position:sticky; top:0; z-index:50; background:color-mix(in srgb,var(--surface) 90%,transparent); backdrop-filter:saturate(1.2) blur(8px); -webkit-backdrop-filter:saturate(1.2) blur(8px); border-bottom:1px solid var(--border)}
+  .nav-in{display:flex; gap:6px; max-width:1020px; margin:0 auto; padding:9px 22px; overflow-x:auto; scrollbar-width:none}
+  .nav-in::-webkit-scrollbar{display:none}
+  .nav a{white-space:nowrap; font-family:"Montserrat",sans-serif; font-weight:700; font-size:.82rem; color:var(--text-soft); text-decoration:none; padding:7px 14px; border-radius:999px; border:1px solid transparent; transition:.14s}
+  .nav a:hover{color:var(--teal); background:var(--teal-soft); text-decoration:none}
+  .nav a.on{color:#fff; background:var(--teal); border-color:var(--teal)}
+  section[id]{scroll-margin-top:62px}
+  @media(max-width:560px){ .nav-in{padding:8px 14px} }
 
   /* HERO */
   header.hero{
@@ -234,10 +245,21 @@
   </div>
 </header>
 
+<nav class="nav" aria-label="Atalhos das seções">
+  <div class="nav-in">
+    <a href="#como-funciona">Como funciona</a>
+    <a href="#linha-do-tempo">Linha do tempo</a>
+    <a href="#mensagens">Mensagens</a>
+    <a href="#alertas">Alertas</a>
+    <a href="#investimento">Investimento</a>
+    <a href="#servidor">Servidor</a>
+  </div>
+</nav>
+
 <main class="wrap">
 
   <!-- COMO FUNCIONA -->
-  <section>
+  <section id="como-funciona">
     <div class="sec-head">
       <span class="eyebrow">Visão geral</span>
       <h2>Como o sistema funciona</h2>
@@ -257,7 +279,7 @@
   </section>
 
   <!-- LINHA DO TEMPO -->
-  <section>
+  <section id="linha-do-tempo">
     <div class="sec-head">
       <span class="eyebrow">Agenda do dia</span>
       <h2>Linha do tempo — o que roda e quando</h2>
@@ -436,7 +458,7 @@
   </section>
 
   <!-- MENSAGENS -->
-  <section>
+  <section id="mensagens">
     <div class="sec-head">
       <span class="eyebrow">Texto exato</span>
       <h2>As mensagens que ele envia</h2>
@@ -626,7 +648,7 @@ Muito bem vinda ao #SlimFit! ❤️</div></div>
   </section>
 
   <!-- ALERTAS + MANUTENÇÃO -->
-  <section>
+  <section id="alertas">
     <div class="sec-head">
       <span class="eyebrow">Segurança</span>
       <h2>Alertas &amp; manutenção</h2>
@@ -763,3 +785,22 @@ node src/enviar-mensagem.js <b>--arquivo</b>=msg.txt \
   </footer>
 
 </main>
+
+<script>
+  // Destaca na barra fixa a seção que está na tela.
+  (function(){
+    var links = Array.prototype.slice.call(document.querySelectorAll('.nav a'));
+    var map = {};
+    links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+    if (!('IntersectionObserver' in window)) return;
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting && map[e.target.id]) {
+          links.forEach(function(l){ l.classList.remove('on'); });
+          map[e.target.id].classList.add('on');
+        }
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    document.querySelectorAll('section[id]').forEach(function(s){ obs.observe(s); });
+  })();
+</script>
