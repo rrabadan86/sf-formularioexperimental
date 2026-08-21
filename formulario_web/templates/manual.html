@@ -6,23 +6,23 @@
 <link rel="icon" type="image/png" sizes="192x192" href="https://slimfitbrasil.com.br/wp-content/uploads/2025/09/cropped-Untitled-1-192x192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Open+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
 <style>
   :root{
-    --bg:#FBF6F8; --surface:#FFFFFF; --surface-2:#F6EEF2; --border:#ECDCE4;
-    --text:#241820; --text-soft:#6C5A64; --muted:#9C8A93;
-    --accent:#C33A79; --accent-2:#A72E67; --accent-soft:#FBE6F0;
-    --teal:#0F8A88; --teal-soft:#DCF0EF;
+    --bg:#F6F7F8; --surface:#FFFFFF; --surface-2:#F1F3F4; --border:#E6E6E6;
+    --text:#2D2A2F; --text-soft:#5C5960; --muted:#8A8790;
+    --accent:#FF5B57; --accent-2:#EF5A53; --accent-soft:#FFF0EF;
+    --teal:#11ABAE; --teal-soft:#E6F6F7;
     --wa:#1E9E52; --wa-soft:#E3F4E9;
     --amber:#A9711A; --amber-soft:#F6EAD6;
-    --shadow:0 1px 2px rgba(40,20,32,.04),0 6px 22px rgba(40,20,32,.06);
+    --shadow:0 1px 2px rgba(45,42,47,.04),0 6px 22px rgba(45,42,47,.06);
     --radius:16px;
   }
   @media (prefers-color-scheme:dark){
     :root:not([data-theme="light"]){
-      --bg:#161016; --surface:#1F1720; --surface-2:#271D27; --border:#362A34;
-      --text:#F4E9F0; --text-soft:#C7B3BF; --muted:#8C7885;
-      --accent:#F16DA2; --accent-2:#F58CB8; --accent-soft:#3A1C2B;
+      --bg:#15171A; --surface:#1E2126; --surface-2:#262A30; --border:#333840;
+      --text:#EEF1F4; --text-soft:#BCC2CA; --muted:#8B929C;
+      --accent:#FF7A77; --accent-2:#FF5B57; --accent-soft:#3A211F;
       --teal:#39B9B3; --teal-soft:#123230;
       --wa:#37C46C; --wa-soft:#123021;
       --amber:#E1A945; --amber-soft:#332610;
@@ -30,9 +30,9 @@
     }
   }
   :root[data-theme="dark"]{
-    --bg:#161016; --surface:#1F1720; --surface-2:#271D27; --border:#362A34;
-    --text:#F4E9F0; --text-soft:#C7B3BF; --muted:#8C7885;
-    --accent:#F16DA2; --accent-2:#F58CB8; --accent-soft:#3A1C2B;
+    --bg:#15171A; --surface:#1E2126; --surface-2:#262A30; --border:#333840;
+    --text:#EEF1F4; --text-soft:#BCC2CA; --muted:#8B929C;
+    --accent:#FF7A77; --accent-2:#FF5B57; --accent-soft:#3A211F;
     --teal:#39B9B3; --teal-soft:#123230;
     --wa:#37C46C; --wa-soft:#123021;
     --amber:#E1A945; --amber-soft:#332610;
@@ -43,16 +43,16 @@
   html{-webkit-text-size-adjust:100%}
   body{
     margin:0; background:var(--bg); color:var(--text);
-    font-family:"Instrument Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-    font-size:17px; line-height:1.6; letter-spacing:.002em;
+    font-family:"Open Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    font-size:17px; line-height:1.6;
     -webkit-font-smoothing:antialiased;
   }
   .wrap{max-width:1020px; margin:0 auto; padding:0 22px}
-  h1,h2,h3{font-family:"Bricolage Grotesque",system-ui,sans-serif; font-weight:700; text-wrap:balance; margin:0}
-  a{color:var(--accent); text-decoration:none}
+  h1,h2,h3{font-family:"Montserrat",system-ui,sans-serif; font-weight:800; text-wrap:balance; margin:0}
+  a{color:var(--teal); text-decoration:none}
   a:hover{text-decoration:underline}
   code,.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
-  .eyebrow{font-family:"JetBrains Mono",monospace; font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted)}
+  .eyebrow{font-family:"Montserrat",sans-serif; font-weight:700; font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--teal)}
 
   /* HERO */
   header.hero{
@@ -62,7 +62,7 @@
     border-bottom:1px solid var(--border);
   }
   .hero-in{padding:54px 0 46px}
-  .brand{display:flex; align-items:center; gap:10px; font-family:"Bricolage Grotesque",sans-serif; font-weight:800; font-size:1.15rem; letter-spacing:-.01em}
+  .brand{display:flex; align-items:center; gap:10px; font-family:"Montserrat",sans-serif; font-weight:800; font-size:1.15rem; letter-spacing:-.01em}
   .brand .brand-logo{height:30px; width:auto; display:block}
   .brand .fit{color:var(--teal)}
   .brand .reg{font-size:.7em; color:var(--muted); font-weight:600}
@@ -172,7 +172,7 @@
   .pcard{border:1px solid var(--border);border-radius:var(--radius);padding:26px;background:var(--surface);box-shadow:var(--shadow);display:flex;flex-direction:column}
   .pcard.feat{border-color:color-mix(in srgb,var(--accent) 45%,transparent);background:linear-gradient(180deg,var(--accent-soft),var(--surface) 62%)}
   .pcard .ptag{font-family:"JetBrains Mono",monospace;font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
-  .pcard .amount{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:2.5rem;letter-spacing:-.02em;line-height:1;margin:12px 0 4px;color:var(--text)}
+  .pcard .amount{font-family:"Montserrat",sans-serif;font-weight:800;font-size:2.5rem;letter-spacing:-.02em;line-height:1;margin:12px 0 4px;color:var(--text)}
   .pcard .amount small{font-size:.82rem;font-weight:600;color:var(--muted);letter-spacing:0}
   .pcard .sub{color:var(--text-soft);font-size:.95rem;margin:0 0 6px}
   .pcard ul{list-style:none;padding:0;margin:12px 0 0;display:flex;flex-direction:column;gap:8px}
@@ -185,7 +185,7 @@
 
   /* SERVER compare */
   .banner{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;box-shadow:var(--shadow);margin-bottom:20px}
-  .banner .big{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1.9rem;letter-spacing:-.02em;color:var(--accent);line-height:1}
+  .banner .big{font-family:"Montserrat",sans-serif;font-weight:800;font-size:1.9rem;letter-spacing:-.02em;color:var(--accent);line-height:1}
   .banner .big small{font-size:.5em;font-weight:600;color:var(--muted)}
   .banner .txt{flex:1 1 300px;color:var(--text-soft);font-size:.95rem}
   .banner .txt b{color:var(--text);font-weight:600}
@@ -195,7 +195,7 @@
   .ccard.good{border-color:color-mix(in srgb,var(--wa) 42%,transparent);background:linear-gradient(180deg,var(--wa-soft),var(--surface) 60%)}
   .ccard .clabel{font-family:"JetBrains Mono",monospace;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
   .ccard.good .clabel{color:var(--wa)}
-  .ccard .cost{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-.01em;margin:8px 0 2px;color:var(--text)}
+  .ccard .cost{font-family:"Montserrat",sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-.01em;margin:8px 0 2px;color:var(--text)}
   .ccard .cost small{font-size:.6em;font-weight:600;color:var(--muted)}
   .ccard .verdict{font-size:.86rem;font-weight:600;margin:0 0 4px}
   .ccard.warn .verdict{color:var(--amber)}
@@ -209,7 +209,7 @@
   .cta{background:linear-gradient(135deg,var(--accent),var(--accent-2));border-radius:22px;padding:46px 28px;text-align:center;box-shadow:0 14px 40px color-mix(in srgb,var(--accent) 35%,transparent);margin:8px 0 4px}
   .cta h2{color:#fff;font-size:clamp(1.5rem,4vw,2.2rem);letter-spacing:-.015em}
   .cta p{color:rgba(255,255,255,.92);max-width:54ch;margin:12px auto 0;font-size:1.05rem}
-  .wa-btn{display:inline-flex;align-items:center;gap:11px;margin-top:24px;background:#fff;color:#B12E67;font-weight:700;font-size:1.06rem;padding:15px 28px;border-radius:999px;text-decoration:none;box-shadow:0 10px 26px rgba(0,0,0,.22);transition:transform .12s ease}
+  .wa-btn{display:inline-flex;align-items:center;gap:11px;margin-top:24px;background:#fff;color:#EF5A53;font-weight:700;font-size:1.06rem;padding:15px 28px;border-radius:999px;text-decoration:none;box-shadow:0 10px 26px rgba(0,0,0,.22);transition:transform .12s ease}
   .wa-btn:hover{text-decoration:none;transform:translateY(-2px)}
   .wa-btn svg{width:22px;height:22px;flex:none}
   @media (prefers-reduced-motion:reduce){.wa-btn{transition:none}}
@@ -440,7 +440,7 @@
     <div class="sec-head">
       <span class="eyebrow">Texto exato</span>
       <h2>As mensagens que ele envia</h2>
-      <p>Os textos abaixo saem exatamente assim. As partes em <span style="color:var(--accent);font-weight:600">rosa</span> são preenchidas automaticamente (nome, horário, data).</p>
+      <p>Os textos abaixo saem exatamente assim. As partes em <span style="color:var(--accent);font-weight:600">coral</span> são preenchidas automaticamente (nome, horário, data).</p>
     </div>
 
     <div style="display:flex;gap:14px;align-items:flex-start;background:var(--teal-soft);border:1px solid color-mix(in srgb,var(--teal) 30%,transparent);border-radius:var(--radius);padding:16px 18px;margin-bottom:26px;box-shadow:var(--shadow)">
