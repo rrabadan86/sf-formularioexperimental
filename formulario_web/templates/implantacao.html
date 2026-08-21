@@ -479,6 +479,75 @@ IG_MAX_DIA=5</pre>
     </div>
   </section>
 
+  <!-- FASE 7 -->
+  <section>
+    <div class="phase"><span class="pn">Fase 7</span><h2>Painel de mensagens (opcional)</h2></div>
+    <p class="sec-head" style="color:var(--text-soft);max-width:66ch">Uma tela com login onde o dono edita os textos das mensagens principais (confirmações, follow-up, faltas, renovação, aniversário, Instagram, Circuito) sem tocar em código. As edições ficam em <code>data/mensagens.json</code> e valem no próximo envio, sem reiniciar.</p>
+
+    <div class="stepblock">
+      <h3><span class="num">7.1</span> Definir login e subir o painel</h3>
+      <p>Adicione um usuário e uma <b>senha forte</b> no <code>.env</code> e suba o painel sob o PM2. Ele escuta só no <code>localhost</code> (o acesso externo vem pelo HTTPS do passo 7.3).</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body"><span class="c"># no .env (senha longa, com letras e numeros):</span>
+<span class="c"># PAINEL_USER=dono   PAINEL_SENHA=uma-senha-bem-forte   PAINEL_PORT=8080</span>
+cd ~/SF-Chat_Experimental-Mensagens/Experimental
+pm2 start src/painel-mensagens.js --name <b>slimfit-painel</b> --time
+pm2 save
+curl -u dono:uma-senha-bem-forte http://127.0.0.1:8080 | head -c 60   <span class="c"># deve vir HTML</span></pre>
+      </div>
+      <div class="tip">Trocou a senha depois? Aplique com <code>pm2 restart slimfit-painel --update-env</code> (o PM2 guarda o <code>.env</code> do momento em que subiu).</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">7.2</span> Subdomínio grátis (DuckDNS)</h3>
+      <p>Sem precisar comprar domínio: crie um subdomínio grátis apontando para o IP da VPS.</p>
+      <ul class="chk">
+        <li><span class="box">✓</span><span>Em <b>duckdns.org</b> (login com Google), crie um domínio, ex.: <code>painel-unidade</code> → <code>painel-unidade.duckdns.org</code>.</span></li>
+        <li><span class="box">✓</span><span>No campo <b>current ip</b>, coloque o <b>IPv4 da VPS</b> — pegue com <code>curl -s -4 ifconfig.me</code> (não use o IP do seu PC).</span></li>
+        <li><span class="box">✓</span><span>Confira que bateu: <code>getent hosts painel-unidade.duckdns.org</code> deve mostrar o mesmo IPv4.</span></li>
+      </ul>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">7.3</span> HTTPS automático com o Caddy</h3>
+      <p>O Caddy emite o certificado (Let's Encrypt) sozinho e encaminha o subdomínio para o painel no <code>localhost</code>.</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body"><span class="c"># instala o Caddy</span>
+apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
+apt update && apt install -y caddy
+
+<span class="c"># /etc/caddy/Caddyfile  (troque pelo seu subdominio):</span>
+<span class="c"># painel-unidade.duckdns.org {</span>
+<span class="c">#     reverse_proxy 127.0.0.1:8080</span>
+<span class="c"># }</span>
+systemctl reload caddy</pre>
+      </div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">7.4</span> Abrir portas e acessar</h3>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body">ufw allow 80
+ufw allow 443
+<span class="c"># tambem libere 80 e 443 no firewall do painel da Hostinger (se houver)</span>
+curl -sI https://painel-unidade.duckdns.org | head -3   <span class="c"># HTTP/2 401 = ok (pede login)</span></pre>
+      </div>
+      <div class="call danger" style="margin-top:12px">
+        <div class="ic">!</div>
+        <div>
+          <h3>Só publique com senha forte e HTTPS</h3>
+          <p>O painel fica na internet: use uma <b>senha longa</b> (não uma data/PIN) e nunca exponha a porta 8080 direto — sempre atrás do Caddy. Se o certificado não sair, quase sempre é a <b>porta 80 bloqueada no firewall da Hostinger</b> (o Let's Encrypt precisa dela). Diagnóstico: <code>journalctl -u caddy --no-pager | tail -25</code>.</p>
+        </div>
+      </div>
+      <div class="tip">Pronto: abra <b>https://painel-unidade.duckdns.org</b> no celular ou PC, faça login e edite. As mudanças valem no próximo envio.</div>
+    </div>
+  </section>
+
   <!-- MANUTENÇÃO -->
   <section>
     <div class="sec-head">
@@ -514,6 +583,7 @@ pm2 stop slimfit-exp</pre>
       <li><span class="box">✓</span><span>Alertas ntfy no celular do dono, com teste recebido.</span></li>
       <li><span class="box">✓</span><span>PM2 <b>online</b> + autostart configurado.</span></li>
       <li><span class="box">✓</span><span>(Se vendeu) formulário na Render no ar e ponte ligada.</span></li>
+      <li><span class="box">✓</span><span>(Opcional) painel de mensagens no ar com <b>senha forte</b> e HTTPS (Fase 7).</span></li>
       <li><span class="box">✓</span><span>Manual entregue e recepção treinada. Acompanhe os primeiros dias.</span></li>
     </ul>
   </section>
