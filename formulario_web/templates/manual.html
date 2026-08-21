@@ -271,6 +271,7 @@
         <div class="card k-grupo">
           <div class="card-top"><h3>Aniversariantes do mês</h3><span class="chip c-grupo to"><span class="sw"></span>Grupo Equipe</span></div>
           <p>Lista de todas as alunas que fazem aniversário no mês seguinte, para a equipe se organizar.</p>
+          <a class="msg-ref" href="#m-aniv-mes">ver mensagem</a>
         </div>
       </div>
 
@@ -452,6 +453,49 @@
 
     <div class="msgs">
 
+      <div class="mcard" id="m-aniv-mes">
+        <div class="mhead"><h3>Aniversariantes do mês (equipe)</h3><span class="when">05:30 · início do mês</span></div>
+        <div class="bubble-wrap"><div class="bubble grp">🎂 *Aniversariantes de <span class="ph">{mês}</span>* 🎉
+
+<span class="ph">📅 03/09 — Fulana
+📅 15/09 — Ciclana
+📅 28/09 — Beltrana</span>
+
+Vamos celebrar cada uma delas! 💪❤️</div></div>
+        <div class="note">A lista é montada com as aniversariantes do mês (nome e dia), em ordem de data. Se não houver ninguém, envia “Nenhuma aniversariante neste mês. 😉”.</div>
+      </div>
+
+      <div class="mcard" id="m-ausentes">
+        <div class="mhead"><h3>Ausentes 10 dias (equipe)</h3><span class="when">06:10 · segunda</span></div>
+        <div class="bubble-wrap"><div class="bubble grp">Professoras, segue abaixo a listagem de alunas faltantes a mais de 10 dias, com a data da última presença dela. Por favor, entrem em contato no privado para entender o que está acontecendo e incentivar a retomada às aulas:
+<span class="ph">• (lista de alunas)</span>
+
+🔒 Trancadas no período (não cobrar):
+<span class="ph">• (lista + data de retorno)</span></div></div>
+      </div>
+
+      <div class="mcard" id="m-instagram">
+        <div class="mhead"><h3>Boas-vindas no Instagram (DM)</h3><span class="when">07:00 · todos os dias</span></div>
+        <div class="bubble-wrap"><div class="bubble">Seja muito bem vinda ao SlimFit, a Revolução do Treinamento Feminino! ❤️
+
+Estou te presenteando com uma aula experimental gratuita para conhecer a nossa metodologia e o nosso studio! Faça o agendamento através deste link: <span class="ph">(link do formulário)</span>
+
+Nos links abaixo eu explico sobre a nossa metodologia:
+-&gt; O que é o SlimFit: <span class="ph">(link do reel)</span>
+
+-&gt; Personal X SlimFit: <span class="ph">(link do post)</span>
+
+Até mais!</div></div>
+        <div class="note"><b>Em teste.</b> Enviada só para <b>quem passou a seguir</b> o perfil, em ritmo humano (pausa de minutos entre cada uma) e com limite diário — para o Instagram não bloquear.</div>
+      </div>
+
+      <div class="mcard" id="m-aniv">
+        <div class="mhead"><h3>Aniversário (nos grupos)</h3><span class="when">08:00 · todos os dias</span></div>
+        <div class="bubble-wrap"><div class="bubble grp">Hoje é aniversário da <span class="ph">@aluna</span>! 🥳🎉
+
+Muitas felicidades, saúde e sucesso!!! Que este novo ciclo venha repleto de conquistas e alegria!! Aproveite o seu dia! ❤️</div></div>
+      </div>
+
       <div class="mcard" id="m-hoje">
         <div class="mhead"><h3>Confirmação — hoje</h3><span class="when">08:30 · seg–sáb</span></div>
         <div class="bubble-wrap"><div class="bubble">Olá, <span class="ph">{nome}</span>! 😊
@@ -461,31 +505,6 @@ Tudo bem? Aqui é do Studio Slimfit Setor Bueno!
 Estamos mandando essa mensagem para confirmar a sua aula experimental de logo mais que está agendada para hoje às <span class="ph">{horário}</span>.
 
 Pode confirmar sua presença? Estamos te esperando! 💪</div></div>
-      </div>
-
-      <div class="mcard" id="m-amanha">
-        <div class="mhead"><h3>Confirmação — amanhã</h3><span class="when">15:30 · dom–sex</span></div>
-        <div class="bubble-wrap"><div class="bubble">Olá, <span class="ph">{nome}</span>! 😊
-
-Tudo bem? Aqui é do Studio Slimfit Setor Bueno!
-
-Estamos mandando essa mensagem para confirmar a sua aula experimental que está agendada para amanhã às <span class="ph">{horário}</span>.
-
-Pode confirmar sua presença? Estamos te esperando! 💪</div></div>
-      </div>
-
-      <div class="mcard" id="m-form">
-        <div class="mhead"><h3>Confirmação do formulário</h3><span class="when">agendamento online</span></div>
-        <div class="bubble-wrap"><div class="bubble">Oie, <span class="ph">{nome}</span>! 🎉 Tudo bem? Me chamo Juliana e sou do *Studio Slim Fit* do Setor Bueno.
-
-Estou mandando essa mensagem para informar que a sua aula experimental está confirmada para *<span class="ph">{data e hora}</span>*.
-Qualquer dúvida que tiver, ou precisar remarcar a sua aula, pode me chamar por aqui.❤️
-
-*Endereço:* R. C-235, 846, Setor Bueno, Goiânia-GO.
-*Localização:* (link do mapa)
-
-Se possível, tente chegar 10 minutos antes para você conhecer o Studio e conversarmos! 💪
-Muito bem vinda ao #SlimFit! ❤️</div></div>
       </div>
 
       <div class="mcard" id="m-follow">
@@ -520,35 +539,45 @@ Podemos dar andamento na renovação? Prefere manter o mesmo plano ou aumentar a
 Qualquer dúvida, é só me chamar! 😉</div></div>
       </div>
 
-      <div class="mcard" id="m-aniv">
-        <div class="mhead"><h3>Aniversário (nos grupos)</h3><span class="when">08:00 · todos os dias</span></div>
-        <div class="bubble-wrap"><div class="bubble grp">Hoje é aniversário da <span class="ph">@aluna</span>! 🥳🎉
+      <div class="mcard" id="m-amanha">
+        <div class="mhead"><h3>Confirmação — amanhã</h3><span class="when">15:30 · dom–sex</span></div>
+        <div class="bubble-wrap"><div class="bubble">Olá, <span class="ph">{nome}</span>! 😊
 
-Muitas felicidades, saúde e sucesso!!! Que este novo ciclo venha repleto de conquistas e alegria!! Aproveite o seu dia! ❤️</div></div>
+Tudo bem? Aqui é do Studio Slimfit Setor Bueno!
+
+Estamos mandando essa mensagem para confirmar a sua aula experimental que está agendada para amanhã às <span class="ph">{horário}</span>.
+
+Pode confirmar sua presença? Estamos te esperando! 💪</div></div>
       </div>
 
-      <div class="mcard" id="m-ausentes">
-        <div class="mhead"><h3>Ausentes 10 dias (equipe)</h3><span class="when">06:10 · segunda</span></div>
-        <div class="bubble-wrap"><div class="bubble grp">Professoras, segue abaixo a listagem de alunas faltantes a mais de 10 dias, com a data da última presença dela. Por favor, entrem em contato no privado para entender o que está acontecendo e incentivar a retomada às aulas:
-<span class="ph">• (lista de alunas)</span>
+      <div class="mcard" id="m-circuito">
+        <div class="mhead"><h3>Circuito — convocatória</h3><span class="when">16:15 · quarta</span></div>
+        <div class="bubble-wrap"><div class="bubble grp">🔥 SÁBADO É DIA DE QUEIMAR CALORIAS NO CIRCUITO! 🔥
+⚡️Comandada pela professora <span class="ph">@professora</span>.
 
-🔒 Trancadas no período (não cobrar):
-<span class="ph">• (lista + data de retorno)</span></div></div>
+Checkin Aberto!!!
+
+⏰ Sábado às <span class="ph">09h45</span></div></div>
+        <div class="note">A <b>professora</b> e o <b>horário</b> são lidos da Grade &gt; Horários — se mudarem, a mensagem acompanha sozinha. A professora é <b>@marcada</b> no grupo.</div>
       </div>
 
-      <div class="mcard" id="m-instagram">
-        <div class="mhead"><h3>Boas-vindas no Instagram (DM)</h3><span class="when">07:00 · todos os dias</span></div>
-        <div class="bubble-wrap"><div class="bubble">Seja muito bem vinda ao SlimFit, a Revolução do Treinamento Feminino! ❤️
+      <div class="mcard" id="m-circuito-lembrete">
+        <div class="mhead"><h3>Circuito — lembrete</h3><span class="when">16:15 · sexta</span></div>
+        <div class="bubble-wrap"><div class="bubble grp">🔥 *É AMANHÃ!* 🔥
+⚡️ Estamos esperando todas vocês!
 
-Estou te presenteando com uma aula experimental gratuita para conhecer a nossa metodologia e o nosso studio! Faça o agendamento através deste link: <span class="ph">(link do formulário)</span>
+⏰ Sábado às <span class="ph">09h45</span></div></div>
+      </div>
 
-Nos links abaixo eu explico sobre a nossa metodologia:
--&gt; O que é o SlimFit: <span class="ph">(link do reel)</span>
+      <div class="mcard" id="m-resumo-semana">
+        <div class="mhead"><h3>Resumo da semana (equipe)</h3><span class="when">16:30 · sexta</span></div>
+        <div class="bubble-wrap"><div class="bubble grp">📊 *Resumo da semana — Aulas experimentais*
 
--&gt; Personal X SlimFit: <span class="ph">(link do post)</span>
-
-Até mais!</div></div>
-        <div class="note"><b>Em teste.</b> Enviada só para <b>quem passou a seguir</b> o perfil, em ritmo humano (pausa de minutos entre cada uma) e com limite diário — para o Instagram não bloquear.</div>
+• Agendadas/Remarcadas: *<span class="ph">24</span>*
+• Presenças: *<span class="ph">18</span>* (<span class="ph">75%</span>)
+• Faltas: *<span class="ph">6</span>*
+• Matrículas: *<span class="ph">9</span>* (<span class="ph">50%</span> das presenças)</div></div>
+        <div class="note">Os números são calculados a partir dos cartões do EVO da semana, com os percentuais de conversão.</div>
       </div>
 
       <div class="mcard" id="m-resumo-dia">
@@ -578,34 +607,19 @@ Até mais!</div></div>
         <div class="note">Cada bloco é preenchido com os dados reais do dia; quando um bloco não tem ninguém, aparece “nenhuma/nenhum”.</div>
       </div>
 
-      <div class="mcard" id="m-resumo-semana">
-        <div class="mhead"><h3>Resumo da semana (equipe)</h3><span class="when">16:30 · sexta</span></div>
-        <div class="bubble-wrap"><div class="bubble grp">📊 *Resumo da semana — Aulas experimentais*
+      <div class="mcard" id="m-form">
+        <div class="mhead"><h3>Confirmação do formulário</h3><span class="when">agendamento online</span></div>
+        <div class="bubble-wrap"><div class="bubble">Oie, <span class="ph">{nome}</span>! 🎉 Tudo bem? Me chamo Juliana e sou do *Studio Slim Fit* do Setor Bueno.
 
-• Agendadas/Remarcadas: *<span class="ph">24</span>*
-• Presenças: *<span class="ph">18</span>* (<span class="ph">75%</span>)
-• Faltas: *<span class="ph">6</span>*
-• Matrículas: *<span class="ph">9</span>* (<span class="ph">50%</span> das presenças)</div></div>
-        <div class="note">Os números são calculados a partir dos cartões do EVO da semana, com os percentuais de conversão.</div>
-      </div>
+Estou mandando essa mensagem para informar que a sua aula experimental está confirmada para *<span class="ph">{data e hora}</span>*.
+Qualquer dúvida que tiver, ou precisar remarcar a sua aula, pode me chamar por aqui.❤️
 
-      <div class="mcard" id="m-circuito">
-        <div class="mhead"><h3>Circuito — convocatória</h3><span class="when">16:15 · quarta</span></div>
-        <div class="bubble-wrap"><div class="bubble grp">🔥 SÁBADO É DIA DE QUEIMAR CALORIAS NO CIRCUITO! 🔥
-⚡️Comandada pela professora <span class="ph">@professora</span>.
+*Endereço:* R. C-235, 846, Setor Bueno, Goiânia-GO.
+*Localização:* (link do mapa)
 
-Checkin Aberto!!!
-
-⏰ Sábado às <span class="ph">09h45</span></div></div>
-        <div class="note">A <b>professora</b> e o <b>horário</b> são lidos da Grade &gt; Horários — se mudarem, a mensagem acompanha sozinha. A professora é <b>@marcada</b> no grupo.</div>
-      </div>
-
-      <div class="mcard" id="m-circuito-lembrete">
-        <div class="mhead"><h3>Circuito — lembrete</h3><span class="when">16:15 · sexta</span></div>
-        <div class="bubble-wrap"><div class="bubble grp">🔥 *É AMANHÃ!* 🔥
-⚡️ Estamos esperando todas vocês!
-
-⏰ Sábado às <span class="ph">09h45</span></div></div>
+Se possível, tente chegar 10 minutos antes para você conhecer o Studio e conversarmos! 💪
+Muito bem vinda ao #SlimFit! ❤️</div></div>
+        <div class="note">Enviada quando a lead agenda pelo formulário online (não tem horário fixo — sai logo após a marcação).</div>
       </div>
 
     </div>
