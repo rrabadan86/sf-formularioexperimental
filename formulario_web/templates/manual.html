@@ -133,6 +133,9 @@
   .mini .freq{font-family:"JetBrains Mono",monospace;font-weight:700;color:var(--accent);font-size:.92rem}
   .mini h3{font-size:1rem;margin:6px 0 4px}
   .mini p{margin:0;color:var(--text-soft);font-size:.9rem}
+  a.mini-link{text-decoration:none;color:inherit;display:block;transition:.15s}
+  a.mini-link:hover{border-color:var(--accent);box-shadow:0 8px 24px rgba(40,20,32,.10);transform:translateY(-1px)}
+  .mini-cta{display:inline-block;margin-top:9px;color:var(--accent);font-weight:700;font-size:.86rem;font-family:"JetBrains Mono",monospace}
 
   /* MESSAGES */
   .msgs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
@@ -243,7 +246,7 @@
     <div class="grid">
       <div class="mini"><div class="freq">EVO</div><h3>De onde ele lê</h3><p>Aulas experimentais, presenças e faltas, contratos vencendo, aniversários, alunas ausentes e trancamentos.</p></div>
       <div class="mini"><div class="freq">WhatsApp</div><h3>Por onde ele fala</h3><p>Uma conexão única e persistente do WhatsApp do Studio, reaproveitada por todos os envios.</p></div>
-      <div class="mini"><div class="freq">Formulário</div><h3>Agendamento online</h3><p>A lead escolhe o horário no site; o sistema cadastra e matricula no EVO e envia a confirmação.</p></div>
+      <a class="mini mini-link" href="https://sf-formularioexperimental.onrender.com/" target="_blank" rel="noopener"><div class="freq">Formulário</div><h3>Agendamento online</h3><p>A lead escolhe o horário no site; o sistema cadastra e matricula no EVO e envia a confirmação.</p><span class="mini-cta">Ver o formulário ao vivo →</span></a>
       <div class="mini"><div class="freq">03:00</div><h3>Manutenção diária</h3><p>Todo dia de madrugada o WhatsApp reinicia sozinho para manter a conexão saudável.</p></div>
     </div>
     <div class="legend" aria-label="legenda de destinos">
