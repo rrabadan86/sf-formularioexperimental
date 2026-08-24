@@ -475,7 +475,7 @@ xvfb-run -a node src/instagram-boasvindas.js <b>--teste=seu_instagram</b></pre>
 IG_USERNAME=<b>usuario_do_studio</b>
 IG_MAX_DIA=5</pre>
       </div>
-      <div class="tip">Reinicie com <code>pm2 restart slimfit-exp</code>. Os cookies expiram com o tempo — quando isso acontecer, o alerta no ntfy avisa e é só reexportar (passo 6.1/6.2).</div>
+      <div class="tip">Reinicie com <code>pm2 restart slimfit-exp</code>. Os cookies expiram com o tempo — quando isso acontecer, o alerta no ntfy avisa e é só reexportar. Depois de ter o painel (Fase 7), dá para <b>reimportar os cookies pela aba Instagram</b> (cola o JSON), sem scp nem SSH — e testar com um DM.</div>
       <div class="tip">Depois de instalado o painel (Fase 7), o <b>liga/desliga</b> e o <b>limite/dia</b> passam a ser ajustáveis na aba <b>Instagram</b> — sem mexer no <code>.env</code> nem reiniciar (fica em <code>data/instagram-config.json</code>; o <code>.env</code> vira só o padrão inicial).</div>
     </div>
   </section>
@@ -563,13 +563,13 @@ curl -sI https://painel-unidade.duckdns.org | head -3   <span class="c"># HTTP/2
 
     <div class="stepblock">
       <h3><span class="num">7.6</span> Abas Hoje, Instagram e teste de mensagem</h3>
-      <p><b>Hoje</b> mostra os envios do dia (total, enviados, falhas e por tipo) lidos de <code>data/atividade.json</code> — sem precisar de <code>pm2 logs</code>. Na aba <b>Mensagens</b>, cada texto tem <b>Pré-visualizar</b> (como a aluna vê) e <b>Enviar teste</b> (dispara de verdade para um número que você informa; o painel grava o pedido em <code>data/teste-envio.json</code> e o robô, que tem a sessão, envia). A aba <b>Instagram</b> concentra tudo do IG: ligar/pausar (sem reiniciar), <b>limite por dia</b>, a mensagem e o horário — o liga/desliga e o limite ficam em <code>data/instagram-config.json</code>.</p>
+      <p><b>Hoje</b> mostra os envios do dia (total, enviados, falhas e por tipo) lidos de <code>data/atividade.json</code> — sem precisar de <code>pm2 logs</code>. Na aba <b>Mensagens</b>, cada texto tem <b>Pré-visualizar</b> (como a aluna vê) e <b>Enviar teste</b> (dispara de verdade para um número que você informa; o painel grava o pedido em <code>data/teste-envio.json</code> e o robô, que tem a sessão, envia). A aba <b>Instagram</b> concentra tudo do IG: ligar/pausar (sem reiniciar), <b>limite por dia</b>, a mensagem e o horário — o liga/desliga e o limite ficam em <code>data/instagram-config.json</code>. Ali também dá para <b>reimportar os cookies</b> (cole o JSON exportado do navegador — evita o scp dos passos 6.1/6.2) e <b>enviar um DM de teste</b> para um @usuário: se o DM sai, o cookie está válido; se não, avisa para reimportar.</p>
       <div class="tip">Nada disso reinicia o robô, exceto <b>salvar horários</b> (o painel roda <code>pm2 restart slimfit-exp</code> por você).</div>
     </div>
 
     <div class="stepblock">
       <h3><span class="num">7.7</span> Indicadores do formulário (aba "Indicadores")</h3>
-      <p>Funil do formulário sem SSH: <b>acessos</b>, <b>agendamentos</b> e <b>taxa de conversão</b>, por período, com horários/dias de pico e horários de aula mais escolhidos. O formulário (Render) registra cada acesso e agendamento; o robô <b>puxa a cada 2 min</b> (reusa <code>FORM_CLOUD_URL</code> + <code>FORM_OUTBOX_TOKEN</code>, os mesmos da ponte de confirmações) e grava em <code>data/indicadores.json</code> — o dia/hora é carimbado no fuso de São Paulo no VPS.</p>
+      <p>Funil do formulário sem SSH: <b>pessoas</b> (visitantes únicos, por cookie — vários F5 da mesma pessoa contam como 1), <b>aberturas</b> (acessos), <b>agendamentos</b> e a <b>conversão por pessoa</b>, por período, com horários/dias de pico e horários de aula mais escolhidos. <b>Robôs de pré-visualização de link</b> (facebookexternalhit, WhatsApp, etc.) são filtrados por User-Agent e não contam. O formulário (Render) registra os eventos; o robô <b>puxa a cada 2 min</b> (reusa <code>FORM_CLOUD_URL</code> + <code>FORM_OUTBOX_TOKEN</code>, os mesmos da ponte de confirmações) e grava em <code>data/indicadores.json</code> — dia/hora carimbados no fuso de São Paulo no VPS.</p>
       <div class="tip">Para saber a <b>origem</b> dos acessos, use um link etiquetado por canal: <code>…/?origem=instagram</code>, <code>…/?origem=whatsapp</code>, <code>…/?origem=ads</code>. Sem etiqueta, o acesso entra como “(sem etiqueta)”. Os números começam a contar a partir da instalação (não há histórico retroativo).</div>
     </div>
   </section>
