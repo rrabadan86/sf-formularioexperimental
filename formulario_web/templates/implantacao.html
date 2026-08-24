@@ -483,7 +483,7 @@ IG_MAX_DIA=5</pre>
   <!-- FASE 7 -->
   <section>
     <div class="phase"><span class="pn">Fase 7</span><h2>Painel do Studio (opcional)</h2></div>
-    <p class="sec-head" style="color:var(--text-soft);max-width:70ch">Uma tela com login e cinco abas: <b>Hoje</b> (o que o robô enviou no dia), <b>Mensagens</b> (edita os textos + <b>hora/dias</b> de cada envio, com pré-visualizar e enviar teste; grava em <code>data/mensagens.json</code> e <code>data/horarios.json</code>, vale no próximo envio sem reiniciar — só mudança de horário reinicia), <b>Agendar envios</b> (mensagens pontuais por WhatsApp, por dia e turno), <b>Instagram</b> (liga/pausa, limite/dia, mensagem e horário das boas-vindas) e <b>WhatsApp</b> (mostra o QR quando a sessão cai).</p>
+    <p class="sec-head" style="color:var(--text-soft);max-width:70ch">Uma tela com login e seis abas: <b>Hoje</b> (o que o robô enviou no dia), <b>Indicadores</b> (funil do formulário: acessos, agendamentos e conversão), <b>Mensagens</b> (edita os textos + <b>hora/dias</b> de cada envio, com pré-visualizar e enviar teste; grava em <code>data/mensagens.json</code> e <code>data/horarios.json</code>, vale no próximo envio sem reiniciar — só mudança de horário reinicia), <b>Agendar envios</b> (mensagens pontuais por WhatsApp, por dia e turno), <b>Instagram</b> (liga/pausa, limite/dia, mensagem e horário das boas-vindas) e <b>WhatsApp</b> (mostra o QR quando a sessão cai).</p>
 
     <div class="stepblock">
       <h3><span class="num">7.1</span> Definir login e subir o painel</h3>
@@ -565,6 +565,12 @@ curl -sI https://painel-unidade.duckdns.org | head -3   <span class="c"># HTTP/2
       <h3><span class="num">7.6</span> Abas Hoje, Instagram e teste de mensagem</h3>
       <p><b>Hoje</b> mostra os envios do dia (total, enviados, falhas e por tipo) lidos de <code>data/atividade.json</code> — sem precisar de <code>pm2 logs</code>. Na aba <b>Mensagens</b>, cada texto tem <b>Pré-visualizar</b> (como a aluna vê) e <b>Enviar teste</b> (dispara de verdade para um número que você informa; o painel grava o pedido em <code>data/teste-envio.json</code> e o robô, que tem a sessão, envia). A aba <b>Instagram</b> concentra tudo do IG: ligar/pausar (sem reiniciar), <b>limite por dia</b>, a mensagem e o horário — o liga/desliga e o limite ficam em <code>data/instagram-config.json</code>.</p>
       <div class="tip">Nada disso reinicia o robô, exceto <b>salvar horários</b> (o painel roda <code>pm2 restart slimfit-exp</code> por você).</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">7.7</span> Indicadores do formulário (aba "Indicadores")</h3>
+      <p>Funil do formulário sem SSH: <b>acessos</b>, <b>agendamentos</b> e <b>taxa de conversão</b>, por período, com horários/dias de pico e horários de aula mais escolhidos. O formulário (Render) registra cada acesso e agendamento; o robô <b>puxa a cada 2 min</b> (reusa <code>FORM_CLOUD_URL</code> + <code>FORM_OUTBOX_TOKEN</code>, os mesmos da ponte de confirmações) e grava em <code>data/indicadores.json</code> — o dia/hora é carimbado no fuso de São Paulo no VPS.</p>
+      <div class="tip">Para saber a <b>origem</b> dos acessos, use um link etiquetado por canal: <code>…/?origem=instagram</code>, <code>…/?origem=whatsapp</code>, <code>…/?origem=ads</code>. Sem etiqueta, o acesso entra como “(sem etiqueta)”. Os números começam a contar a partir da instalação (não há histórico retroativo).</div>
     </div>
   </section>
 
