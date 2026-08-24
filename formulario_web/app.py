@@ -19,7 +19,7 @@ import time
 import uuid
 from datetime import datetime, timedelta
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, make_response, request, send_from_directory
 
 from evo_agendamento import EvoClient, TurmaLotadaError, available_slots, book_experimental
 from evo_agendamento import config
@@ -219,9 +219,18 @@ def _valida(dados):
 # ================================= rotas =====================================
 @app.get("/")
 def index():
+    resp = make_response(send_from_directory(os.path.join(BASE, "templates"), "index.html"))
     if not _eh_bot(request.headers.get("User-Agent")):
-        _ind_append("acesso", request.args.get("origem") or request.args.get("utm_source") or "")
-    return send_from_directory(os.path.join(BASE, "templates"), "index.html")
+        # Cookie por visitante (pessoa) — persiste 1 ano. Assim "pessoas" < "acessos"
+        # (varios F5 da mesma pessoa contam como 1 pessoa).
+        vid = request.cookies.get("sfv")
+        novo = not vid
+        if novo:
+            vid = uuid.uuid4().hex
+        _ind_append("acesso", request.args.get("origem") or request.args.get("utm_source") or "", {"vid": vid})
+        if novo:
+            resp.set_cookie("sfv", vid, max_age=60 * 60 * 24 * 365, samesite="Lax")
+    return resp
 
 
 @app.get("/manual")
