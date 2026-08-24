@@ -16,6 +16,7 @@ import os
 import re
 import threading
 import time
+import uuid
 from datetime import datetime, timedelta
 
 from flask import Flask, jsonify, request, send_from_directory
@@ -34,6 +35,8 @@ FORM_MAX_OCUPACAO = int(os.getenv("FORM_MAX_OCUPACAO", "7"))  # turma com >7 fic
 # token que o PC usa para puxar a outbox (defina o MESMO valor no PC e no Render):
 OUTBOX_TOKEN = os.getenv("FORM_OUTBOX_TOKEN", "")
 OUTBOX_FILE = os.getenv("FORM_OUTBOX_FILE", "web_outbox.jsonl")
+# indicadores (acessos/agendamentos) que o VPS puxa e persiste:
+IND_FILE = os.getenv("FORM_IND_FILE", "web_indicadores.jsonl")
 # token compartilhado com a Sofia (WhatsApp). Defina no Render em Environment.
 SOFIA_TOKEN = os.getenv("SOFIA_TOKEN", "")
 # mensagem quando a pessoa já tem aula experimental (1 por pessoa):
@@ -82,6 +85,48 @@ def _outbox_ack(keys):
 
 def _row_key(row):
     return f"{row.get('contactId')}|{row.get('when')}|{row.get('ts')}"
+
+
+# =================== indicadores (acessos / agendamentos) ====================
+# Buffer leve que o VPS puxa (GET /api/ind/pending) e confirma (POST /api/ind/ack).
+# Cada evento: {id, tipo: 'acesso'|'agendou', ts, origem}. Disco efemero da Render
+# nao e problema: o VPS puxa a cada ~2 min e persiste do lado dele.
+def _ind_append(tipo, origem=""):
+    try:
+        with _lock:
+            with open(IND_FILE, "a", encoding="utf-8") as f:
+                f.write(json.dumps({
+                    "id": uuid.uuid4().hex[:12],
+                    "tipo": tipo,
+                    "ts": datetime.now().isoformat(timespec="seconds"),
+                    "origem": (origem or "")[:40],
+                }, ensure_ascii=False) + "\n")
+    except Exception:
+        app.logger.exception("falha ao registrar indicador")
+
+
+def _ind_read_all():
+    if not os.path.exists(IND_FILE):
+        return []
+    with open(IND_FILE, encoding="utf-8") as f:
+        out = []
+        for line in f:
+            line = line.strip()
+            if line:
+                try:
+                    out.append(json.loads(line))
+                except ValueError:
+                    pass
+        return out
+
+
+def _ind_remove(ids):
+    ids = set(ids or [])
+    with _lock:
+        rows = [r for r in _ind_read_all() if r.get("id") not in ids]
+        with open(IND_FILE, "w", encoding="utf-8") as f:
+            for r in rows:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
 
 
 def _ja_tem_experimental(evo, id_prospect):
@@ -150,6 +195,7 @@ def _valida(dados):
 # ================================= rotas =====================================
 @app.get("/")
 def index():
+    _ind_append("acesso", request.args.get("origem") or request.args.get("utm_source") or "")
     return send_from_directory(os.path.join(BASE, "templates"), "index.html")
 
 
@@ -492,8 +538,28 @@ def api_book():
     except Exception:
         app.logger.exception("Agendou mas falhou ao enfileirar a confirmação")
 
+    try:
+        _ind_append("agendou", (request.get_json(silent=True) or {}).get("origem", ""))
+    except Exception:
+        pass
     return jsonify({"ok": True, "when": res.when, "idProspect": res.id_prospect,
                     "activity": res.activity})
+
+
+@app.get("/api/ind/pending")
+def api_ind_pending():
+    if not OUTBOX_TOKEN or request.args.get("token") != OUTBOX_TOKEN:
+        return jsonify({"ok": False, "erro": "nao autorizado"}), 401
+    return jsonify({"ok": True, "eventos": _ind_read_all()})
+
+
+@app.post("/api/ind/ack")
+def api_ind_ack():
+    if not OUTBOX_TOKEN or request.args.get("token") != OUTBOX_TOKEN:
+        return jsonify({"ok": False, "erro": "nao autorizado"}), 401
+    ids = (request.get_json(silent=True) or {}).get("ids", [])
+    _ind_remove(ids)
+    return jsonify({"ok": True, "removidos": len(ids)})
 
 
 @app.get("/api/outbox/pending")
