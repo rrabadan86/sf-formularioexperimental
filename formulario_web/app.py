@@ -37,6 +37,22 @@ OUTBOX_TOKEN = os.getenv("FORM_OUTBOX_TOKEN", "")
 OUTBOX_FILE = os.getenv("FORM_OUTBOX_FILE", "web_outbox.jsonl")
 # indicadores (acessos/agendamentos) que o VPS puxa e persiste:
 IND_FILE = os.getenv("FORM_IND_FILE", "web_indicadores.jsonl")
+
+# User-Agents de robos (previews de link, monitores, scripts) que NAO sao gente:
+# NAO inclui "instagram" de proposito — quem abre pelo navegador DENTRO do app do
+# Instagram tem "Instagram" no UA e e uma pessoa real (nosso publico principal).
+_BOT_UA = re.compile(
+    r"bot|crawl|spider|preview|facebookexternalhit|meta-externalagent|whatsapp|telegram|slack|"
+    r"discord|embedly|curl|wget|python-requests|okhttp|go-http|headless|phantom|puppeteer|"
+    r"playwright|lighthouse|monitor|uptime|pingdom|statuscake|http-client|axios|node-fetch|"
+    r"scrapy|semrush|ahrefs|bingpreview|skypeuripreview|vkshare|redditbot",
+    re.I)
+
+def _eh_bot(ua):
+    ua = (ua or "").strip()
+    if not ua:
+        return True  # sem User-Agent = quase sempre robo/script
+    return bool(_BOT_UA.search(ua))
 # token compartilhado com a Sofia (WhatsApp). Defina no Render em Environment.
 SOFIA_TOKEN = os.getenv("SOFIA_TOKEN", "")
 # mensagem quando a pessoa já tem aula experimental (1 por pessoa):
@@ -203,7 +219,8 @@ def _valida(dados):
 # ================================= rotas =====================================
 @app.get("/")
 def index():
-    _ind_append("acesso", request.args.get("origem") or request.args.get("utm_source") or "")
+    if not _eh_bot(request.headers.get("User-Agent")):
+        _ind_append("acesso", request.args.get("origem") or request.args.get("utm_source") or "")
     return send_from_directory(os.path.join(BASE, "templates"), "index.html")
 
 
