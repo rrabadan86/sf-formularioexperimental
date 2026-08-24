@@ -91,16 +91,24 @@ def _row_key(row):
 # Buffer leve que o VPS puxa (GET /api/ind/pending) e confirma (POST /api/ind/ack).
 # Cada evento: {id, tipo: 'acesso'|'agendou', ts, origem}. Disco efemero da Render
 # nao e problema: o VPS puxa a cada ~2 min e persiste do lado dele.
-def _ind_append(tipo, origem=""):
+def _hora_de(when):
+    m = re.search(r"(\d{1,2}:\d{2})", str(when or ""))
+    return m.group(1) if m else ""
+
+
+def _ind_append(tipo, origem="", extra=None):
     try:
+        ev = {
+            "id": uuid.uuid4().hex[:12],
+            "tipo": tipo,
+            "ts": datetime.now().isoformat(timespec="seconds"),
+            "origem": (origem or "")[:40],
+        }
+        if extra:
+            ev.update(extra)
         with _lock:
             with open(IND_FILE, "a", encoding="utf-8") as f:
-                f.write(json.dumps({
-                    "id": uuid.uuid4().hex[:12],
-                    "tipo": tipo,
-                    "ts": datetime.now().isoformat(timespec="seconds"),
-                    "origem": (origem or "")[:40],
-                }, ensure_ascii=False) + "\n")
+                f.write(json.dumps(ev, ensure_ascii=False) + "\n")
     except Exception:
         app.logger.exception("falha ao registrar indicador")
 
@@ -539,7 +547,8 @@ def api_book():
         app.logger.exception("Agendou mas falhou ao enfileirar a confirmação")
 
     try:
-        _ind_append("agendou", (request.get_json(silent=True) or {}).get("origem", ""))
+        _ind_append("agendou", (request.get_json(silent=True) or {}).get("origem", ""),
+                    {"hora": _hora_de(res.when)})
     except Exception:
         pass
     return jsonify({"ok": True, "when": res.when, "idProspect": res.id_prospect,
