@@ -476,13 +476,14 @@ IG_USERNAME=<b>usuario_do_studio</b>
 IG_MAX_DIA=5</pre>
       </div>
       <div class="tip">Reinicie com <code>pm2 restart slimfit-exp</code>. Os cookies expiram com o tempo — quando isso acontecer, o alerta no ntfy avisa e é só reexportar (passo 6.1/6.2).</div>
+      <div class="tip">Depois de instalado o painel (Fase 7), o <b>liga/desliga</b> e o <b>limite/dia</b> passam a ser ajustáveis na aba <b>Instagram</b> — sem mexer no <code>.env</code> nem reiniciar (fica em <code>data/instagram-config.json</code>; o <code>.env</code> vira só o padrão inicial).</div>
     </div>
   </section>
 
   <!-- FASE 7 -->
   <section>
     <div class="phase"><span class="pn">Fase 7</span><h2>Painel do Studio (opcional)</h2></div>
-    <p class="sec-head" style="color:var(--text-soft);max-width:66ch">Uma tela com login e duas abas: <b>Mensagens</b> (edita os textos do robô — confirmações, follow-up, faltas, renovação, aniversário, Instagram, Circuito — em <code>data/mensagens.json</code>, vale no próximo envio sem reiniciar) e <b>Agendar envios</b> (mensagens pontuais por WhatsApp: número, texto e foto opcional, por dia e turno — disparadas às 10:45 e 15:45, uma de cada vez com intervalo entre elas).</p>
+    <p class="sec-head" style="color:var(--text-soft);max-width:70ch">Uma tela com login e cinco abas: <b>Hoje</b> (o que o robô enviou no dia), <b>Mensagens</b> (edita os textos + <b>hora/dias</b> de cada envio, com pré-visualizar e enviar teste; grava em <code>data/mensagens.json</code> e <code>data/horarios.json</code>, vale no próximo envio sem reiniciar — só mudança de horário reinicia), <b>Agendar envios</b> (mensagens pontuais por WhatsApp, por dia e turno), <b>Instagram</b> (liga/pausa, limite/dia, mensagem e horário das boas-vindas) e <b>WhatsApp</b> (mostra o QR quando a sessão cai).</p>
 
     <div class="stepblock">
       <h3><span class="num">7.1</span> Definir login e subir o painel</h3>
@@ -558,6 +559,35 @@ curl -sI https://painel-unidade.duckdns.org | head -3   <span class="c"># HTTP/2
         </table>
       </div>
       <div class="tip">Guardado em <code>data/agendamentos.json</code> (+ pasta <code>data/agendamentos-fotos/</code>). Teste manual: <code>pm2 stop slimfit-exp</code> → <code>xvfb-run -a node src/enviar-agendados.js --turno=tarde --enviar</code> → <code>pm2 start slimfit-exp</code> (a conexão do WhatsApp é única, então pare o robô antes de rodar o script na mão).</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">7.6</span> Abas Hoje, Instagram e teste de mensagem</h3>
+      <p><b>Hoje</b> mostra os envios do dia (total, enviados, falhas e por tipo) lidos de <code>data/atividade.json</code> — sem precisar de <code>pm2 logs</code>. Na aba <b>Mensagens</b>, cada texto tem <b>Pré-visualizar</b> (como a aluna vê) e <b>Enviar teste</b> (dispara de verdade para um número que você informa; o painel grava o pedido em <code>data/teste-envio.json</code> e o robô, que tem a sessão, envia). A aba <b>Instagram</b> concentra tudo do IG: ligar/pausar (sem reiniciar), <b>limite por dia</b>, a mensagem e o horário — o liga/desliga e o limite ficam em <code>data/instagram-config.json</code>.</p>
+      <div class="tip">Nada disso reinicia o robô, exceto <b>salvar horários</b> (o painel roda <code>pm2 restart slimfit-exp</code> por você).</div>
+    </div>
+  </section>
+
+  <!-- FASE 8 — VIGIA + BACKUP -->
+  <section>
+    <div class="phase"><span class="pn">Fase 8</span><h2>Vigia e backup (cron)</h2></div>
+    <p class="sec-head" style="color:var(--text-soft);max-width:70ch">Dois scripts leves rodados pelo <b>cron do sistema</b> (fora do PM2): um <b>vigia</b> que avisa no ntfy se o robô/painel caírem — o caso que nada mais pega, porque um processo morto não consegue se avisar — e um <b>backup</b> diário da pasta <code>data/</code> (suas edições do painel, que só vivem na VPS).</p>
+
+    <div class="stepblock">
+      <h3><span class="num">8.1</span> Agendar no crontab</h3>
+      <p>Descubra os caminhos com <code>which node</code> e <code>which pm2</code> e use-os. Depois <code>crontab -e</code> e cole:</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">crontab -e</span></div>
+<pre class="term-body"><span class="c"># deixa o pm2 achavel pelo cron (use a pasta do 'which pm2')</span>
+PATH=/usr/local/bin:/usr/bin:/bin
+
+<span class="c"># vigia a cada 5 min — avisa se o robo/painel cair (e quando voltar)</span>
+*/5 * * * * cd ~/SF-Chat_Experimental-Mensagens/Experimental &amp;&amp; /usr/bin/node src/watchdog.js &gt;&gt; logs/watchdog.log 2&gt;&amp;1
+
+<span class="c"># backup diario da pasta data/ as 03:10 (guarda as ultimas 14 copias)</span>
+10 3 * * * cd ~/SF-Chat_Experimental-Mensagens/Experimental &amp;&amp; /usr/bin/node src/backup-dados.js &gt;&gt; logs/backup.log 2&gt;&amp;1</pre>
+      </div>
+      <div class="tip">Teste na hora: <code>node src/backup-dados.js</code> (cria <code>backups/data-….tar.gz</code>) e <code>node src/watchdog.js</code> (deve dizer “✅ tudo ok”). O vigia usa o mesmo <code>NTFY_TOPIC</code> dos alertas. Ajustes opcionais no <code>.env</code>: <code>BACKUP_MANTER</code> (nº de cópias, padrão 14), <code>WATCHDOG_WA_MIN</code> (minutos de WhatsApp caído antes de avisar, padrão 30).</div>
     </div>
   </section>
 

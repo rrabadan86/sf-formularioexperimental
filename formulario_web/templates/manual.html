@@ -247,6 +247,7 @@
     <a href="#como-funciona">Como funciona</a>
     <a href="#linha-do-tempo">Linha do tempo</a>
     <a href="#mensagens">Mensagens</a>
+    <a href="#painel">Painel</a>
     <a href="#alertas">Alertas</a>
     <a href="#investimento">Investimento</a>
     <a href="#servidor">Servidor</a>
@@ -497,7 +498,7 @@
       <div style="flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:1.1rem;background:var(--teal);color:#fff">✏️</div>
       <div>
         <h3 style="font-size:1.05rem;margin:0 0 4px">Você mesmo edita esses textos</h3>
-        <p style="margin:0;color:var(--text-soft);font-size:.95rem">As mensagens principais (confirmações, follow-up, faltas, renovação, aniversário, Instagram e Circuito) ficam num <b>painel com login</b>, acessível pelo computador ou celular. Muda o texto, clica em salvar e <b>já vale no próximo envio — sem programador e sem reiniciar nada</b>. As variáveis entre chaves (<code>{nome}</code>, <code>{horário}</code>…) são preenchidas sozinhas.</p>
+        <p style="margin:0;color:var(--text-soft);font-size:.95rem">As mensagens principais (confirmações, follow-up, faltas, renovação, aniversário e Circuito) ficam num <b>painel com login</b>, acessível pelo computador ou celular. Muda o texto, clica em salvar e <b>já vale no próximo envio — sem programador e sem reiniciar nada</b>. As variáveis entre chaves (<code>{nome}</code>, <code>{horário}</code>…) são preenchidas sozinhas — clique nelas para inserir no texto. Ainda dá para <b>pré-visualizar</b> como a aluna vê e <b>enviar um teste</b> para o seu WhatsApp antes de valer para todas, além de mudar a <b>hora e os dias</b> de cada envio na própria tela.</p>
       </div>
     </div>
 
@@ -683,6 +684,23 @@ Muito bem vinda ao #SlimFit! ❤️</div></div>
     </div>
   </section>
 
+  <!-- PAINEL DO STUDIO -->
+  <section id="painel">
+    <div class="sec-head">
+      <span class="eyebrow">Sem programador</span>
+      <h2>O painel do Studio</h2>
+      <p>Um site com login (usuário e senha), aberto pelo computador ou celular, para controlar o robô sem mexer em código. Endereço: <a href="https://painelsfbueno.duckdns.org/" target="_blank" rel="noopener">painelsfbueno.duckdns.org</a>.</p>
+    </div>
+    <div class="grid">
+      <div class="mini"><div class="freq">📊 Hoje</div><h3>O que o robô fez</h3><p>Todos os envios do dia: total, enviados e falhas, separados por tipo (confirmações, follow-up, faltas, aniversário, agendados…) e a lista com hora, destino e prévia. Dá para ver outros dias.</p></div>
+      <div class="mini"><div class="freq">✏️ Mensagens</div><h3>Textos e horários</h3><p>Edita o texto de cada mensagem (vale no próximo envio), pré-visualiza, envia teste e ajusta a <b>hora e os dias</b> de cada disparo.</p></div>
+      <div class="mini"><div class="freq">📅 Agendar</div><h3>Envios avulsos</h3><p>Agenda uma mensagem pontual (número, texto e foto opcional) para um dia e turno; o robô dispara às 10:45 e 15:45, com intervalo entre elas.</p></div>
+      <div class="mini"><div class="freq">📸 Instagram</div><h3>Boas-vindas no IG</h3><p>Liga/pausa as DMs, define o <b>limite por dia</b>, edita a mensagem e o horário, e mostra o status (enviadas, contas puladas).</p></div>
+      <div class="mini"><div class="freq">📱 WhatsApp</div><h3>Conexão</h3><p>Mostra se a sessão está ativa e, se cair, exibe o <b>QR</b> para reconectar — é só escanear pelo celular do Studio.</p></div>
+    </div>
+    <div class="note">🔒 O painel abre sempre por <b>HTTPS</b> e pede login. As edições ficam guardadas no servidor e entram em <b>backup diário</b> automático.</div>
+  </section>
+
   <!-- ALERTAS + MANUTENÇÃO -->
   <section id="alertas">
     <div class="sec-head">
@@ -694,7 +712,8 @@ Muito bem vinda ao #SlimFit! ❤️</div></div>
       <div>
         <div class="divlabel"><span class="eyebrow">Você é avisado quando…</span></div>
         <ul class="clean">
-          <li><span class="ic crit">!</span><span><b>O WhatsApp cai</b> e precisa de QR — o robô fica parado até alguém escanear no servidor.</span></li>
+          <li><span class="ic crit">!</span><span><b>O robô ou o painel saem do ar</b> — um vigia externo confere a cada 5 min e avisa na hora (e avisa de novo quando volta).</span></li>
+          <li><span class="ic crit">!</span><span><b>O WhatsApp cai</b> e precisa de QR — o robô fica parado até alguém escanear (no painel, aba WhatsApp, ou no servidor).</span></li>
           <li><span class="ic crit">!</span><span><b>O reconector automático falha</b> — precisa de reinício manual.</span></li>
           <li><span class="ic warn">▲</span><span><b>Uma tarefa dá erro</b> ao rodar (ex.: instabilidade do EVO).</span></li>
           <li><span class="ic warn">▲</span><span><b>Uma confirmação se perde</b> (número sem WhatsApp ou tentativas esgotadas).</span></li>
