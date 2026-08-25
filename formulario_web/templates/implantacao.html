@@ -483,7 +483,7 @@ IG_MAX_DIA=5</pre>
   <!-- FASE 7 -->
   <section>
     <div class="phase"><span class="pn">Fase 7</span><h2>Painel do Studio (opcional)</h2></div>
-    <p class="sec-head" style="color:var(--text-soft);max-width:70ch">Uma tela com login e seis abas: <b>Hoje</b> (o que o robô enviou no dia), <b>Indicadores</b> (funil do formulário: acessos, agendamentos e conversão), <b>Mensagens</b> (edita os textos + <b>hora/dias</b> de cada envio, com pré-visualizar e enviar teste; grava em <code>data/mensagens.json</code> e <code>data/horarios.json</code>, vale no próximo envio sem reiniciar — só mudança de horário reinicia), <b>Agendar envios</b> (mensagens pontuais por WhatsApp, por dia e turno), <b>Instagram</b> (liga/pausa, limite/dia, mensagem e horário das boas-vindas) e <b>WhatsApp</b> (mostra o QR quando a sessão cai).</p>
+    <p class="sec-head" style="color:var(--text-soft);max-width:70ch">Uma tela com login e sete abas: <b>Hoje</b> (o que o robô enviou no dia), <b>Indicadores</b> (funil do formulário: acessos, agendamentos e conversão), <b>Mensagens</b> (edita os textos + <b>hora/dias</b> de cada envio, com pré-visualizar e enviar teste; grava em <code>data/mensagens.json</code> e <code>data/horarios.json</code>, vale no próximo envio sem reiniciar — só mudança de horário reinicia), <b>Agendar envios</b> (mensagens pontuais por WhatsApp, por dia e turno), <b>Instagram</b> (liga/pausa, limite/dia, mensagem e horário das boas-vindas), <b>WhatsApp</b> (mostra o QR quando a sessão cai) e <b>🤖 Sofia</b> (o chatbot com IA — roteiro, liga/desliga, ritmo e o QR do WhatsApp próprio dela; ver <b>Fase 9</b>).</p>
 
     <div class="stepblock">
       <h3><span class="num">7.1</span> Definir login e subir o painel</h3>
@@ -597,6 +597,68 @@ PATH=/usr/local/bin:/usr/bin:/bin
     </div>
   </section>
 
+  <!-- FASE 9 — SOFIA (CHATBOT COM IA) -->
+  <section>
+    <div class="phase"><span class="pn">Fase 9</span><h2>🤖 Sofia — chatbot com IA (opcional)</h2></div>
+    <p class="sec-head" style="color:var(--text-soft);max-width:70ch">A Sofia atende as leads no WhatsApp e agenda a aula experimental sozinha, usando uma IA da Anthropic (Claude). Ela roda em um processo próprio (<code>sofia-listener</code>) e usa um <b>número de WhatsApp exclusivo</b>, diferente do robô de mensagens. Tudo o que ela fala e faz é editável pela aba <b>🤖 Sofia</b> do painel.</p>
+
+    <div class="stepblock">
+      <h3><span class="num">9.1</span> Instalar as dependências</h3>
+      <p>O código da Sofia fica na pasta <code>ChatBot/</code> do mesmo repositório.</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body">cd ~/SF-Chat_Experimental-Mensagens/ChatBot
+npm install</pre>
+      </div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">9.2</span> Configurar o <code>.env</code> da Sofia</h3>
+      <p>No <code>.env</code> dentro de <code>ChatBot/</code>:</p>
+      <div class="fieldnote">
+        <div class="fnh">ChatBot/.env</div>
+        <table>
+          <tr><td>ANTHROPIC_API_KEY</td><td>Chave da IA (Claude). É o que <b>tem custo por conversa</b> — separado do servidor.</td></tr>
+          <tr><td>SOFIA_TOKEN</td><td>Senha compartilhada com o formulário (Render). Precisa ser <b>idêntica</b> ao <code>SOFIA_TOKEN</code> do formulário — é o que autoriza a Sofia a agendar no EVO.</td></tr>
+          <tr><td>SOFIA_BOOK_URL</td><td>Endpoint do formulário que agenda (padrão: o form no Render, <code>…/api/book-sofia</code>). Normalmente não precisa mexer.</td></tr>
+          <tr><td>CHROMIUM_PATH</td><td>Opcional — caminho do Chromium, se o padrão não for encontrado (mesmo do robô).</td></tr>
+        </table>
+      </div>
+      <div class="tip">O ritmo de digitação, a pausa do atendimento humano e o roteiro dela <b>não</b> ficam no <code>.env</code> — são editáveis no <b>painel</b> (aba 🤖 Sofia) e valem na hora, sem reiniciar.</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">9.3</span> Subir sob o PM2</h3>
+      <p>Assim ela sobe junto com o servidor e não morre ao fechar o terminal.</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body">cd ~/SF-Chat_Experimental-Mensagens/ChatBot
+pm2 start npm --name <b>sofia-listener</b> -- run listener
+pm2 save
+pm2 logs sofia-listener        <span class="c"># espere aparecer "PRONTA"</span></pre>
+      </div>
+      <div class="tip">Entre <code>autenticada</code> e <code>PRONTA</code> a conexão leva de 20 a 60 s (carrega as conversas) — normal.</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">9.4</span> Conectar o WhatsApp próprio da Sofia</h3>
+      <p>Na <b>primeira vez</b> (ou quando a sessão cair), a Sofia mostra um <b>QR</b>. Escaneie com o celular do <b>número dela</b> (não o do robô): no painel, aba <b>🤖 Sofia</b> → o QR aparece e atualiza sozinho; ou no terminal, pelo <code>pm2 logs sofia-listener</code>.</p>
+      <div class="call danger" style="margin-top:12px">
+        <div class="ic">!</div>
+        <div>
+          <h3>O QR é um login — trate como senha</h3>
+          <p>O QR conecta a conta de WhatsApp da Sofia. Ele é gerado <b>localmente</b> (nunca enviado para sites de QR externos). Não compartilhe o print. A sessão fica guardada em <code>ChatBot/.wwebjs_auth</code> (fora do Git).</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">9.5</span> Ajustar tudo pelo painel</h3>
+      <p>Na aba <b>🤖 Sofia</b> do painel você edita o <b>roteiro</b> (o que ela fala), <b>liga/desliga</b>, define a <b>pausa</b> do atendimento humano, o <b>ritmo</b> de digitação (modo humano, velocidade e pausas) e as <b>imagens</b> (grade/preços). Tudo vale na hora, sem reiniciar.</p>
+      <div class="tip">O roteiro e as imagens ficam em <code>ChatBot/sofia-prompt.txt</code>, <code>sofia-extracao.txt</code> e <code>sofia-midias.txt</code> — <b>editados pelo painel</b> e fora do Git (o conteúdo base fica nos <code>*.default.txt</code> versionados; se o arquivo vivo sumir, é recriado dele). Por isso o <code>git pull</code> nunca conflita com o que você editou no painel.</div>
+    </div>
+  </section>
+
   <!-- MANUTENÇÃO -->
   <section>
     <div class="sec-head">
@@ -633,6 +695,7 @@ pm2 stop slimfit-exp</pre>
       <li><span class="box">✓</span><span>PM2 <b>online</b> + autostart configurado.</span></li>
       <li><span class="box">✓</span><span>(Se vendeu) formulário na Render no ar e ponte ligada.</span></li>
       <li><span class="box">✓</span><span>(Opcional) painel de mensagens no ar com <b>senha forte</b> e HTTPS (Fase 7).</span></li>
+      <li><span class="box">✓</span><span>(Opcional) <b>Sofia</b> no ar: <code>sofia-listener</code> online, WhatsApp <b>próprio</b> dela conectado e um agendamento de teste concluído (Fase 9).</span></li>
       <li><span class="box">✓</span><span>Manual entregue e recepção treinada. Acompanhe os primeiros dias.</span></li>
     </ul>
   </section>

@@ -245,6 +245,7 @@
 <nav class="nav" aria-label="Atalhos das seções">
   <div class="nav-in">
     <a href="#como-funciona">Como funciona</a>
+    <a href="#sofia">🤖 Sofia</a>
     <a href="#linha-do-tempo">Linha do tempo</a>
     <a href="#mensagens">Mensagens</a>
     <a href="#painel">Painel</a>
@@ -262,6 +263,7 @@
     <p class="lede">Tudo o que a automação faz sozinha — cada tarefa, o horário em que roda e a mensagem exata que envia para as alunas, as leads e a equipe.</p>
     <div class="facts">
       <span class="fact"><span class="dot"></span><b>Roda 24h</b>&nbsp;no servidor (VPS), sem depender do PC</span>
+      <span class="fact">🤖 <b>Sofia (IA)</b>&nbsp;atende e agenda no WhatsApp</span>
       <span class="fact"><b>WhatsApp</b>&nbsp;do Studio sempre conectado</span>
       <span class="fact"><b>EVO</b>&nbsp;+ <b>formulário</b> de agendamento</span>
       <span class="fact"><b>Alertas</b>&nbsp;no seu celular se algo falhar</span>
@@ -289,6 +291,25 @@
       <span class="chip c-grupo"><span class="sw"></span>Aviso no grupo da equipe</span>
       <span class="chip c-sistema"><span class="sw"></span>Interno / planilha</span>
     </div>
+  </section>
+
+  <!-- SOFIA (CHATBOT COM IA) -->
+  <section id="sofia">
+    <div class="sec-head">
+      <span class="eyebrow">Atendimento com IA</span>
+      <h2>🤖 Sofia — a atendente virtual</h2>
+      <p>A Sofia é uma <b>inteligência artificial</b> que conversa com as leads no WhatsApp, tira dúvidas sobre a metodologia e <b>agenda a aula experimental sozinha</b> — em um número de WhatsApp <b>próprio dela</b>, diferente do robô de mensagens. Você controla tudo pela aba <b>🤖 Sofia</b> do painel, sem mexer em código.</p>
+    </div>
+    <div class="grid">
+      <div class="mini"><div class="freq">Conversa</div><h3>Responde sozinha, 24h</h3><p>Tira dúvidas sobre metodologia, planos, horários, endereço e Circuito — no tom de uma atendente humana, com bom senso e as regras do Studio.</p></div>
+      <div class="mini"><div class="freq">Agenda</div><h3>Marca a experimental</h3><p>Coleta nome, e-mail e o horário desejado, <b>confere a grade</b> e registra o agendamento direto no EVO (mesmo caminho do formulário). Nunca inventa horário.</p></div>
+      <div class="mini"><div class="freq">Imagens</div><h3>Grade e preços</h3><p>Quando pedem, ela envia a <b>grade de horários</b> e a <b>tabela de preços</b> como imagem — as URLs são editáveis no painel.</p></div>
+      <div class="mini"><div class="freq">Humano assume</div><h3>Você entra quando quer</h3><p>Se <b>você responder manualmente</b> aquela conversa pelo WhatsApp, a Sofia <b>sai dela</b> pelos minutos que você definir — e volta sozinha depois.</p></div>
+      <div class="mini"><div class="freq">Jeito humano</div><h3>Parece gente</h3><p>Quebra respostas longas em <b>várias mensagens</b>, mostra <b>“digitando…”</b> e usa um tom leve. A velocidade e as pausas são reguláveis no painel.</p></div>
+      <div class="mini"><div class="freq">Liga / desliga</div><h3>No seu controle</h3><p>Pausa a Sofia com um clique (aí você atende tudo manualmente) e religa quando quiser. O texto/comportamento dela é editável e vale <b>na hora</b>, sem reiniciar.</p></div>
+    </div>
+    <div class="note">🔑 Na aba <b>🤖 Sofia</b> do painel você edita <b>o que ela fala</b> (o roteiro completo), liga/desliga, ajusta a pausa do atendimento humano, o ritmo de digitação, as imagens e conecta o <b>WhatsApp próprio dela</b> pelo QR — tudo em um lugar só.</div>
+    <div class="note">💬 A Sofia usa uma IA da Anthropic (Claude) para conversar. Isso tem um <b>custo por conversa</b> (a chave de API do Studio), separado da mensalidade do servidor.</div>
   </section>
 
   <!-- LINHA DO TEMPO -->
@@ -698,6 +719,7 @@ Muito bem vinda ao #SlimFit! ❤️</div></div>
       <div class="mini"><div class="freq">📅 Agendar</div><h3>Envios avulsos</h3><p>Agenda uma mensagem pontual (número, texto e foto opcional) para um dia e turno; o robô dispara às 10:45 e 15:45, com intervalo entre elas.</p></div>
       <div class="mini"><div class="freq">📸 Instagram</div><h3>Boas-vindas no IG</h3><p>Liga/pausa as DMs, define o <b>limite por dia</b>, edita a mensagem e o horário, mostra o status, permite <b>reimportar os cookies</b> quando a sessão cai e <b>enviar um DM de teste</b> para um @usuário (que também confere o cookie).</p></div>
       <div class="mini"><div class="freq">📱 WhatsApp</div><h3>Conexão</h3><p>Mostra se a sessão está ativa e, se cair, exibe o <b>QR</b> para reconectar — é só escanear pelo celular do Studio.</p></div>
+      <div class="mini"><div class="freq">🤖 Sofia</div><h3>Atendente virtual</h3><p>Edita o roteiro da IA, liga/pausa, ajusta a pausa do atendimento humano e o ritmo de digitação, troca as imagens e conecta o <b>WhatsApp próprio da Sofia</b> pelo QR. Vale na hora, sem reiniciar.</p></div>
     </div>
     <div class="note">🔒 O painel abre sempre por <b>HTTPS</b> e pede login. As edições ficam guardadas no servidor e entram em <b>backup diário</b> automático.</div>
     <div class="note">🔗 Para saber <b>de onde vêm</b> os acessos (Instagram, WhatsApp, anúncio), use um link etiquetado em cada canal — ex.: <code>…/?origem=instagram</code>, <code>…/?origem=whatsapp</code>, <code>…/?origem=ads</code>. A aba Indicadores passa a mostrar a conversão por canal.</div>
