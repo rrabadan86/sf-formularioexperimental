@@ -564,7 +564,7 @@ curl -sI https://painel-unidade.duckdns.org | head -3   <span class="c"># HTTP/2
     <div class="stepblock">
       <h3><span class="num">7.6</span> Abas Hoje, Instagram e teste de mensagem</h3>
       <p><b>Hoje</b> mostra os envios do dia (total, enviados, falhas e por tipo) lidos de <code>data/atividade.json</code> — sem precisar de <code>pm2 logs</code>. Na aba <b>Mensagens</b>, cada texto tem <b>Pré-visualizar</b> (como a aluna vê) e <b>Enviar teste</b> (dispara de verdade para um número que você informa; o painel grava o pedido em <code>data/teste-envio.json</code> e o robô, que tem a sessão, envia). A aba <b>Instagram</b> concentra tudo do IG: ligar/pausar (sem reiniciar), <b>limite por dia</b>, a mensagem e o horário — o liga/desliga e o limite ficam em <code>data/instagram-config.json</code>. Ali também dá para <b>reimportar os cookies</b> (cole o JSON exportado do navegador — evita o scp dos passos 6.1/6.2) e <b>enviar um DM de teste</b> para um @usuário: se o DM sai, o cookie está válido; se não, avisa para reimportar.</p>
-      <div class="tip">Nada disso reinicia o robô, exceto <b>salvar horários</b> (o painel roda <code>pm2 restart slimfit-exp</code> por você).</div>
+      <div class="tip">Nada disso reinicia o robô, exceto <b>salvar horários</b> (o painel roda <code>pm2 restart slimfit-exp</code> por você). As mensagens de grupo (<b>Circuito</b> e <b>Aniversário</b>) têm ainda a opção <b>Enviar com foto</b>: o flyer fica em <code>data/mensagens-fotos/</code> e é enviado como legenda junto do texto (mantendo a @menção).</div>
     </div>
 
     <div class="stepblock">
