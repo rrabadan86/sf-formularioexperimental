@@ -115,6 +115,16 @@
   .c-off{background:var(--surface-2);color:var(--muted);border-color:var(--border)}
   .c-off .sw{background:var(--muted)}
 
+  /* RECOLHÍVEL (details) */
+  .collapse{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
+  .collapse>summary{list-style:none;cursor:pointer;padding:16px 20px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:10px;user-select:none}
+  .collapse>summary::-webkit-details-marker{display:none}
+  .collapse>summary::before{content:"▸";color:var(--accent);font-size:1rem;transition:transform .18s}
+  .collapse[open]>summary::before{transform:rotate(90deg)}
+  .collapse>summary small{font-weight:400;color:var(--muted)}
+  .collapse[open]>summary{border-bottom:1px solid var(--border)}
+  .collapse>.timeline,.collapse>.msgs{padding:18px 20px}
+
   /* TIMELINE */
   .timeline{display:flex;flex-direction:column;gap:14px}
   .tl{display:grid;grid-template-columns:96px 1fr;gap:18px;align-items:start}
@@ -311,8 +321,12 @@
       <div class="mini"><div class="freq">Humano assume</div><h3>Você entra quando quer</h3><p>Assume uma conversa pelo painel (ou respondendo pelo WhatsApp) e a Sofia <b>sai só daquela</b> — e volta quando você devolver.</p></div>
       <div class="mini"><div class="freq">Jeito humano</div><h3>Parece gente</h3><p>Quebra respostas longas em <b>várias mensagens</b>, mostra <b>“digitando…”</b> e usa um tom leve. A velocidade e as pausas são reguláveis no painel.</p></div>
       <div class="mini"><div class="freq">Liga / desliga</div><h3>No seu controle</h3><p>Pausa a Sofia com um clique (aí você atende tudo manualmente) e religa quando quiser. O texto/comportamento dela é editável e vale <b>na hora</b>, sem reiniciar.</p></div>
+      <div class="mini"><div class="freq">Interações</div><h3>Histórico por aluna</h3><p>Cada contato guarda o histórico de <b>atendimentos</b> (quantos, quando) com um <b>resumo</b> de cada conversa gerado pela IA.</p></div>
+      <div class="mini"><div class="freq">Automação por tag</div><h3>Etiqueta e avisa sozinha</h3><p>Cada tag pode ter um <b>gatilho</b> (aluna nova, palavra-chave, agendou, você assumiu, encerrou sem agendar, respondeu campanha): aplica a tag e <b>avisa um número no WhatsApp</b>. Também dá pra <b>trocar de etiqueta</b> na transição de funil.</p></div>
+      <div class="mini"><div class="freq">Agrupar mensagens</div><h3>Não atropela a conversa</h3><p>Quando a aluna manda <b>várias mensagens seguidas</b>, a Sofia espera alguns segundos e responde <b>uma vez só</b>, juntando tudo — evita respostas cruzadas. O tempo é ajustável.</p></div>
+      <div class="mini"><div class="freq">Sempre no ar</div><h3>Se recupera sozinha</h3><p>Uma <b>verificação de conexão</b> checa de tempos em tempos se o WhatsApp dela está mesmo ativo; se travar, <b>te avisa no celular</b> e <b>reinicia sozinha</b>.</p></div>
     </div>
-    <div class="note">🔑 Na aba <b>🤖 Sofia</b> do painel você edita <b>o que ela fala</b> (o roteiro completo), liga/desliga, ajusta o <b>tempo de sessão</b> (memória), a pausa do atendimento humano, o ritmo de digitação e as imagens; vê as <b>Conversas</b>, os <b>Contatos</b> e as <b>Campanhas</b>; e conecta (ou <b>desconecta</b>) o <b>WhatsApp próprio dela</b> pelo QR — tudo em um lugar só. Se a sessão dela cair, você recebe um <b>alerta no celular</b>.</div>
+    <div class="note">🔑 Na aba <b>🤖 Sofia</b> do painel você edita <b>o que ela fala</b> (o roteiro completo), liga/desliga, ajusta o <b>tempo de sessão</b> (memória), a <b>pausa</b> ao responder pelo celular, o <b>agrupamento de mensagens</b>, a <b>verificação de conexão</b>, o <b>limite de experimentais por turma</b>, o ritmo de digitação e as imagens; vê as <b>Conversas</b>, os <b>Contatos</b> (com <b>Interações</b> e <b>Automação por tag</b>) e as <b>Campanhas</b>; e conecta (ou <b>desconecta</b>) o <b>WhatsApp próprio dela</b> pelo QR — tudo em um lugar só. Se a sessão dela cair ou travar, você recebe um <b>alerta no celular</b>.</div>
     <div class="note">💬 A Sofia usa uma IA da Anthropic (Claude) para conversar. Isso tem um <b>custo por conversa</b> (a chave de API do Studio), separado da mensalidade do servidor.</div>
   </section>
 
@@ -324,7 +338,9 @@
       <p>Horários no fuso de Brasília. A tarja colorida à esquerda de cada cartão indica o destino da ação.</p>
     </div>
 
-    <div class="timeline">
+    <details class="collapse">
+      <summary>📅 Ver a linha do tempo completa <small>&nbsp;— do 05:30 ao 19:45</small></summary>
+      <div class="timeline">
 
       <div class="tl">
         <div class="tl-time"><div class="hr">05:30</div><div class="days">dia 28</div></div>
@@ -493,7 +509,8 @@
         </div>
       </div>
 
-    </div>
+      </div>
+    </details>
   </section>
 
   <!-- CONTÍNUOS -->
@@ -523,7 +540,7 @@
       <div style="flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:1.1rem;background:var(--teal);color:#fff">✏️</div>
       <div>
         <h3 style="font-size:1.05rem;margin:0 0 4px">Você mesmo edita esses textos</h3>
-        <p style="margin:0;color:var(--text-soft);font-size:.95rem">As mensagens principais (confirmações, follow-up, faltas, renovação, aniversário e Circuito) ficam num <b>painel com login</b>, acessível pelo computador ou celular. Muda o texto, clica em salvar e <b>já vale no próximo envio — sem programador e sem reiniciar nada</b>. As variáveis entre chaves (<code>{nome}</code>, <code>{horário}</code>…) são preenchidas sozinhas — clique nelas para inserir no texto. Ainda dá para <b>pré-visualizar</b> como a aluna vê e <b>enviar um teste</b> para o seu WhatsApp antes de valer para todas, além de mudar a <b>hora e os dias</b> de cada envio na própria tela. As mensagens de grupo (<b>Circuito</b> e <b>Aniversário</b>) ainda podem levar uma <b>foto</b> (flyer) junto do texto.</p>
+        <p style="margin:0;color:var(--text-soft);font-size:.95rem">As mensagens principais (confirmações, follow-up, faltas, renovação, aniversário e Circuito) ficam num <b>painel com login</b>, acessível pelo computador ou celular. Muda o texto, clica em salvar e <b>já vale no próximo envio — sem programador e sem reiniciar nada</b>. As variáveis entre chaves (<code>{nome}</code>, <code>{horário}</code>…) são preenchidas sozinhas — clique nelas para inserir no texto. Ainda dá para <b>pré-visualizar</b> como a aluna vê e <b>enviar um teste</b> para o seu WhatsApp antes de valer para todas, além de mudar a <b>hora e os dias</b> de cada envio na própria tela. <b>Qualquer</b> mensagem pode levar uma <b>foto</b> (flyer) junto do texto — é só anexar na tela de Configuração.</p>
       </div>
     </div>
 
@@ -535,7 +552,9 @@
       </div>
     </div>
 
-    <div class="msgs">
+    <details class="collapse">
+      <summary>💬 Ver todas as mensagens <small>&nbsp;— o texto de cada envio</small></summary>
+      <div class="msgs">
 
       <div class="mcard" id="m-aniv-mes">
         <div class="mhead"><h3>Aniversariantes do mês (equipe)</h3><span class="when">05:30 · início do mês</span></div>
@@ -706,7 +725,8 @@ Muito bem vinda ao #SlimFit! ❤️</div></div>
         <div class="note">Enviada quando a lead agenda pelo formulário online (não tem horário fixo — sai logo após a marcação).</div>
       </div>
 
-    </div>
+      </div>
+    </details>
   </section>
 
   <!-- PAINEL DO STUDIO -->
