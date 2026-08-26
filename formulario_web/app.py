@@ -37,6 +37,13 @@ OUTBOX_TOKEN = os.getenv("FORM_OUTBOX_TOKEN", "")
 OUTBOX_FILE = os.getenv("FORM_OUTBOX_FILE", "web_outbox.jsonl")
 # indicadores (acessos/agendamentos) que o VPS puxa e persiste:
 IND_FILE = os.getenv("FORM_IND_FILE", "web_indicadores.jsonl")
+# log de auditoria de TODO agendamento feito pelo formulário: guarda os dados
+# completos que a pessoa digitou (nome, CPF, telefone, e-mail, nascimento), o
+# horário, e se o cadastro no EVO foi criado, reaproveitado ou atualizado. Serve
+# para conferir "o que entrou pelo formulário" quando o cadastro do EVO veio
+# incompleto (ex.: cadastro antigo). Disco efêmero da Render não é problema: o
+# VPS puxa (GET /api/bookings/pending) e persiste do lado dele.
+BOOKINGS_FILE = os.getenv("FORM_BOOKINGS_FILE", "web_bookings.jsonl")
 
 # User-Agents de robos (previews de link, monitores, scripts) que NAO sao gente:
 # NAO inclui "instagram" de proposito — quem abre pelo navegador DENTRO do app do
@@ -149,6 +156,45 @@ def _ind_remove(ids):
     with _lock:
         rows = [r for r in _ind_read_all() if r.get("id") not in ids]
         with open(IND_FILE, "w", encoding="utf-8") as f:
+            for r in rows:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+
+
+# =================== log de agendamentos (auditoria) =========================
+# Uma linha por agendamento concluído pelo formulário, com os dados completos
+# que a pessoa digitou. O VPS puxa (GET /api/bookings/pending) e confirma
+# (POST /api/bookings/ack), guardando o histórico definitivo do lado dele.
+def _booking_append(row):
+    try:
+        row = {"id": uuid.uuid4().hex[:12],
+               "ts": datetime.now().isoformat(timespec="seconds"), **row}
+        with _lock:
+            with open(BOOKINGS_FILE, "a", encoding="utf-8") as f:
+                f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    except Exception:
+        app.logger.exception("falha ao registrar o log de agendamento")
+
+
+def _booking_read_all():
+    if not os.path.exists(BOOKINGS_FILE):
+        return []
+    with open(BOOKINGS_FILE, encoding="utf-8") as f:
+        out = []
+        for line in f:
+            line = line.strip()
+            if line:
+                try:
+                    out.append(json.loads(line))
+                except ValueError:
+                    pass
+        return out
+
+
+def _booking_remove(ids):
+    ids = set(ids or [])
+    with _lock:
+        rows = [r for r in _booking_read_all() if r.get("id") not in ids]
+        with open(BOOKINGS_FILE, "w", encoding="utf-8") as f:
             for r in rows:
                 f.write(json.dumps(r, ensure_ascii=False) + "\n")
 
@@ -560,6 +606,27 @@ def api_book():
         app.logger.exception("Falha no agendamento")
         return jsonify({"ok": False, "erro": f"Não consegui concluir o agendamento: {e}"}), 500
 
+    # log de auditoria: guarda os dados COMPLETOS que a pessoa digitou + o que o
+    # EVO fez com o cadastro (criou novo, reaproveitou antigo, e se conseguiu
+    # atualizar os dados nesse reaproveitamento). É aqui que se confere o CPF/
+    # e-mail/telefone/nascimento quando o cadastro do EVO veio incompleto.
+    try:
+        _booking_append({
+            "nome": limpo["nome"], "cpf": limpo["cpf"],
+            "telefone": br_phone_with_9(limpo["telefone"]),
+            "email": limpo["email"], "nascimento": limpo["nascimento"],
+            "when": res.when, "activity": res.activity,
+            "origem": (dados.get("origem") or "")[:40],
+            "idProspect": res.id_prospect,
+            # cadastro_novo=True → o EVO criou um cadastro do zero.
+            # cadastro_novo=False → já existia (cadastro antigo); "atualizacao"
+            # diz se conseguimos completar os dados dele agora.
+            "cadastro_novo": res.prospect_created,
+            "atualizacao": res.prospect_updated,
+        })
+    except Exception:
+        app.logger.exception("Agendou mas falhou ao registrar o log de agendamento")
+
     # enfileira a confirmação p/ o PC enviar pelo WhatsApp do Studio
     try:
         msg = _confirm_message(limpo["nome"], res.when)
@@ -594,6 +661,23 @@ def api_ind_ack():
         return jsonify({"ok": False, "erro": "nao autorizado"}), 401
     ids = (request.get_json(silent=True) or {}).get("ids", [])
     _ind_remove(ids)
+    return jsonify({"ok": True, "removidos": len(ids)})
+
+
+@app.get("/api/bookings/pending")
+def api_bookings_pending():
+    """Log completo dos agendamentos do formulário (o VPS puxa e persiste)."""
+    if not OUTBOX_TOKEN or request.args.get("token") != OUTBOX_TOKEN:
+        return jsonify({"ok": False, "erro": "nao autorizado"}), 401
+    return jsonify({"ok": True, "rows": _booking_read_all()})
+
+
+@app.post("/api/bookings/ack")
+def api_bookings_ack():
+    if not OUTBOX_TOKEN or request.args.get("token") != OUTBOX_TOKEN:
+        return jsonify({"ok": False, "erro": "nao autorizado"}), 401
+    ids = (request.get_json(silent=True) or {}).get("ids", [])
+    _booking_remove(ids)
     return jsonify({"ok": True, "removidos": len(ids)})
 
 
@@ -654,6 +738,21 @@ def api_book_sofia():
     except Exception as e:
         app.logger.exception("Sofia: falha no agendamento")
         return jsonify({"ok": False, "erro": f"não consegui agendar: {e}"}), 500
+
+    # 3b) Log de auditoria (mesmo do formulário). No fluxo da Sofia não há
+    #     CPF/nascimento, mas registramos o que veio + o que o EVO fez com o
+    #     cadastro (novo/reaproveitado/atualizado).
+    try:
+        _booking_append({
+            "nome": nome, "cpf": "", "telefone": br_phone_with_9(telefone),
+            "email": email, "nascimento": "",
+            "when": res.when, "activity": res.activity, "origem": "sofia",
+            "idProspect": res.id_prospect,
+            "cadastro_novo": res.prospect_created,
+            "atualizacao": res.prospect_updated,
+        })
+    except Exception:
+        app.logger.exception("Sofia: agendou mas falhou ao registrar o log")
 
     # 4) Enfileira a confirmação na OUTBOX — o bot do Studio (8550-8065) vai ler
     #    essa fila e enviar a mensagem para a aluna, igual ao fluxo do formulário.

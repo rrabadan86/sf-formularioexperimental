@@ -49,6 +49,10 @@ class BookingResult:
     service: str
     sold: bool
     enrolled: bool
+    # Quando o prospect JÁ existia e tentamos completar/atualizar os dados
+    # (nome, e-mail, celular, CPF, nascimento). None = não tentou (cadastro novo);
+    # {"ok": True/False, ...} = resultado do update. Ver EvoClient.update_prospect.
+    prospect_updated: Optional[dict] = None
 
 
 class TurmaLotadaError(RuntimeError):
@@ -213,6 +217,21 @@ def book_experimental(
         document=document, birthday=birthday,
     )
 
+    # Se o cadastro JÁ existia (ex.: cadastro antigo da aluna), completa/atualiza
+    # os dados com o que ela informou agora — nome, e-mail, celular, CPF e
+    # nascimento. Cadastros antigos costumavam ficar sem CPF/e-mail; assim o EVO
+    # passa a ter a informação nova. É best-effort: nunca atrapalha o agendamento.
+    prospect_updated = None
+    if not created:
+        try:
+            prospect_updated = evo.update_prospect(
+                id_prospect, name=first, last_name=last, email=email, phone=phone,
+                document=document, birthday=birthday, branch_id=branch_id,
+            )
+        except Exception as e:  # blindagem extra: update jamais derruba o booking
+            log.warning("Falha inesperada ao atualizar prospect %s: %s", id_prospect, e)
+            prospect_updated = {"ok": False, "erro": f"{type(e).__name__}: {e}"}
+
     # 2) localizar a turma do horário e checar vaga (cadastro JÁ feito acima).
     #    Se a turma estiver cheia ou não existir nesse horário, a oportunidade já
     #    ficou cadastrada, mas NÃO vende nem matricula — avisa o Studio p/ tratar.
@@ -292,6 +311,7 @@ def book_experimental(
         service=service or f"id={id_service}",
         sold=sold,
         enrolled=True,
+        prospect_updated=prospect_updated,
     )
 
 

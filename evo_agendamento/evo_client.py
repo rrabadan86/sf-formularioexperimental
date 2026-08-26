@@ -142,6 +142,60 @@ class EvoClient:
         log.info("Prospect criado: idProspect=%s (%s)", id_prospect, name)
         return id_prospect
 
+    def update_prospect(self, id_prospect, name=None, last_name=None, email=None,
+                        phone=None, ddi=None, document=None, birthday=None,
+                        branch_id=None):
+        """Atualiza os dados de um prospect JÁ existente (nome, e-mail, celular,
+        CPF, nascimento). Serve para completar cadastros antigos que vieram sem
+        essas informações quando a pessoa reagenda pelo formulário.
+
+        BEST-EFFORT: nunca levanta exceção — se a API recusar (endpoint/verbo
+        diferente na sua conta EVO), devolve um dicionário com o motivo, e o
+        agendamento segue normalmente. Retorna:
+          {"ok": True,  "verbo": "PATCH"|"PUT", "campos": [...]}   em caso de sucesso
+          {"ok": False, "erro": "..."}                              se não deu
+        Só envia os campos que vieram preenchidos (não apaga o que já existe)."""
+        body = {
+            "idProspect": int(id_prospect),
+            "name": name or None,
+            "lastName": last_name or None,
+            "email": email or None,
+            "cellphone": _evo_cellphone(phone, ddi or config.EVO_DDI) if phone else None,
+            "ddi": (ddi or config.EVO_DDI) if phone else None,
+            "cpf": only_digits(document) if document else None,
+            "birthday": birthday or None,
+        }
+        bid = self._bid(branch_id)
+        if bid:
+            body["idBranch"] = bid
+        body = _drop_empty(body)
+        campos = [k for k in ("name", "lastName", "email", "cellphone", "cpf", "birthday") if k in body]
+        if not campos:
+            return {"ok": False, "erro": "sem campos para atualizar"}
+        # O EVO/W12 expõe a atualização de prospect de formas diferentes conforme
+        # a conta. Tentamos os caminhos mais comuns, em ordem, e paramos no 1º que
+        # der certo. Qualquer falha é engolida (best-effort) e reportada de volta.
+        tentativas = [
+            ("PATCH", f"/api/v1/prospects/{int(id_prospect)}"),
+            ("PUT",   f"/api/v1/prospects/{int(id_prospect)}"),
+            ("PATCH", "/api/v1/prospects"),
+        ]
+        ultimo_erro = None
+        for verbo, path in tentativas:
+            try:
+                self._request(verbo, path, json=body)
+                log.info("Prospect %s atualizado (%s %s): %s", id_prospect, verbo, path, campos)
+                return {"ok": True, "verbo": verbo, "path": path, "campos": campos}
+            except EvoError as e:
+                ultimo_erro = str(e)
+                # 404/405 = esse caminho não existe nessa conta → tenta o próximo.
+                # 400/422 = caminho existe mas o corpo não bateu → não adianta
+                # insistir nos outros; para aqui com o motivo real.
+                if any(c in ultimo_erro for c in ("HTTP 400", "HTTP 422")):
+                    break
+        log.warning("Não consegui atualizar o prospect %s: %s", id_prospect, ultimo_erro)
+        return {"ok": False, "erro": ultimo_erro or "falha desconhecida"}
+
     def _search_prospect_id(self, email=None, phone=None, document=None, log_hit=False):
         """Procura um prospect existente: por e-mail, depois telefone (testando o
         celular COM e SEM o 9), depois CPF. Cadastros antigos podem ter sido salvos
