@@ -41,6 +41,10 @@
 
   *{box-sizing:border-box}
   html{-webkit-text-size-adjust:100%}
+  /* Trava a rolagem horizontal: se algum conteúdo passar da largura da tela,
+     a página não "desloca" pro lado (era o que jogava tudo p/ a esquerda). */
+  html,body{overflow-x:clip; max-width:100%}
+  img,svg,video{max-width:100%; height:auto}
   body{
     margin:0; background:var(--bg); color:var(--text);
     font-family:"Open Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
@@ -178,7 +182,7 @@
   .bubble-wrap{padding:16px;background:
      repeating-linear-gradient(0deg,transparent,transparent 22px,color-mix(in srgb,var(--border) 30%,transparent) 22px,color-mix(in srgb,var(--border) 30%,transparent) 23px);
      background-color:var(--surface-2);flex:1}
-  .bubble{background:var(--wa-soft);border:1px solid color-mix(in srgb,var(--wa) 25%,transparent);border-radius:4px 14px 14px 14px;padding:12px 14px;font-size:.92rem;line-height:1.5;white-space:pre-wrap;color:var(--text);max-width:46ch}
+  .bubble{background:var(--wa-soft);border:1px solid color-mix(in srgb,var(--wa) 25%,transparent);border-radius:4px 14px 14px 14px;padding:12px 14px;font-size:.92rem;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;color:var(--text);max-width:46ch}
   .bubble.grp{background:var(--amber-soft);border-color:color-mix(in srgb,var(--amber) 25%,transparent)}
   .bubble .ph{color:var(--accent);font-weight:600}
   .bubble .aud{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:7px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--border);font-size:.82rem;color:var(--text-soft)}
