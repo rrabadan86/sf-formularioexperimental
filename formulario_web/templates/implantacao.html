@@ -667,6 +667,93 @@ pm2 logs sofia-listener        <span class="c"># espere aparecer "PRONTA"</span>
     </div>
   </section>
 
+  <!-- NOVO STUDIO (MULTI-UNIDADE) -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Escalar / revender</span>
+      <h2>Vender para outra unidade (novo Studio)</h2>
+    </div>
+    <p>O sistema é <b>uma instância por Studio</b>: cada unidade roda numa <b>VPS
+      própria</b>, com o seu EVO, seus 2 WhatsApp, seu formulário e seus dados —
+      totalmente isolada. <b>Não se mexe no código</b>: só troca a configuração
+      (<code>.env</code>) e lê os QRs dos WhatsApp da nova unidade. Um script de
+      setup automatiza quase tudo (~30–40 min por unidade).</p>
+
+    <div class="stepblock">
+      <h3><span class="num">1</span> Preparar a VPS e clonar</h3>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">nova VPS</span></div>
+<pre class="term-body"><span class="c"># Node + ferramentas (ex.: Ubuntu)</span>
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs git chromium-browser
+sudo npm i -g pm2 tsx
+
+<span class="c"># clonar o repositório</span>
+git clone https://github.com/rrabadan86/SF-Chat_Experimental-Mensagens.git
+cd SF-Chat_Experimental-Mensagens/Experimental</pre>
+      </div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">2</span> Rodar o setup (instala + monta os <code>.env</code>)</h3>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">setup</span></div>
+<pre class="term-body">bash setup-novo-studio.sh --slug lagosul --studio "Studio SlimFit Lago Sul"</pre>
+      </div>
+      <p>Instala as dependências, cria a pasta de dados (<code>SOFIA_DIR</code>, fora
+        do repo) e gera <code>Experimental/.env</code> e <code>ChatBot/.env</code>
+        já com <b>segredos aleatórios</b> e a <b>senha do painel</b>. Nunca
+        sobrescreve um <code>.env</code> existente.</p>
+      <div class="tip">Modelos completos e comentados: <code>Experimental/.env.example</code>
+        e <code>ChatBot/.env.example</code>. Guia passo a passo detalhado:
+        <code>ONBOARDING-NOVO-STUDIO.md</code> na raiz do repositório.</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">3</span> Preencher os campos <b>[POR STUDIO]</b></h3>
+      <p>Edite os dois <code>.env</code> (o script diz exatamente quais campos):</p>
+      <ul>
+        <li><code>Experimental/.env</code> → <code>EVO_DNS</code>, <code>EVO_TOKEN</code>,
+          <code>EVO_ACTIVITY</code>/<code>EVO_SERVICE</code>, <code>FORM_CLOUD_URL</code>,
+          <code>ZEE_STUDIO_PHONE</code>.</li>
+        <li><code>ChatBot/.env</code> → <code>ANTHROPIC_API_KEY</code>,
+          <code>SOFIA_BOOK_URL</code> (o formulário desta unidade).</li>
+        <li>Confira que <code>SOFIA_DIR</code> é <b>igual</b> nos dois arquivos.</li>
+      </ul>
+      <div class="tip">No <b>formulário</b> (novo deploy na Render desta unidade) use o
+        <b>mesmo</b> <code>FORM_SLOTS_TOKEN</code> e o <b>mesmo</b>
+        <code>SOFIA_TOKEN</code> que estão nos <code>.env</code> do VPS.</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">4</span> Subir os processos e ler os QRs</h3>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">subir</span></div>
+<pre class="term-body">bash setup-novo-studio.sh --slug lagosul --start
+pm2 startup            <span class="c"># sobe sozinho após reboot</span>
+
+<span class="c"># ler os QRs dos 2 WhatsApp da unidade</span>
+pm2 logs lagosul-exp    <span class="c"># WhatsApp do robô</span>
+pm2 logs lagosul-sofia  <span class="c"># WhatsApp da SoFIA</span></pre>
+      </div>
+      <p>Sobem três processos com o nome da unidade: <code>lagosul-painel</code>,
+        <code>lagosul-exp</code> (agendador) e <code>lagosul-sofia</code> (chatbot).
+        Escaneie cada QR com o celular do número correspondente.</p>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">5</span> HTTPS e ajustes no painel</h3>
+      <p>Aponte um subdomínio para a VPS e configure o Caddy como reverse-proxy para
+        a porta do painel (<code>PAINEL_PORT</code>, padrão 8080). Depois, entre no
+        painel (usuário <code>admin</code> + a senha gerada) e ajuste, sem tocar em
+        código: o <b>roteiro da SoFIA</b>, <b>preços/grade</b>, <b>mensagens</b>,
+        <b>limite de experimentais</b> e os <b>usuários</b> do Studio.</p>
+      <div class="tip"><b>Não</b> copie a pasta <code>.wwebjs_auth</code> entre unidades
+        (cada número lê o próprio QR) e <b>não</b> reutilize <code>SOFIA_DIR</code>,
+        <code>FORM_SLOTS_TOKEN</code> ou <code>SOFIA_TOKEN</code> entre Studios.</div>
+    </div>
+  </section>
+
   <!-- MANUTENÇÃO -->
   <section>
     <div class="sec-head">
