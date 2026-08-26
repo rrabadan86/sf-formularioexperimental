@@ -19,7 +19,7 @@ import time
 import uuid
 from datetime import datetime, timedelta
 
-from flask import Flask, jsonify, make_response, request, send_from_directory
+from flask import Flask, jsonify, make_response, redirect, request, send_from_directory
 
 from evo_agendamento import EvoClient, TurmaLotadaError, available_slots, book_experimental
 from evo_agendamento import config
@@ -299,6 +299,17 @@ def manual():
 def implantacao():
     """Guia de implantação do robô para novas franquias (página estática)."""
     return _doc_sem_cache("implantacao.html")
+
+
+# Endereço do painel do Studio (hospedado à parte, no VPS). Configurável por
+# ambiente; o padrão aponta para o painel atual.
+PAINEL_URL = os.getenv("PAINEL_URL", "https://painelsfbueno.duckdns.org/")
+
+
+@app.get("/admin")
+def admin():
+    """Atalho: leva do formulário (Render) direto para o painel do Studio (VPS)."""
+    return redirect(PAINEL_URL, code=302)
 
 
 @app.get("/cadastro")
