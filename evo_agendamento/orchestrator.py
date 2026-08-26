@@ -85,12 +85,20 @@ def _find_session(schedule, when, activity=None, id_activity=None):
     return None
 
 
+# Turma FECHADA (cadeado no EVO): status 6 / "Finalized" (as abertas vêm com
+# status 4 / "Restrict"). Barramos também estados de cancelado/encerrado.
+def turma_fechada(s):
+    stn = str((s or {}).get("statusName") or "").strip().lower()
+    return (s or {}).get("status") == 6 or stn in (
+        "finalized", "finalizado", "canceled", "cancelled", "cancelado", "closed", "encerrado")
+
+
 def list_alternatives(evo, when, activity=None, id_activity=None, branch_id=None, limit=5):
     """Turmas futuras da mesma atividade que ainda têm vaga (por capacidade)."""
     schedule = evo.list_schedule(when, show_full_week=True, branch_id=branch_id)
     out = []
     for s in schedule:
-        if not session_has_room_normal(s) or not _match_activity(s, activity, id_activity):
+        if turma_fechada(s) or not session_has_room_normal(s) or not _match_activity(s, activity, id_activity):
             continue
         start = session_start_datetime(s)
         if start is None:
@@ -243,6 +251,14 @@ def book_experimental(
             alternatives=list_alternatives(evo, when, activity, id_activity, branch_id),
             reason="não há turma nesse horário",
         )
+    # Turma FECHADA (cadeado): status 6 / "Finalized". Não deixa agendar mesmo
+    # com vaga de capacidade — a aula não vai acontecer nesse horário.
+    if check_capacity and turma_fechada(session):
+        raise TurmaLotadaError(
+            fmt_datetime_evo(when),
+            alternatives=list_alternatives(evo, when, activity, id_activity, branch_id),
+            reason="turma fechada nesse horário",
+        )
     if check_capacity and not session_has_room_normal(session):
         raise TurmaLotadaError(
             fmt_datetime_evo(when),
@@ -255,9 +271,10 @@ def book_experimental(
     #     experimentais ATIVAS já marcadas na turma; se atingiu o limite, trata
     #     como turma cheia — a oportunidade já ficou cadastrada, mas NÃO vende nem
     #     matricula, e o Studio é avisado para reagendar.
-    if check_capacity and config.EVO_MAX_EXPERIMENTAIS:
+    _lim_exp = config.max_experimentais()
+    if check_capacity and _lim_exp:
         n_exp = count_experimentais(evo, id_configuration, when, branch_id=branch_id)
-        if n_exp is not None and n_exp >= config.EVO_MAX_EXPERIMENTAIS:
+        if n_exp is not None and n_exp >= _lim_exp:
             raise TurmaLotadaError(
                 fmt_datetime_evo(when),
                 alternatives=list_alternatives(evo, when, activity, id_activity, branch_id),
@@ -389,14 +406,21 @@ def available_slots(evo=None, days=10, activity=None, id_activity=None, branch_i
             cap = s.get("capacity")
             ocup = s.get("ocupation") or 0
             disponivel = (ocup <= max_ocupacao)
+            # Turma FECHADA (cadeado) → indisponível, mesmo com 0 matriculadas. O EVO
+            # marca isso no status da sessão: status 6 / "Finalized" = fechada. As
+            # turmas ABERTAS normais vêm com status 4 / "Restrict". (Também barramos
+            # status cancelado/encerrado por segurança.)
+            if turma_fechada(s):
+                disponivel = False
             n_exp = None
             # Só checa experimentais nas turmas que, de outra forma, estariam
             # disponíveis (evita uma chamada /detail por turma já cheia).
-            if (disponivel and config.EVO_MAX_EXPERIMENTAIS
+            _lim_exp = config.max_experimentais()
+            if (disponivel and _lim_exp
                     and (budget <= 0 or time.monotonic() - t0 < budget)):
                 n_exp = _exp_cached(evo, s.get("idConfiguration"), dt, branch_id)
-                if n_exp is not None and n_exp >= config.EVO_MAX_EXPERIMENTAIS:
-                    disponivel = False       # já tem 2 experimentais -> indisponível
+                if n_exp is not None and n_exp >= _lim_exp:
+                    disponivel = False       # atingiu o limite de experimentais -> indisponível
             itens.append({
                 "idConfiguration": s.get("idConfiguration"),
                 "activityDate": fmt_datetime_evo(dt),   # "yyyy-MM-dd HH:mm"

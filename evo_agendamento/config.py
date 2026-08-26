@@ -79,6 +79,21 @@ EVO_PAYMENT = _clean("EVO_PAYMENT")
 # ainda haja vaga normal). 0 = sem limite.
 EVO_MAX_EXPERIMENTAIS = int(_clean("EVO_MAX_EXPERIMENTAIS", "2") or "0")
 
+# O painel (SoFIA → Configuração) pode ajustar esse limite sem reiniciar: grava
+# o número em Experimental/data/sofia-exp-limite.txt. Lemos o arquivo a cada
+# chamada (barato) e, se existir e for válido, ele MANDA sobre o .env. Assim o
+# Studio muda quantas experimentais cabem por turma direto pela telinha.
+EXP_LIMITE_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "sofia-exp-limite.txt")
+def max_experimentais():
+    try:
+        with open(EXP_LIMITE_FILE, encoding="utf-8") as f:
+            n = int((f.read() or "").strip())
+            if n >= 0:
+                return n
+    except (OSError, ValueError):
+        pass
+    return EVO_MAX_EXPERIMENTAIS
+
 # Cache da grade do formulário (available_slots), em segundos. Evita refazer
 # dezenas de chamadas ao EVO a cada visita/refresh do formulário (o que estourava
 # o limite de 40 req/min → HTTP 429). 0 = desliga o cache.
