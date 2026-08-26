@@ -304,11 +304,15 @@
       <div class="mini"><div class="freq">Conversa</div><h3>Responde sozinha, 24h</h3><p>Tira dúvidas sobre metodologia, planos, horários, endereço e Circuito — no tom de uma atendente humana, com bom senso e as regras do Studio.</p></div>
       <div class="mini"><div class="freq">Agenda</div><h3>Marca a experimental</h3><p>Coleta nome, e-mail e o horário desejado, <b>confere a grade</b> e registra o agendamento direto no EVO (mesmo caminho do formulário). Nunca inventa horário.</p></div>
       <div class="mini"><div class="freq">Imagens</div><h3>Grade e preços</h3><p>Quando pedem, ela envia a <b>grade de horários</b> e a <b>tabela de preços</b> como imagem — as URLs são editáveis no painel.</p></div>
-      <div class="mini"><div class="freq">Humano assume</div><h3>Você entra quando quer</h3><p>Se <b>você responder manualmente</b> aquela conversa pelo WhatsApp, a Sofia <b>sai dela</b> pelos minutos que você definir — e volta sozinha depois.</p></div>
+      <div class="mini"><div class="freq">Só o que tem vaga</div><h3>Não oferece horário lotado</h3><p>Antes de agendar, ela <b>consulta a vaga real</b> da turma. Se o horário pedido está cheio, avisa na hora e oferece só os que <b>têm vaga</b> naquele dia.</p></div>
+      <div class="mini"><div class="freq">Conversas</div><h3>Painel de atendimento</h3><p>Uma <b>caixa de entrada</b> no painel mostra todas as conversas. Você <b>lê e responde por lá</b> (sem WhatsApp Web) e <b>assume o controle de uma conversa</b> específica — nas outras a Sofia segue atendendo.</p></div>
+      <div class="mini"><div class="freq">Contatos</div><h3>CRM com tags</h3><p>Importa contatos (CSV), <b>etiqueta com tags</b> e filtra — inclusive quem está <b>sem tag</b>. Base para as campanhas.</p></div>
+      <div class="mini"><div class="freq">Campanhas</div><h3>Envio em massa por tag</h3><p>Escolhe uma tag, escreve a mensagem e a <b>IA gera ~10 variações</b>; envia com <b>delays aleatórios</b>, teto por dia e janela de horário. Aceita <b>foto</b>, personaliza com <code>{nome}</code>, tem <b>enviar teste</b> e mostra a <b>previsão de término</b>.</p></div>
+      <div class="mini"><div class="freq">Humano assume</div><h3>Você entra quando quer</h3><p>Assume uma conversa pelo painel (ou respondendo pelo WhatsApp) e a Sofia <b>sai só daquela</b> — e volta quando você devolver.</p></div>
       <div class="mini"><div class="freq">Jeito humano</div><h3>Parece gente</h3><p>Quebra respostas longas em <b>várias mensagens</b>, mostra <b>“digitando…”</b> e usa um tom leve. A velocidade e as pausas são reguláveis no painel.</p></div>
       <div class="mini"><div class="freq">Liga / desliga</div><h3>No seu controle</h3><p>Pausa a Sofia com um clique (aí você atende tudo manualmente) e religa quando quiser. O texto/comportamento dela é editável e vale <b>na hora</b>, sem reiniciar.</p></div>
     </div>
-    <div class="note">🔑 Na aba <b>🤖 Sofia</b> do painel você edita <b>o que ela fala</b> (o roteiro completo), liga/desliga, ajusta a pausa do atendimento humano, o ritmo de digitação, as imagens e conecta o <b>WhatsApp próprio dela</b> pelo QR — tudo em um lugar só.</div>
+    <div class="note">🔑 Na aba <b>🤖 Sofia</b> do painel você edita <b>o que ela fala</b> (o roteiro completo), liga/desliga, ajusta o <b>tempo de sessão</b> (memória), a pausa do atendimento humano, o ritmo de digitação e as imagens; vê as <b>Conversas</b>, os <b>Contatos</b> e as <b>Campanhas</b>; e conecta (ou <b>desconecta</b>) o <b>WhatsApp próprio dela</b> pelo QR — tudo em um lugar só. Se a sessão dela cair, você recebe um <b>alerta no celular</b>.</div>
     <div class="note">💬 A Sofia usa uma IA da Anthropic (Claude) para conversar. Isso tem um <b>custo por conversa</b> (a chave de API do Studio), separado da mensalidade do servidor.</div>
   </section>
 
@@ -710,18 +714,16 @@ Muito bem vinda ao #SlimFit! ❤️</div></div>
     <div class="sec-head">
       <span class="eyebrow">Sem programador</span>
       <h2>O painel do Studio</h2>
-      <p>Um site com login (usuário e senha), aberto pelo computador ou celular, para controlar o robô sem mexer em código. Endereço: <a href="https://painelsfbueno.duckdns.org/" target="_blank" rel="noopener">painelsfbueno.duckdns.org</a>.</p>
+      <p>Um site com login, aberto pelo computador ou celular, para controlar o robô e a Sofia sem mexer em código. Endereço: <a href="https://painelsfbueno.duckdns.org/" target="_blank" rel="noopener">painelsfbueno.duckdns.org</a>. Cada pessoa entra com o <b>seu usuário</b> e vê só as telas que você liberar.</p>
     </div>
     <div class="grid">
-      <div class="mini"><div class="freq">📊 Hoje</div><h3>O que o robô fez</h3><p>Todos os envios do dia: total, enviados e falhas, separados por tipo (confirmações, follow-up, faltas, aniversário, agendados…) e a lista com hora, destino e prévia. Dá para ver outros dias.</p></div>
-      <div class="mini"><div class="freq">📈 Indicadores</div><h3>Funil do formulário</h3><p>Quantas <b>pessoas</b> visitaram (visitantes únicos, não recarregamentos), quantas <b>agendaram</b> e a <b>conversão por pessoa</b> — por período, com horários/dias de pico e horários de aula mais escolhidos. Robôs de pré-visualização não contam.</p></div>
-      <div class="mini"><div class="freq">✏️ Mensagens</div><h3>Textos e horários</h3><p>Edita o texto de cada mensagem (vale no próximo envio), pré-visualiza, envia teste e ajusta a <b>hora e os dias</b> de cada disparo.</p></div>
-      <div class="mini"><div class="freq">📅 Agendar</div><h3>Envios avulsos</h3><p>Agenda uma mensagem pontual (número, texto e foto opcional) para um dia e turno; o robô dispara às 10:45 e 15:45, com intervalo entre elas.</p></div>
-      <div class="mini"><div class="freq">📸 Instagram</div><h3>Boas-vindas no IG</h3><p>Liga/pausa as DMs, define o <b>limite por dia</b>, edita a mensagem e o horário, mostra o status, permite <b>reimportar os cookies</b> quando a sessão cai e <b>enviar um DM de teste</b> para um @usuário (que também confere o cookie).</p></div>
-      <div class="mini"><div class="freq">📱 WhatsApp</div><h3>Conexão</h3><p>Mostra se a sessão está ativa e, se cair, exibe o <b>QR</b> para reconectar — é só escanear pelo celular do Studio.</p></div>
-      <div class="mini"><div class="freq">🤖 Sofia</div><h3>Atendente virtual</h3><p>Edita o roteiro da IA, liga/pausa, ajusta a pausa do atendimento humano e o ritmo de digitação, troca as imagens e conecta o <b>WhatsApp próprio da Sofia</b> pelo QR. Vale na hora, sem reiniciar.</p></div>
+      <div class="mini"><div class="freq">📈 Formulário</div><h3>Funil de agendamento</h3><p>Quantas <b>pessoas</b> visitaram, quantas <b>agendaram</b> e a <b>conversão por pessoa</b> — por período, com horários/dias de pico e horários de aula mais escolhidos.</p></div>
+      <div class="mini"><div class="freq">💬 WhatsApp</div><h3>Configuração · Agendamento · Log</h3><p><b>Configuração:</b> conexão (QR / desconectar), textos de cada mensagem e horários. <b>Agendamento:</b> envios avulsos. <b>Log:</b> tudo o que o robô enviou no dia (total, enviados, falhas, por tipo).</p></div>
+      <div class="mini"><div class="freq">📸 Instagram</div><h3>Boas-vindas no IG</h3><p>Liga/pausa as DMs, define o <b>limite por dia</b>, edita a mensagem e o horário, reimporta os cookies quando a sessão cai e envia um <b>DM de teste</b>.</p></div>
+      <div class="mini"><div class="freq">🤖 Sofia</div><h3>Configuração · Conversas · Contatos · Campanhas</h3><p>Edita o roteiro da IA e as configs; lê e <b>responde as conversas</b> (assumindo o controle quando quiser); gerencia os <b>contatos com tags</b>; e cria <b>campanhas</b> por tag. Conecta/desconecta o WhatsApp da Sofia pelo QR.</p></div>
+      <div class="mini"><div class="freq">👤 Perfis</div><h3>Usuários e acesso</h3><p>Cria usuários com senha e <b>escolhe quais telas cada um vê</b> (ex.: só Conversas da Sofia). Vale na hora, sem reiniciar.</p></div>
     </div>
-    <div class="note">🔒 O painel abre sempre por <b>HTTPS</b> e pede login. As edições ficam guardadas no servidor e entram em <b>backup diário</b> automático.</div>
+    <div class="note">🔒 O painel abre sempre por <b>HTTPS</b> e pede login; cada usuário só acessa as telas liberadas. As edições ficam guardadas no servidor e entram em <b>backup diário</b> automático.</div>
     <div class="note">🔗 Para saber <b>de onde vêm</b> os acessos (Instagram, WhatsApp, anúncio), use um link etiquetado em cada canal — ex.: <code>…/?origem=instagram</code>, <code>…/?origem=whatsapp</code>, <code>…/?origem=ads</code>. A aba Indicadores passa a mostrar a conversão por canal.</div>
   </section>
 

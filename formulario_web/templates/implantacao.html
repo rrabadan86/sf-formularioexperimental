@@ -483,11 +483,11 @@ IG_MAX_DIA=5</pre>
   <!-- FASE 7 -->
   <section>
     <div class="phase"><span class="pn">Fase 7</span><h2>Painel do Studio (opcional)</h2></div>
-    <p class="sec-head" style="color:var(--text-soft);max-width:70ch">Uma tela com login e sete abas: <b>Hoje</b> (o que o robô enviou no dia), <b>Indicadores</b> (funil do formulário: acessos, agendamentos e conversão), <b>Mensagens</b> (edita os textos + <b>hora/dias</b> de cada envio, com pré-visualizar e enviar teste; grava em <code>data/mensagens.json</code> e <code>data/horarios.json</code>, vale no próximo envio sem reiniciar — só mudança de horário reinicia), <b>Agendar envios</b> (mensagens pontuais por WhatsApp, por dia e turno), <b>Instagram</b> (liga/pausa, limite/dia, mensagem e horário das boas-vindas), <b>WhatsApp</b> (mostra o QR quando a sessão cai) e <b>🤖 Sofia</b> (o chatbot com IA — roteiro, liga/desliga, ritmo e o QR do WhatsApp próprio dela; ver <b>Fase 9</b>).</p>
+    <p class="sec-head" style="color:var(--text-soft);max-width:70ch">Uma tela com <b>login por usuário</b> e as abas: <b>📈 Formulário</b> (funil do formulário: acessos, agendamentos e conversão), <b>💬 WhatsApp</b> — com <b>Configuração</b> (conexão/QR e desconectar, textos + hora/dias de cada envio), <b>Agendamento</b> (mensagens pontuais) e <b>Log</b> (o que o robô enviou no dia) —, <b>📸 Instagram</b> (liga/pausa, limite/dia, mensagem e horário das boas-vindas), <b>🤖 SoFIA</b> — com <b>Configuração</b>, <b>Conversas</b> (ler/responder e assumir), <b>Contatos</b> (CRM com tags) e <b>Campanhas</b> (envio em massa por tag; ver <b>Fase 9</b>) — e <b>👤 Perfis</b> (só o admin: cria usuários e define quais telas cada um vê). Os textos gravam em <code>data/mensagens.json</code>/<code>data/horarios.json</code> e valem no próximo envio sem reiniciar (só mudança de horário reinicia o robô).</p>
 
     <div class="stepblock">
       <h3><span class="num">7.1</span> Definir login e subir o painel</h3>
-      <p>Adicione um usuário e uma <b>senha forte</b> no <code>.env</code> e suba o painel sob o PM2. Ele escuta só no <code>localhost</code> (o acesso externo vem pelo HTTPS do passo 7.3).</p>
+      <p>Defina o <b>admin</b> (usuário e <b>senha forte</b>) no <code>.env</code> e suba o painel sob o PM2. O login é por <b>formulário</b> (cookie de sessão); o admin do <code>.env</code> é o super-usuário — entra sempre, vê tudo e cria os demais usuários na aba <b>Perfis</b>. Ele escuta só no <code>localhost</code> (o acesso externo vem pelo HTTPS do passo 7.3).</p>
       <div class="term">
         <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
 <pre class="term-body"><span class="c"># no .env (senha longa, com letras e numeros):</span>
@@ -495,9 +495,9 @@ IG_MAX_DIA=5</pre>
 cd ~/SF-Chat_Experimental-Mensagens/Experimental
 pm2 start src/painel-mensagens.js --name <b>slimfit-painel</b> --time
 pm2 save
-curl -u dono:uma-senha-bem-forte http://127.0.0.1:8080 | head -c 60   <span class="c"># deve vir HTML</span></pre>
+curl -s http://127.0.0.1:8080/login | head -c 60   <span class="c"># deve vir HTML da tela de login</span></pre>
       </div>
-      <div class="tip">Trocou a senha depois? Aplique com <code>pm2 restart slimfit-painel --update-env</code> (o PM2 guarda o <code>.env</code> do momento em que subiu).</div>
+      <div class="tip">Trocou a senha do admin depois? Aplique com <code>pm2 restart slimfit-painel --update-env</code>. Para <b>outros usuários</b> (recepção, etc.), entre como admin → aba <b>👤 Perfis</b> → crie o usuário com senha e marque só as telas que ele pode ver (ex.: só <b>Conversas</b> da SoFIA). Vale na hora, sem reiniciar; as senhas ficam com hash em <code>data/usuarios.json</code> (fora do Git).</div>
     </div>
 
     <div class="stepblock">
@@ -621,6 +621,7 @@ npm install</pre>
           <tr><td>ANTHROPIC_API_KEY</td><td>Chave da IA (Claude). É o que <b>tem custo por conversa</b> — separado do servidor.</td></tr>
           <tr><td>SOFIA_TOKEN</td><td>Senha compartilhada com o formulário (Render). Precisa ser <b>idêntica</b> ao <code>SOFIA_TOKEN</code> do formulário — é o que autoriza a Sofia a agendar no EVO.</td></tr>
           <tr><td>SOFIA_BOOK_URL</td><td>Endpoint do formulário que agenda (padrão: o form no Render, <code>…/api/book-sofia</code>). Normalmente não precisa mexer.</td></tr>
+          <tr><td>NTFY_TOPIC</td><td>Opcional — <b>mesmo tópico</b> dos alertas do robô. Com ele, a SoFIA avisa no celular quando a sessão dela <b>cair (precisa de QR)</b> e quando uma <b>campanha auto-pausa</b> por falhas.</td></tr>
           <tr><td>CHROMIUM_PATH</td><td>Opcional — caminho do Chromium, se o padrão não for encontrado (mesmo do robô).</td></tr>
         </table>
       </div>
@@ -654,7 +655,7 @@ pm2 logs sofia-listener        <span class="c"># espere aparecer "PRONTA"</span>
 
     <div class="stepblock">
       <h3><span class="num">9.5</span> Ajustar tudo pelo painel</h3>
-      <p>Na aba <b>🤖 Sofia</b> do painel você edita o <b>roteiro</b> (o que ela fala), <b>liga/desliga</b>, define a <b>pausa</b> do atendimento humano, o <b>ritmo</b> de digitação (modo humano, velocidade e pausas) e as <b>imagens</b> (grade/preços). Tudo vale na hora, sem reiniciar.</p>
+      <p>Na aba <b>🤖 SoFIA</b> do painel (sub-aba <b>Configuração</b>) você edita o <b>roteiro</b> (o que ela fala), <b>liga/desliga</b>, define o <b>tempo de sessão</b> (memória da conversa), a <b>pausa</b> do atendimento humano, o <b>ritmo</b> de digitação e as <b>imagens</b> (grade/preços); e pode <b>desconectar</b> o WhatsApp dela por ali. As outras sub-abas: <b>Conversas</b> (ler/responder e assumir o controle de uma conversa), <b>Contatos</b> (importar CSV e etiquetar com tags) e <b>Campanhas</b> (envio em massa por tag, com variações da IA, limites, foto e <code>{nome}</code>). Tudo vale na hora, sem reiniciar.</p>
       <div class="tip">O roteiro e as imagens ficam em <code>ChatBot/sofia-prompt.txt</code>, <code>sofia-extracao.txt</code> e <code>sofia-midias.txt</code> — <b>editados pelo painel</b> e fora do Git (o conteúdo base fica nos <code>*.default.txt</code> versionados; se o arquivo vivo sumir, é recriado dele). Por isso o <code>git pull</code> nunca conflita com o que você editou no painel.</div>
     </div>
   </section>
