@@ -279,16 +279,26 @@ def index():
     return resp
 
 
+def _doc_sem_cache(nome):
+    """Serve uma página de doc SEM cache — assim toda atualização (deploy) aparece
+    na hora, sem o navegador segurar a versão antiga."""
+    resp = make_response(send_from_directory(os.path.join(BASE, "templates"), nome))
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
+
+
 @app.get("/manual")
 def manual():
     """Manual/proposta comercial do robô (página estática para divulgação)."""
-    return send_from_directory(os.path.join(BASE, "templates"), "manual.html")
+    return _doc_sem_cache("manual.html")
 
 
 @app.get("/implantacao")
 def implantacao():
     """Guia de implantação do robô para novas franquias (página estática)."""
-    return send_from_directory(os.path.join(BASE, "templates"), "implantacao.html")
+    return _doc_sem_cache("implantacao.html")
 
 
 @app.get("/cadastro")
