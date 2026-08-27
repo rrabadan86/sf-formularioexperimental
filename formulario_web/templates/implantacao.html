@@ -186,6 +186,115 @@
     </ul>
   </section>
 
+  <!-- IMPLANTAÇÃO RÁPIDA (SCRIPT) -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Caminho rápido — recomendado</span>
+      <h2>Implantação com o script</h2>
+    </div>
+    <p>Um script faz quase tudo: instala o sistema, as dependências, monta os
+      <code>.env</code> com segredos, sobe os processos e liga o HTTPS. Serve para o
+      <b>primeiro studio</b> e para <b>cada novo studio</b> — cada um numa VPS própria.
+      Ao final, só sobram <b>4 tarefas manuais</b> (credenciais, formulário, DNS e
+      conteúdo do painel).</p>
+    <div class="tip">O <code>--slug</code> e o <code>--studio</code> são <b>livres</b>:
+      troque <code>lagosul</code> pelo apelido do studio (sem espaço/acento) — ex.:
+      <code>--slug marista --studio "Studio SlimFit Marista"</code>. O slug vira os
+      nomes dos processos (<code>marista-painel</code>…) e a pasta de dados.</div>
+
+    <div class="stepblock">
+      <h3><span class="num">1</span> Clonar o repositório</h3>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS Debian/Ubuntu</span></div>
+<pre class="term-body"><span class="p">ssh</span> root@<b>IP-DO-CLIENTE</b>
+git clone https://github.com/rrabadan86/SF-Chat_Experimental-Mensagens.git
+cd SF-Chat_Experimental-Mensagens/Experimental</pre>
+      </div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">2</span> Preparar tudo (sistema + deps + <code>.env</code>)</h3>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">setup</span></div>
+<pre class="term-body">bash setup-novo-studio.sh --slug <b>lagosul</b> --studio <b>"Studio SlimFit Lago Sul"</b> --install-deps</pre>
+      </div>
+      <p>O <code>--install-deps</code> instala <b>Node 20, git, Chromium, python3-venv,
+        pm2 e tsx</b>; depois o script instala as dependências do projeto (Node +
+        Python num venv), cria a pasta de dados (<code>SOFIA_DIR</code>) e gera
+        <code>Experimental/.env</code> e <code>ChatBot/.env</code> já com
+        <b>segredos aleatórios</b> e a <b>senha do painel</b> (anote a que ele imprime).
+        Nunca sobrescreve um <code>.env</code> existente.</p>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">3</span> Preencher as credenciais <b>[POR STUDIO]</b></h3>
+      <p>Edite os dois <code>.env</code> (o script diz quais campos):</p>
+      <ul>
+        <li><code>Experimental/.env</code> → <code>EVO_DNS</code>, <code>EVO_TOKEN</code>,
+          <code>FORM_CLOUD_URL</code>, <code>ZEE_STUDIO_PHONE</code>.</li>
+        <li><code>ChatBot/.env</code> → <code>ANTHROPIC_API_KEY</code>,
+          <code>SOFIA_BOOK_URL</code>.</li>
+        <li>Confira que <code>SOFIA_DIR</code> é <b>igual</b> nos dois.</li>
+      </ul>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">4</span> Descobrir os ids da aula no EVO (opcional)</h3>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">ids do EVO</span></div>
+<pre class="term-body">bash setup-novo-studio.sh --slug <b>lagosul</b> --evo-ids</pre>
+      </div>
+      <p>Mostra os serviços/atividades de aula experimental com seus <b>ids</b> —
+        copie para <code>EVO_SERVICE_ID</code> / <code>EVO_ACTIVITY_ID</code> no
+        <code>.env</code> (ou use os nomes em <code>EVO_SERVICE</code> /
+        <code>EVO_ACTIVITY</code>).</p>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">5</span> Subir tudo — com HTTPS automático — e ler os QRs</h3>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">subir</span></div>
+<pre class="term-body">bash setup-novo-studio.sh --slug <b>lagosul</b> --start --domain <b>painel-lagosul.seu-dominio</b>
+pm2 startup            <span class="c"># sobe sozinho após reboot</span>
+
+<span class="c"># ler os QRs dos 2 WhatsApp da unidade</span>
+pm2 logs <b>lagosul</b>-exp    <span class="c"># WhatsApp do robô</span>
+pm2 logs <b>lagosul</b>-sofia  <span class="c"># WhatsApp da SoFIA</span></pre>
+      </div>
+      <p>Sobem três processos (<code>lagosul-painel</code>, <code>lagosul-exp</code>,
+        <code>lagosul-sofia</code>) e o <code>--domain</code> gera o bloco do <b>Caddy</b>,
+        liga o <b>HTTPS</b> e recarrega. Escaneie cada QR com o celular do número
+        correspondente.</p>
+    </div>
+
+    <div class="phase" style="margin-top:26px"><span class="pn">No final</span><h2>O que continua manual</h2></div>
+    <p>O script não consegue fazer estas 4 coisas (são externas ou de credencial):</p>
+    <ul class="chk">
+      <li><span class="box">✓</span><span><b>Credenciais</b> — EVO e Anthropic você cola no <code>.env</code> (passo 3).</span></li>
+      <li><span class="box">✓</span><span><b>Formulário na Render</b> — um <b>deploy separado</b> por unidade, com os <b>mesmos</b> <code>FORM_SLOTS_TOKEN</code> e <code>SOFIA_TOKEN</code> dos <code>.env</code> do VPS, e o EVO da unidade. Veja a <b>Fase 5</b> abaixo.</span></li>
+      <li><span class="box">✓</span><span><b>Apontar o DNS</b> do subdomínio (o do <code>--domain</code>) para o IP da VPS — no seu provedor de DNS. O Caddy emite o certificado sozinho.</span></li>
+      <li><span class="box">✓</span><span><b>Conteúdo no painel</b> — roteiro da SoFIA, preços/grade (imagens), <b>mensagem de confirmação (endereço!)</b> e usuários. Cada unidade localiza no painel.</span></li>
+    </ul>
+    <div class="tip"><b>Não</b> copie a pasta <code>.wwebjs_auth</code> entre unidades
+      (cada número lê o próprio QR) e <b>não</b> reutilize <code>SOFIA_DIR</code>,
+      <code>FORM_SLOTS_TOKEN</code> ou <code>SOFIA_TOKEN</code> entre Studios.</div>
+    <div class="tip">Recursos <b>opcionais</b> (Instagram, planilha do Google, vigia/backup
+      por cron) e os <b>detalhes granulares</b> de cada etapa estão na
+      <b>referência detalhada</b> logo abaixo — use só o que precisar.</div>
+  </section>
+
+  <!-- REFERÊNCIA DETALHADA (MANUAL) -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Referência detalhada — manual</span>
+      <h2>Passo a passo completo (e recursos opcionais)</h2>
+    </div>
+    <p>As <b>Fases</b> abaixo são a via <b>manual e granular</b>, e cobrem os recursos
+      <b>opcionais</b> (Instagram, planilha, cron). Se você usou o script acima, pule
+      direto para o que precisar — ex.: <b>Fase 5</b> (formulário na Render),
+      <b>Fase 6</b> (Instagram) ou <b>Fase 9.5</b> (ajustes no painel).</p>
+  </section>
+
   <!-- FASE 1 -->
   <section>
     <div class="phase"><span class="pn">Fase 1</span><h2>Preparar o servidor</h2></div>
@@ -664,95 +773,6 @@ pm2 logs sofia-listener        <span class="c"># espere aparecer "PRONTA"</span>
       <p>Na aba <b>🤖 SoFIA</b> do painel (sub-aba <b>Configuração</b>) você edita o <b>roteiro</b> (o que ela fala), <b>liga/desliga</b>, e ajusta num grid: <b>tempo de sessão</b> (memória), <b>agrupar mensagens</b> (espera alguns segundos e responde tudo junto), <b>verificação de conexão</b> (health-check — reinicia sozinha se travar), <b>máx. de experimentais por turma</b>, <b>pausa</b> ao responder pelo celular, o <b>ritmo</b> de digitação e as <b>imagens</b> (grade/preços); e pode <b>desconectar</b> o WhatsApp dela por ali. As outras sub-abas: <b>Conversas</b> (ler/responder, assumir o controle, <b>bloquear</b> e <b>encerrar</b> — 🔒 fecha na hora, a Sofia recomeça do zero e o follow-up não incomoda), <b>Contatos</b> (CRM: importar e <b>exportar CSV</b>, etiquetar, <b>Interações</b> — histórico com resumo por atendimento — e <b>Automação por tag</b> — gatilhos que etiquetam e avisam sozinhos) e <b>Campanhas</b> (envio em massa por tag, com variações da IA, limites, foto e <code>{nome}</code>). Tudo vale na hora, sem reiniciar.</p>
       <div class="tip">O roteiro e as imagens ficam em <code>ChatBot/sofia-prompt.txt</code>, <code>sofia-extracao.txt</code> e <code>sofia-midias.txt</code> — <b>editados pelo painel</b> e fora do Git (o conteúdo base fica nos <code>*.default.txt</code> versionados; se o arquivo vivo sumir, é recriado dele). Por isso o <code>git pull</code> nunca conflita com o que você editou no painel.</div>
       <div class="tip"><b>Arquivos de execução da SoFIA</b> (todos em <code>ChatBot/</code>, gitignored — só vivem na VPS): <code>sofia-conversas.json</code> (inbox), <code>sofia-historico.json</code> (interações), <code>sofia-humano.json</code> (controle humano), <code>campanhas.json</code>, e as pontes com o painel — <code>sofia-agendou.jsonl</code>/<code>sofia-eventos.jsonl</code>/<code>sofia-avisos.jsonl</code> (automações) e os ajustes <code>sofia-sessao-horas.txt</code>, <code>sofia-health-min.txt</code>, <code>sofia-agrupar-seg.txt</code>, <code>sofia-modelo.json</code> (modelo de IA), <code>sofia-transcricao.txt</code> (liga/desliga da transcrição), <code>sofia-followup-cfg.json</code> (follow-up), <code>sofia-bloqueios.json</code> (lista de bloqueio) e <code>sofia-encerradas.json</code> (conversas encerradas à mão — cadeado). Com <code>SOFIA_DIR</code> definido, todos esses vivem nessa pasta (ex.: <code>/root/sofia-data</code>), fora do repositório. As tags/automações, o log de agendamentos do formulário e os canais de origem ficam no lado do painel, em <code>data/tags-config.json</code>, <code>data/bookings.json</code> e <code>data/origens.json</code>. Após um <code>git pull</code> que mexa na SoFIA, reinicie: <code>pm2 restart sofia-listener --update-env</code>.</div>
-    </div>
-  </section>
-
-  <!-- NOVO STUDIO (MULTI-UNIDADE) -->
-  <section>
-    <div class="sec-head">
-      <span class="eyebrow">Escalar / revender</span>
-      <h2>Vender para outra unidade (novo Studio)</h2>
-    </div>
-    <p>O sistema é <b>uma instância por Studio</b>: cada unidade roda numa <b>VPS
-      própria</b>, com o seu EVO, seus 2 WhatsApp, seu formulário e seus dados —
-      totalmente isolada. <b>Não se mexe no código</b>: só troca a configuração
-      (<code>.env</code>) e lê os QRs dos WhatsApp da nova unidade. Um script de
-      setup automatiza quase tudo (~30–40 min por unidade).</p>
-
-    <div class="stepblock">
-      <h3><span class="num">1</span> Clonar o repositório</h3>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">nova VPS (Debian/Ubuntu)</span></div>
-<pre class="term-body">git clone https://github.com/rrabadan86/SF-Chat_Experimental-Mensagens.git
-cd SF-Chat_Experimental-Mensagens/Experimental</pre>
-      </div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">2</span> Preparar tudo (sistema + deps + <code>.env</code>)</h3>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">setup</span></div>
-<pre class="term-body">bash setup-novo-studio.sh --slug lagosul --studio "Studio SlimFit Lago Sul" --install-deps</pre>
-      </div>
-      <p>O <code>--install-deps</code> instala <b>Node 20, git, Chromium, python3-venv,
-        pm2 e tsx</b>; depois o script instala as dependências do projeto (Node +
-        Python num venv), cria a pasta de dados (<code>SOFIA_DIR</code>, fora do repo)
-        e gera <code>Experimental/.env</code> e <code>ChatBot/.env</code> já com
-        <b>segredos aleatórios</b> e a <b>senha do painel</b>. Sem
-        <code>--install-deps</code>, ele assume que já existem. Nunca sobrescreve um
-        <code>.env</code> existente.</p>
-      <div class="tip">Modelos completos e comentados: <code>Experimental/.env.example</code>
-        e <code>ChatBot/.env.example</code>. Guia passo a passo detalhado:
-        <code>ONBOARDING-NOVO-STUDIO.md</code> na raiz do repositório.</div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">3</span> Preencher os campos <b>[POR STUDIO]</b></h3>
-      <p>Edite os dois <code>.env</code> (o script diz exatamente quais campos):</p>
-      <ul>
-        <li><code>Experimental/.env</code> → <code>EVO_DNS</code>, <code>EVO_TOKEN</code>,
-          <code>FORM_CLOUD_URL</code>, <code>ZEE_STUDIO_PHONE</code>.</li>
-        <li><code>ChatBot/.env</code> → <code>ANTHROPIC_API_KEY</code>,
-          <code>SOFIA_BOOK_URL</code> (o formulário desta unidade).</li>
-        <li>Confira que <code>SOFIA_DIR</code> é <b>igual</b> nos dois arquivos.</li>
-      </ul>
-      <p>Com o EVO já preenchido, descubra os <b>ids da aula</b> (opcional):</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">ids do EVO</span></div>
-<pre class="term-body">bash setup-novo-studio.sh --slug lagosul --evo-ids</pre>
-      </div>
-      <div class="tip">No <b>formulário</b> (novo deploy na Render desta unidade) use o
-        <b>mesmo</b> <code>FORM_SLOTS_TOKEN</code> e o <b>mesmo</b>
-        <code>SOFIA_TOKEN</code> que estão nos <code>.env</code> do VPS.</div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">4</span> Subir tudo — com HTTPS automático — e ler os QRs</h3>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">subir</span></div>
-<pre class="term-body">bash setup-novo-studio.sh --slug lagosul --start --domain painel-lagosul.seu-dominio
-pm2 startup            <span class="c"># sobe sozinho após reboot</span>
-
-<span class="c"># ler os QRs dos 2 WhatsApp da unidade</span>
-pm2 logs lagosul-exp    <span class="c"># WhatsApp do robô</span>
-pm2 logs lagosul-sofia  <span class="c"># WhatsApp da SoFIA</span></pre>
-      </div>
-      <p>Sobem três processos com o nome da unidade (<code>lagosul-painel</code>,
-        <code>lagosul-exp</code>, <code>lagosul-sofia</code>) e o <code>--domain</code>
-        gera o bloco do <b>Caddy</b>, liga o <b>HTTPS</b> e recarrega. <b>Aponte o DNS</b>
-        do subdomínio para o IP da VPS — o Caddy emite o certificado sozinho. Escaneie
-        cada QR com o celular do número correspondente.</p>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">5</span> Ajustes finais no painel</h3>
-      <p>Entre no painel (usuário <code>admin</code> + a senha gerada) e ajuste, sem
-        tocar em código: o <b>roteiro da SoFIA</b>, <b>preços/grade</b>,
-        <b>mensagens</b> (endereço!), <b>limite de experimentais</b> e os
-        <b>usuários</b> do Studio.</p>
-      <div class="tip"><b>Não</b> copie a pasta <code>.wwebjs_auth</code> entre unidades
-        (cada número lê o próprio QR) e <b>não</b> reutilize <code>SOFIA_DIR</code>,
-        <code>FORM_SLOTS_TOKEN</code> ou <code>SOFIA_TOKEN</code> entre Studios.</div>
     </div>
   </section>
 
