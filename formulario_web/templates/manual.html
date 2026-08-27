@@ -6,24 +6,25 @@
 <link rel="icon" type="image/png" sizes="192x192" href="https://slimfitbrasil.com.br/wp-content/uploads/2025/09/cropped-Untitled-1-192x192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Open+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
 <style>
   :root{
-    --bg:#F6F7F8; --surface:#FFFFFF; --surface-2:#F1F3F4; --border:#E6E6E6;
-    --text:#2D2A2F; --text-soft:#5C5960; --muted:#8A8790;
-    --accent:#FF5B57; --accent-2:#EF5A53; --accent-soft:#FFF0EF;
-    --teal:#11ABAE; --teal-soft:#E6F6F7;
-    --wa:#1E9E52; --wa-soft:#E3F4E9;
-    --amber:#A9711A; --amber-soft:#F6EAD6;
-    --shadow:0 1px 2px rgba(45,42,47,.04),0 6px 22px rgba(45,42,47,.06);
-    --radius:16px;
+    --bg:#F5F5F7; --surface:#FFFFFF; --surface-2:#EEEEF0; --border:#E4E4E7;
+    --text:#1D1D1F; --text-soft:#6E6E73; --muted:#9A9AA0;
+    /* Acento primário = teal do SlimFit (mesmo tom sóbrio do painel). */
+    --accent:#0E6E6B; --accent-2:#0A5250; --accent-soft:#E7F0EF;
+    --teal:#0E6E6B; --teal-soft:#E7F0EF;
+    --wa:#1C8F52; --wa-soft:#EAF5EE;
+    --amber:#8A6300; --amber-soft:#F7EFDC;
+    --shadow:0 1px 2px rgba(16,24,40,.04),0 6px 20px rgba(16,24,40,.05);
+    --radius:14px;
   }
   @media (prefers-color-scheme:dark){
     :root:not([data-theme="light"]){
       --bg:#15171A; --surface:#1E2126; --surface-2:#262A30; --border:#333840;
       --text:#EEF1F4; --text-soft:#BCC2CA; --muted:#8B929C;
-      --accent:#FF7A77; --accent-2:#FF5B57; --accent-soft:#3A211F;
-      --teal:#39B9B3; --teal-soft:#123230;
+      --accent:#3EB4AE; --accent-2:#5AC6C0; --accent-soft:#0F2E2C;
+      --teal:#3EB4AE; --teal-soft:#0F2E2C;
       --wa:#37C46C; --wa-soft:#123021;
       --amber:#E1A945; --amber-soft:#332610;
       --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
@@ -32,8 +33,8 @@
   :root[data-theme="dark"]{
     --bg:#15171A; --surface:#1E2126; --surface-2:#262A30; --border:#333840;
     --text:#EEF1F4; --text-soft:#BCC2CA; --muted:#8B929C;
-    --accent:#FF7A77; --accent-2:#FF5B57; --accent-soft:#3A211F;
-    --teal:#39B9B3; --teal-soft:#123230;
+    --accent:#3EB4AE; --accent-2:#5AC6C0; --accent-soft:#0F2E2C;
+    --teal:#3EB4AE; --teal-soft:#0F2E2C;
     --wa:#37C46C; --wa-soft:#123021;
     --amber:#E1A945; --amber-soft:#332610;
     --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
@@ -47,23 +48,23 @@
   img,svg,video{max-width:100%; height:auto}
   body{
     margin:0; background:var(--bg); color:var(--text);
-    font-family:"Open Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
     font-size:17px; line-height:1.6;
     -webkit-font-smoothing:antialiased;
   }
   .wrap{max-width:1020px; margin:0 auto; padding:0 22px}
-  h1,h2,h3{font-family:"Montserrat",system-ui,sans-serif; font-weight:800; text-wrap:balance; margin:0}
+  h1,h2,h3{font-family:"Inter",system-ui,-apple-system,Segoe UI,sans-serif; font-weight:800; text-wrap:balance; margin:0}
   a{color:var(--teal); text-decoration:none}
   a:hover{text-decoration:underline}
   code,.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
-  .eyebrow{font-family:"Montserrat",sans-serif; font-weight:700; font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--teal)}
+  .eyebrow{font-family:"Inter",sans-serif; font-weight:700; font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--teal)}
   html{scroll-behavior:smooth}
 
   /* NAV fixa (atalhos por seção) — fixed p/ funcionar mesmo sem <html>/<body> (quirks) */
   .nav{position:fixed; top:0; left:0; right:0; z-index:50; background:color-mix(in srgb,var(--surface) 92%,transparent); backdrop-filter:saturate(1.2) blur(8px); -webkit-backdrop-filter:saturate(1.2) blur(8px); border-bottom:1px solid var(--border)}
   .nav-in{display:flex; gap:6px; max-width:1020px; margin:0 auto; padding:9px 22px; overflow-x:auto; scrollbar-width:none}
   .nav-in::-webkit-scrollbar{display:none}
-  .nav a{white-space:nowrap; font-family:"Montserrat",sans-serif; font-weight:700; font-size:.82rem; color:var(--text-soft); text-decoration:none; padding:7px 14px; border-radius:999px; border:1px solid transparent; transition:.14s}
+  .nav a{white-space:nowrap; font-family:"Inter",sans-serif; font-weight:700; font-size:.82rem; color:var(--text-soft); text-decoration:none; padding:7px 14px; border-radius:999px; border:1px solid transparent; transition:.14s}
   .nav a:hover{color:var(--teal); background:var(--teal-soft); text-decoration:none}
   .nav a.on{color:#fff; background:var(--teal); border-color:var(--teal)}
   /* fade nas bordas: indica que a barra rola p/ os lados (aparece só onde há mais) */
@@ -72,7 +73,7 @@
   .nav::after{right:0; background:linear-gradient(270deg, var(--surface), color-mix(in srgb, var(--surface), transparent 100%))}
   .nav.can-left::before{opacity:1}
   .nav.can-right::after{opacity:1}
-  .nav .chev{position:absolute; top:50%; right:9px; transform:translateY(-50%); z-index:3; pointer-events:none; color:var(--teal); font-size:1.1rem; font-weight:800; opacity:0; transition:opacity .2s; font-family:"Montserrat",sans-serif}
+  .nav .chev{position:absolute; top:50%; right:9px; transform:translateY(-50%); z-index:3; pointer-events:none; color:var(--teal); font-size:1.1rem; font-weight:800; opacity:0; transition:opacity .2s; font-family:"Inter",sans-serif}
   .nav.can-right .chev{opacity:.9; animation:chevpulse 1.4s ease-in-out infinite}
   @keyframes chevpulse{0%,100%{transform:translateY(-50%) translateX(0)}50%{transform:translateY(-50%) translateX(3px)}}
   @media(prefers-reduced-motion:reduce){ .nav.can-right .chev{animation:none} }
@@ -87,8 +88,8 @@
     border-bottom:1px solid var(--border);
   }
   .hero-in{padding:92px 0 46px}
-  .brand{display:flex; align-items:center; gap:10px; font-family:"Montserrat",sans-serif; font-weight:800; font-size:1.15rem; letter-spacing:-.01em}
-  .brand .brand-logo{height:30px; width:auto; display:block}
+  .brand{display:flex; align-items:center; gap:10px; font-family:"Inter",sans-serif; font-weight:800; font-size:1.15rem; letter-spacing:-.01em}
+  .brand .brand-logo{height:44px; width:auto; display:block}
   .brand .fit{color:var(--teal)}
   .brand .reg{font-size:.7em; color:var(--muted); font-weight:600}
   h1{font-size:clamp(2.1rem,6vw,3.5rem); line-height:1.02; font-weight:800; letter-spacing:-.02em; margin:.5em 0 .35em; max-width:16ch}
@@ -208,7 +209,7 @@
   .pcard{border:1px solid var(--border);border-radius:var(--radius);padding:26px;background:var(--surface);box-shadow:var(--shadow);display:flex;flex-direction:column}
   .pcard.feat{border-color:color-mix(in srgb,var(--accent) 45%,transparent);background:linear-gradient(180deg,var(--accent-soft),var(--surface) 62%)}
   .pcard .ptag{font-family:"JetBrains Mono",monospace;font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
-  .pcard .amount{font-family:"Montserrat",sans-serif;font-weight:800;font-size:2.5rem;letter-spacing:-.02em;line-height:1;margin:12px 0 4px;color:var(--text)}
+  .pcard .amount{font-family:"Inter",sans-serif;font-weight:800;font-size:2.5rem;letter-spacing:-.02em;line-height:1;margin:12px 0 4px;color:var(--text)}
   .pcard .amount small{font-size:.82rem;font-weight:600;color:var(--muted);letter-spacing:0}
   .pcard .sub{color:var(--text-soft);font-size:.95rem;margin:0 0 6px}
   .pcard ul{list-style:none;padding:0;margin:12px 0 0;display:flex;flex-direction:column;gap:8px}
@@ -221,7 +222,7 @@
 
   /* SERVER compare */
   .banner{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;box-shadow:var(--shadow);margin-bottom:20px}
-  .banner .big{font-family:"Montserrat",sans-serif;font-weight:800;font-size:1.9rem;letter-spacing:-.02em;color:var(--accent);line-height:1}
+  .banner .big{font-family:"Inter",sans-serif;font-weight:800;font-size:1.9rem;letter-spacing:-.02em;color:var(--accent);line-height:1}
   .banner .big small{font-size:.5em;font-weight:600;color:var(--muted)}
   .banner .txt{flex:1 1 300px;color:var(--text-soft);font-size:.95rem}
   .banner .txt b{color:var(--text);font-weight:600}
@@ -231,7 +232,7 @@
   .ccard.good{border-color:color-mix(in srgb,var(--wa) 42%,transparent);background:linear-gradient(180deg,var(--wa-soft),var(--surface) 60%)}
   .ccard .clabel{font-family:"JetBrains Mono",monospace;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
   .ccard.good .clabel{color:var(--wa)}
-  .ccard .cost{font-family:"Montserrat",sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-.01em;margin:8px 0 2px;color:var(--text)}
+  .ccard .cost{font-family:"Inter",sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-.01em;margin:8px 0 2px;color:var(--text)}
   .ccard .cost small{font-size:.6em;font-weight:600;color:var(--muted)}
   .ccard .verdict{font-size:.86rem;font-weight:600;margin:0 0 4px}
   .ccard.warn .verdict{color:var(--amber)}
@@ -245,7 +246,7 @@
   .cta{background:linear-gradient(135deg,var(--accent),var(--accent-2));border-radius:22px;padding:46px 28px;text-align:center;box-shadow:0 14px 40px color-mix(in srgb,var(--accent) 35%,transparent);margin:8px 0 4px}
   .cta h2{color:#fff;font-size:clamp(1.5rem,4vw,2.2rem);letter-spacing:-.015em}
   .cta p{color:rgba(255,255,255,.92);max-width:54ch;margin:12px auto 0;font-size:1.05rem}
-  .wa-btn{display:inline-flex;align-items:center;gap:11px;margin-top:24px;background:#fff;color:#EF5A53;font-weight:700;font-size:1.06rem;padding:15px 28px;border-radius:999px;text-decoration:none;box-shadow:0 10px 26px rgba(0,0,0,.22);transition:transform .12s ease}
+  .wa-btn{display:inline-flex;align-items:center;gap:11px;margin-top:24px;background:#fff;color:#128C4B;font-weight:700;font-size:1.06rem;padding:15px 28px;border-radius:999px;text-decoration:none;box-shadow:0 10px 26px rgba(0,0,0,.22);transition:transform .12s ease}
   .wa-btn:hover{text-decoration:none;transform:translateY(-2px)}
   .wa-btn svg{width:22px;height:22px;flex:none}
   @media (prefers-reduced-motion:reduce){.wa-btn{transition:none}}
@@ -272,7 +273,7 @@
 
 <header class="hero">
   <div class="wrap hero-in">
-    <div class="brand"><img class="brand-logo" alt="SlimFit Studio" src="https://slimfitbrasil.com.br/wp-content/uploads/2025/09/logo-com-contraste.svg"> <span class="reg">Setor Bueno</span></div>
+    <div class="brand"><img class="brand-logo" alt="SlimFit Studio" src="https://drive.google.com/thumbnail?id=1pl1mh709FGcitG9uHo0J6nzMUKFYqg-w&sz=w400"> <span class="reg">Setor Bueno</span></div>
     <h1>Manual do <span class="accent">robô</span> do Studio</h1>
     <p class="lede">Tudo o que a automação faz sozinha — cada tarefa, o horário em que roda e a mensagem exata que envia para as alunas, as leads e a equipe.</p>
     <div class="facts">
@@ -320,7 +321,7 @@
       <div class="mini"><div class="freq">Imagens</div><h3>Grade e preços</h3><p>Quando pedem, ela envia a <b>grade de horários</b> e a <b>tabela de preços</b> como imagem — as URLs são editáveis no painel.</p></div>
       <div class="mini"><div class="freq">Só o que tem vaga</div><h3>Não oferece horário lotado</h3><p>Antes de agendar, ela <b>consulta a vaga real</b> da turma. Se o horário pedido está cheio, avisa na hora e oferece só os que <b>têm vaga</b> naquele dia.</p></div>
       <div class="mini"><div class="freq">Conversas</div><h3>Painel de atendimento</h3><p>Uma <b>caixa de entrada</b> no painel mostra todas as conversas. Você <b>lê e responde por lá</b> (sem WhatsApp Web) e <b>assume o controle de uma conversa</b> específica — nas outras a Sofia segue atendendo.</p></div>
-      <div class="mini"><div class="freq">Contatos</div><h3>CRM com tags</h3><p>Importa contatos (CSV), <b>etiqueta com tags</b> e filtra — inclusive quem está <b>sem tag</b> ou <b>bloqueado</b>. Dá para <b>alterar tags em lote</b> (aplicar/remover em todos os contatos do filtro). Base para as campanhas.</p></div>
+      <div class="mini"><div class="freq">Contatos</div><h3>CRM com tags</h3><p>Importa contatos (CSV), <b>etiqueta com tags</b> e filtra — inclusive quem está <b>sem tag</b> ou <b>bloqueado</b>. Dá para <b>alterar tags em lote</b> — marcar contatos na lista (ou usar o filtro inteiro) e adicionar/remover uma tag de uma vez. Base para as campanhas.</p></div>
       <div class="mini"><div class="freq">Campanhas</div><h3>Envio em massa por tag</h3><p>Escolhe uma tag, escreve a mensagem e a <b>IA gera ~10 variações</b>; envia com <b>delays aleatórios</b>, teto por dia e janela de horário. Aceita <b>foto</b>, personaliza com <code>{nome}</code>, tem <b>enviar teste</b> e mostra a <b>previsão de término</b>.</p></div>
       <div class="mini"><div class="freq">Humano assume</div><h3>Você entra quando quer</h3><p>Assume uma conversa pelo painel (ou respondendo pelo WhatsApp) e a Sofia <b>sai só daquela</b> — e volta quando você devolver.</p></div>
       <div class="mini"><div class="freq">Jeito humano</div><h3>Parece gente</h3><p>Quebra respostas longas em <b>várias mensagens</b>, mostra <b>“digitando…”</b> e usa um tom leve. A velocidade e as pausas são reguláveis no painel.</p></div>
@@ -335,8 +336,11 @@
       <div class="mini"><div class="freq">Modelo</div><h3>Escolhe a IA</h3><p>Dá para escolher <b>qual modelo da Claude</b> a Sofia usa (conversa e extração), equilibrando qualidade e custo — direto no painel.</p></div>
       <div class="mini"><div class="freq">Encerrar</div><h3>Fecha a conversa na hora</h3><p>Um clique no <b>🔒</b> encerra a conversa sem esperar o tempo de sessão: aparece o <b>cadeado</b>, a Sofia <b>recomeça do zero</b> se a aluna voltar e o <b>follow-up não incomoda</b> mais aquele contato. Reabre sozinho quando a aluna escreve de novo.</p></div>
       <div class="mini"><div class="freq">Exportar</div><h3>Leva seus contatos</h3><p>Baixa <b>toda a base de contatos</b> em CSV (Nome, Telefone, Tags, Instruções) — para <b>migrar de plataforma</b> ou guardar backup. O mesmo arquivo pode ser reimportado aqui.</p></div>
+      <div class="mini"><div class="freq">Histórico</div><h3>Já sabe se o lead falou antes</h3><p>Importa para o painel as conversas que o WhatsApp já sincronizou. Assim, quando um <b>lead volta</b>, a recepção <b>já vê o atendimento anterior</b> e retoma com contexto — comunicação mais assertiva desde a primeira resposta.</p></div>
+      <div class="mini"><div class="freq">Filtros</div><h3>Acha a conversa certa</h3><p>Filtra as conversas por <b>período</b> (de/até) e mostra só quem está <b>sem resposta há 24h+</b> nos últimos dias — para <b>priorizar</b> quem precisa de retorno, sem garimpar a lista inteira.</p></div>
+      <div class="mini"><div class="freq">Retenção</div><h3>Você decide quanto guarda</h3><p>Define por <b>quantos dias</b> o histórico das conversas fica guardado (ou <b>nunca apagar</b>) — quanto maior, mais contexto na volta do lead. Ajustável na Configuração.</p></div>
     </div>
-    <div class="note">🔑 Na aba <b>🤖 Sofia</b> do painel você edita <b>o que ela fala</b> (o roteiro completo), liga/desliga, ajusta o <b>tempo de sessão</b> (memória), a <b>pausa</b> ao responder pelo celular, o <b>agrupamento de mensagens</b>, a <b>verificação de conexão</b>, o <b>limite de experimentais por turma</b>, o <b>modelo de IA</b>, a <b>transcrição de áudio</b>, o <b>follow-up</b>, o ritmo de digitação e as imagens; vê as <b>Conversas</b> (com <b>bloqueio</b> e <b>encerrar</b> por contato, e um selo <b>online/off-line</b> do WhatsApp dela), os <b>Contatos</b> (com <b>Interações</b>, <b>Automação por tag</b> e <b>exportar CSV</b>) e as <b>Campanhas</b>; e conecta (ou <b>desconecta</b>) o <b>WhatsApp próprio dela</b> pelo QR — tudo em um lugar só. Se a sessão dela cair ou travar, você recebe um <b>alerta no celular</b>.</div>
+    <div class="note">🔑 Na aba <b>🤖 Sofia</b> do painel você edita <b>o que ela fala</b> (o roteiro completo), liga/desliga, ajusta o <b>tempo de sessão</b> (memória), a <b>pausa</b> ao responder pelo celular, o <b>agrupamento de mensagens</b>, a <b>verificação de conexão</b>, o <b>limite de experimentais por turma</b>, o <b>modelo de IA</b>, a <b>transcrição de áudio</b>, o <b>follow-up</b>, o ritmo de digitação e as imagens; vê as <b>Conversas</b> (com <b>bloqueio</b> e <b>encerrar</b> por contato, <b>filtros</b> por período e por “sem resposta”, e um selo <b>online/off-line</b> do WhatsApp dela), <b>importa o histórico do WhatsApp</b> e define a <b>retenção</b> desse histórico; os <b>Contatos</b> (com <b>Interações</b>, <b>Automação por tag</b> e <b>exportar CSV</b>) e as <b>Campanhas</b>; e conecta (ou <b>desconecta</b>) o <b>WhatsApp próprio dela</b> pelo QR — tudo em um lugar só. Se a sessão dela cair ou travar, você recebe um <b>alerta no celular</b>.</div>
     <div class="note">💬 A Sofia usa uma IA da Anthropic (Claude) para conversar. Isso tem um <b>custo por conversa</b> (a chave de API do Studio), separado da mensalidade do servidor.</div>
   </section>
 
@@ -543,7 +547,7 @@
     <div class="sec-head">
       <span class="eyebrow">Texto exato</span>
       <h2>As mensagens que ele envia</h2>
-      <p>Os textos abaixo saem exatamente assim. As partes em <span style="color:var(--accent);font-weight:600">coral</span> são preenchidas automaticamente (nome, horário, data).</p>
+      <p>Os textos abaixo saem exatamente assim. As partes em <span style="color:var(--accent);font-weight:600">destaque</span> são preenchidas automaticamente (nome, horário, data).</p>
     </div>
 
     <div style="display:flex;gap:14px;align-items:flex-start;background:var(--teal-soft);border:1px solid color-mix(in srgb,var(--teal) 30%,transparent);border-radius:var(--radius);padding:16px 18px;margin-bottom:26px;box-shadow:var(--shadow)">
