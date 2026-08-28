@@ -295,6 +295,56 @@ pm2 logs <b>lagosul</b>-sofia  <span class="c"># WhatsApp da SoFIA</span></pre>
       <b>referência detalhada</b> logo abaixo — use só o que precisar.</div>
   </section>
 
+  <!-- DUAS LOJAS NO MESMO SERVIDOR -->
+  <section id="duas-lojas">
+    <div class="phase"><span class="pn">Mesmo franqueado</span><h2>🏢 Duas lojas no mesmo servidor</h2></div>
+    <p>Dois Studios do mesmo dono podem dividir um VPS. Cada um é um <b>clone separado</b> do
+      repositório, com <code>--slug</code> e <code>--port</code> próprios — <b>isolamento total</b>
+      (dados, processos, painel e <code>.env</code>). O que pesa é o Chromium do WhatsApp
+      (2 lojas = 4 WhatsApps). Em regime normal cabe em 8&nbsp;GB; para os picos, faça os
+      2 ajustes abaixo.</p>
+
+    <div class="stepblock">
+      <h3><span class="num">A</span> Adicionar swap (rede de segurança de memória)</h3>
+      <p><b>Uma vez só, no servidor</b> (não é por loja). Cria 4&nbsp;GB de swap para segurar picos de memória:</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS · root · uma vez</span></div>
+<pre class="term-body"><span class="p">sudo</span> fallocate -l 4G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab   <span class="c"># mantém após reboot</span>
+free -h                                                       <span class="c"># confere a linha "Swap"</span></pre>
+      </div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">B</span> Escalonar os horários da 2ª loja</h3>
+      <p>Para as duas lojas não rasparem o EVO nem dispararem ao mesmo tempo, dê um
+        <b>desencontro de alguns minutos</b> nos horários da loja 2 (no painel dela: aba
+        <b>WhatsApp → Configuração</b>, e a hora do comparecimento em <b>SoFIA → Configuração</b>).
+        Ex.: se a loja 1 confirma às <code>08:30</code>, deixe a loja 2 às <code>08:40</code>.
+        Vale para confirmações, follow-ups, faltas e o resumo.</p>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">C</span> Checklist da 2ª loja (o que muda em relação à 1ª)</h3>
+      <ul class="chk">
+        <li><span class="box">✓</span><span><b>Clone separado</b> (ex.: <code>~/slimfit-lagosul2</code>) — não reaproveite o da loja 1.</span></li>
+        <li><span class="box">✓</span><span><b><code>--slug</code> diferente</b> (ex.: <code>lagosul2</code>) → processos <code>lagosul2-painel/-exp/-sofia</code>.</span></li>
+        <li><span class="box">✓</span><span><b><code>--port</code> diferente</b> (ex.: <code>8081</code>) — a loja 1 fica na 8080.</span></li>
+        <li><span class="box">✓</span><span><b><code>--domain</code> próprio</b> (ex.: <code>painel-lagosul2.SEU-DOMINIO</code>) — subdomínio e HTTPS separados.</span></li>
+        <li><span class="box">✓</span><span><b>EVO da loja 2</b> no <code>.env</code> (DNS/token/ids da unidade 2) e <code>ZEE_STUDIO_PHONE</code> da loja 2.</span></li>
+        <li><span class="box">✓</span><span><b>Formulário próprio na Render</b> (deploy separado, com o EVO e os tokens da loja 2).</span></li>
+        <li><span class="box">✓</span><span><b>2 WhatsApps novos</b> (robô + SoFIA da loja 2) — QRs próprios; <b>nunca</b> copie o <code>.wwebjs_auth</code>.</span></li>
+        <li><span class="box">✓</span><span><b>Não</b> precisa de <code>--install-deps</code> de novo (Node/Chromium/pm2 já estão no servidor).</span></li>
+      </ul>
+      <div class="tip">A <code>ANTHROPIC_API_KEY</code> pode ser a mesma do franqueado nas duas lojas
+        (o <b>Custo da IA</b> é medido por painel, então dá pra separar depois), ou uma por loja
+        se quiser contas totalmente separadas.</div>
+    </div>
+  </section>
+
   <!-- REFERÊNCIA DETALHADA (MANUAL) -->
   <section>
     <div class="sec-head">
