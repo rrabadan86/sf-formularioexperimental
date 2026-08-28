@@ -72,19 +72,28 @@
   nav{position:sticky;top:0;z-index:50;background:color-mix(in srgb, var(--bg) 82%, transparent);
     backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line-soft)}
   nav .in{max-width:1080px;margin:0 auto;padding:11px 24px;display:flex;align-items:center;gap:20px}
-  .logo{display:flex;align-items:center;gap:9px;font-family:var(--ff-disp);font-weight:800;font-size:1.1rem;letter-spacing:-.02em}
+  .logo{display:flex;align-items:center;gap:9px;font-family:var(--ff-disp);font-weight:800;font-size:1.1rem;letter-spacing:-.02em;white-space:nowrap;flex:none}
   .logo .dot{width:27px;height:27px;border-radius:8px;background:linear-gradient(135deg,var(--teal),var(--teal-deep));
     display:grid;place-items:center;color:#fff;font-size:.9rem}
   .logo b{color:var(--teal)}
   .navlinks{display:flex;gap:22px;margin-left:auto;font-weight:500;font-size:.9rem;color:var(--muted)}
   .navlinks a:hover{color:var(--ink)}
-  nav .btn{padding:9px 18px;font-size:.88rem}
+  nav .btn{padding:9px 18px;font-size:.88rem;white-space:nowrap}
   @media(max-width:900px){.navlinks{display:none}}
+  /* No celular o logo + botão longo não cabem lado a lado: encolhe o logo e
+     esconde o CTA do topo (o hero logo abaixo já tem os botões principais). */
+  @media(max-width:560px){
+    nav .in{gap:10px;padding:10px 16px}
+    .logo{font-size:1rem}
+    .logo .dot{width:24px;height:24px;font-size:.82rem}
+    nav .btn{display:none}
+  }
 
   /* HERO */
   .hero{padding:74px 0 38px;text-align:center;position:relative}
   .hero::before{content:"";position:absolute;inset:0;z-index:-1;
     background:radial-gradient(60% 55% at 50% 0%, var(--teal-soft) 0%, transparent 70%)}
+  .hero .eyebrow{display:inline-block;margin-bottom:20px}
   .hero h1{font-size:clamp(2.4rem,6vw,4.2rem);font-weight:800}
   .hero h1 .grad{background:linear-gradient(120deg,var(--teal),var(--coral));
     -webkit-background-clip:text;background-clip:text;color:transparent}
