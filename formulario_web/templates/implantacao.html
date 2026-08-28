@@ -181,7 +181,8 @@
     <ul class="chk">
       <li><span class="box">✓</span><span>A <b>ficha da unidade</b> preenchida (o cliente envia pelo <code>/cadastro</code>): EVO, grupo, planilha, professoras, dados da unidade, alertas.</span></li>
       <li><span class="box">✓</span><span>O <b>servidor (VPS) contratado</b> pelo cliente — Ubuntu, com o <b>acesso SSH</b> (IP + senha/chave) em mãos.</span></li>
-      <li><span class="box">✓</span><span>A <b>linha de WhatsApp do Studio</b> disponível para escanear o QR (com alguém do lado do cliente para confirmar no celular).</span></li>
+      <li><span class="box">✓</span><span>As <b>duas linhas de WhatsApp</b> — a do <b>Studio (robô)</b> e a da <b>SoFIA (IA)</b>, que é exclusiva e separada — disponíveis para escanear os <b>dois QRs</b> (com alguém do lado do cliente para confirmar no celular).</span></li>
+      <li><span class="box">✓</span><span>A <b>chave da IA (Anthropic / Claude)</b> para a SoFIA — é o que tem <b>custo por conversa</b>, à parte do servidor (vai no <code>ChatBot/.env</code>).</span></li>
       <li><span class="box">✓</span><span>Os <b>áudios das professoras</b> e a <b>chave da conta de serviço do Google</b> (se for usar planilha).</span></li>
     </ul>
   </section>
@@ -775,8 +776,8 @@ PATH=/usr/local/bin:/usr/bin:/bin
 
   <!-- FASE 9 — SOFIA (CHATBOT COM IA) -->
   <section>
-    <div class="phase"><span class="pn">Fase 9</span><h2>🤖 Sofia — chatbot com IA (opcional)</h2></div>
-    <p class="sec-head" style="color:var(--text-soft);max-width:70ch">A Sofia atende as leads no WhatsApp e agenda a aula experimental sozinha, usando uma IA da Anthropic (Claude). Ela roda em um processo próprio (<code>sofia-listener</code>) e usa um <b>número de WhatsApp exclusivo</b>, diferente do robô de mensagens. Tudo o que ela fala e faz é editável pela aba <b>🤖 Sofia</b> do painel — incluindo o <b>modelo de IA</b>, o <b>follow-up</b> de leads que esfriaram, a <b>lista de bloqueio</b> e a <b>transcrição de áudio</b> (opcional).</p>
+    <div class="phase"><span class="pn">Fase 9</span><h2>🤖 SoFIA — a atendente com IA</h2></div>
+    <p class="sec-head" style="color:var(--text-soft);max-width:70ch"><b>Peça central do sistema</b> (o script <code>setup-novo-studio.sh</code> já sobe o processo <code>${slug}-sofia</code> junto com o robô e o painel — esta fase é a referência manual, caso instale sem o script). A Sofia atende as leads no WhatsApp e agenda a aula experimental sozinha, usando uma IA da Anthropic (Claude). Ela roda em um processo próprio (<code>sofia-listener</code>) e usa um <b>número de WhatsApp exclusivo</b>, diferente do robô de mensagens. Tudo o que ela fala e faz é editável pela aba <b>🤖 Sofia</b> do painel — incluindo o <b>modelo de IA</b>, o <b>follow-up</b> de leads que esfriaram, a <b>lista de bloqueio</b> e a <b>transcrição de áudio</b> (opcional).</p>
 
     <div class="stepblock">
       <h3><span class="num">9.1</span> Instalar as dependências</h3>
@@ -875,7 +876,7 @@ pm2 stop slimfit-exp</pre>
       <li><span class="box">✓</span><span>PM2 <b>online</b> + autostart configurado.</span></li>
       <li><span class="box">✓</span><span>(Se vendeu) formulário na Render no ar e ponte ligada.</span></li>
       <li><span class="box">✓</span><span>(Opcional) painel de mensagens no ar com <b>senha forte</b> e HTTPS (Fase 7).</span></li>
-      <li><span class="box">✓</span><span>(Opcional) <b>Sofia</b> no ar: <code>sofia-listener</code> online, WhatsApp <b>próprio</b> dela conectado e um agendamento de teste concluído (Fase 9).</span></li>
+      <li><span class="box">✓</span><span><b>SoFIA</b> no ar: <code>sofia-listener</code> online, WhatsApp <b>próprio</b> dela conectado e um agendamento de teste concluído (Fase 9).</span></li>
       <li><span class="box">✓</span><span>Manual entregue e recepção treinada. Acompanhe os primeiros dias.</span></li>
     </ul>
   </section>
