@@ -268,6 +268,25 @@
   footer{padding:44px 0 60px;text-align:center;color:var(--faint);font-size:.86rem}
   footer .logo{justify-content:center;margin-bottom:12px;color:var(--ink)}
 
+  /* ── MOBILE: mockups não podem estourar a largura ── */
+  @media(max-width:640px){
+    .hero-shot{margin-top:32px}
+    /* o print de Conversas é 2 colunas (lista + chat); no celular a lista
+       lateral não cabe — mostramos só a conversa, que é o que importa. */
+    .chat{grid-template-columns:1fr}
+    .chat .side{display:none}
+    .chat .main{min-height:360px}
+    .bub{max-width:86%}
+    /* tiles de custo: 4 → 2 colunas */
+    .tiles{grid-template-columns:1fr 1fr}
+    /* contatos: a tag desce pra baixo do nome em vez de espremer a linha */
+    .ct{flex-wrap:wrap}
+    .ct .tg{margin-left:46px;margin-top:2px}
+    /* barra de abas do painel rola em vez de empurrar a largura */
+    .ptabs{flex-wrap:nowrap;overflow-x:auto}
+    .ptab{flex:none}
+  }
+
   .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease, transform .7s ease}
   .reveal.in{opacity:1;transform:none}
   @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}.pulse{animation:none}}
