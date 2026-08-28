@@ -202,6 +202,15 @@
       <code>--slug marista --studio "Studio SlimFit Marista"</code>. O slug vira os
       nomes dos processos (<code>marista-painel</code>…) e a pasta de dados.</div>
 
+    <div class="tip">🏢 <b>Duas lojas no mesmo servidor</b> (mesmo franqueado)? Funciona:
+      use <b>dois clones</b> do repositório, um por loja, cada um com <code>--slug</code>
+      e <code>--port</code> <b>diferentes</b>. Ex.: <code>~/slimfit-lagosul1</code> com
+      <code>--slug lagosul1 --port 8080</code> e <code>~/slimfit-lagosul2</code> com
+      <code>--slug lagosul2 --port 8081</code>. Cada loja fica <b>100% isolada</b> —
+      pasta de dados (<code>SOFIA_DIR</code>), processos PM2, painel (porta própria) e
+      <code>.env</code> separados. Cada painel ganha seu subdomínio no
+      <code>--start --domain</code>. <b>Nada é compartilhado entre as lojas.</b></div>
+
     <div class="stepblock">
       <h3><span class="num">1</span> Clonar o repositório</h3>
       <div class="term">
@@ -223,7 +232,9 @@ cd SF-Chat_Experimental-Mensagens/Experimental</pre>
         Python num venv), cria a pasta de dados (<code>SOFIA_DIR</code>) e gera
         <code>Experimental/.env</code> e <code>ChatBot/.env</code> já com
         <b>segredos aleatórios</b> e a <b>senha do painel</b> (anote a que ele imprime).
-        Nunca sobrescreve um <code>.env</code> existente.</p>
+        Nunca sobrescreve um <code>.env</code> existente. <b>2ª loja no mesmo servidor:</b>
+        acrescente <code>--port 8081</code> aqui (a 1ª usa 8080) para os dois painéis
+        não brigarem pela mesma porta.</p>
     </div>
 
     <div class="stepblock">
@@ -274,6 +285,7 @@ pm2 logs <b>lagosul</b>-sofia  <span class="c"># WhatsApp da SoFIA</span></pre>
       <li><span class="box">✓</span><span><b>Formulário na Render</b> — um <b>deploy separado</b> por unidade, com os <b>mesmos</b> <code>FORM_SLOTS_TOKEN</code> e <code>SOFIA_TOKEN</code> dos <code>.env</code> do VPS, e o EVO da unidade. Veja a <b>Fase 5</b> abaixo.</span></li>
       <li><span class="box">✓</span><span><b>Apontar o DNS</b> do subdomínio (o do <code>--domain</code>) para o IP da VPS — no seu provedor de DNS. O Caddy emite o certificado sozinho.</span></li>
       <li><span class="box">✓</span><span><b>Conteúdo no painel</b> — roteiro da SoFIA, preços/grade (imagens), <b>mensagem de confirmação (endereço!)</b> e usuários. Cada unidade localiza no painel.</span></li>
+      <li><span class="box">✓</span><span><b>Login com Google (opcional)</b> — para entrar no painel com a conta Google em vez de senha. Crie um cliente OAuth no Google Cloud, libere o domínio do painel e preencha <code>GOOGLE_CLIENT_ID</code>, <code>GOOGLE_CLIENT_SECRET</code> e <code>PAINEL_ADMIN_EMAIL</code> no <code>Experimental/.env</code> (estão comentados lá). Só entram e-mails cadastrados em <b>Perfis</b>.</span></li>
     </ul>
     <div class="tip"><b>Não</b> copie a pasta <code>.wwebjs_auth</code> entre unidades
       (cada número lê o próprio QR) e <b>não</b> reutilize <code>SOFIA_DIR</code>,
