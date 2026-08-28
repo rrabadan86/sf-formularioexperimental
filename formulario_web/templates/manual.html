@@ -1,856 +1,607 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
 <meta charset="utf-8">
-<!-- redeploy-marker v2: auto-deploy ligado -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Manual do Robô SlimFit</title>
 <link rel="icon" type="image/png" sizes="32x32" href="https://slimfitbrasil.com.br/wp-content/uploads/2025/09/cropped-Untitled-1-32x32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="https://slimfitbrasil.com.br/wp-content/uploads/2025/09/cropped-Untitled-1-192x192.png">
+<title>Automação SlimFit</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap">
 <style>
   :root{
-    --bg:#F5F5F7; --surface:#FFFFFF; --surface-2:#EEEEF0; --border:#E4E4E7;
-    --text:#1D1D1F; --text-soft:#6E6E73; --muted:#9A9AA0;
-    /* Acento primário = teal do SlimFit (mesmo tom sóbrio do painel). */
-    --accent:#0E6E6B; --accent-2:#0A5250; --accent-soft:#E7F0EF;
-    --teal:#0E6E6B; --teal-soft:#E7F0EF;
-    --wa:#1C8F52; --wa-soft:#EAF5EE;
-    --amber:#8A6300; --amber-soft:#F7EFDC;
-    --shadow:0 1px 2px rgba(16,24,40,.04),0 6px 20px rgba(16,24,40,.05);
-    --radius:14px;
+    --bg:#f4f6f6; --surface:#ffffff; --surface-2:#f0f4f3;
+    --ink:#14201e; --muted:#556764; --faint:#8a9997;
+    --teal:#0e6e6b; --teal-deep:#0a4f4c; --teal-soft:#e4f1f0; --teal-line:#cfe6e4;
+    --coral:#ec6a5e; --coral-soft:#fcece9;
+    --amber:#8a6300; --amber-soft:#f6efdc;
+    --line:#e6e9e8; --line-soft:#eef1f0;
+    --ok:#1f8f52; --ok-soft:#e6f6ec;
+    --shadow:0 24px 60px -24px rgba(12,60,58,.28);
+    --shadow-sm:0 8px 24px -12px rgba(12,60,58,.22);
+    --radius:22px;
+    --ff-disp:"Manrope",system-ui,sans-serif;
+    --ff-body:"Inter",system-ui,sans-serif;
   }
   @media (prefers-color-scheme:dark){
     :root:not([data-theme="light"]){
-      --bg:#15171A; --surface:#1E2126; --surface-2:#262A30; --border:#333840;
-      --text:#EEF1F4; --text-soft:#BCC2CA; --muted:#8B929C;
-      --accent:#3EB4AE; --accent-2:#5AC6C0; --accent-soft:#0F2E2C;
-      --teal:#3EB4AE; --teal-soft:#0F2E2C;
-      --wa:#37C46C; --wa-soft:#123021;
-      --amber:#E1A945; --amber-soft:#332610;
-      --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
+      --bg:#0c1312; --surface:#131e1c; --surface-2:#0f1918;
+      --ink:#eef4f3; --muted:#a4b4b2; --faint:#6f817f;
+      --teal:#3bb3a8; --teal-deep:#7fd8ce; --teal-soft:#123230; --teal-line:#1e433f;
+      --coral:#f18b7f; --coral-soft:#2a1a17;
+      --amber:#e1a945; --amber-soft:#2c2410;
+      --line:#22302e; --line-soft:#1a2725;
+      --ok:#54c98a; --ok-soft:#12271c;
+      --shadow:0 24px 60px -24px rgba(0,0,0,.6);
+      --shadow-sm:0 8px 24px -12px rgba(0,0,0,.5);
     }
   }
   :root[data-theme="dark"]{
-    --bg:#15171A; --surface:#1E2126; --surface-2:#262A30; --border:#333840;
-    --text:#EEF1F4; --text-soft:#BCC2CA; --muted:#8B929C;
-    --accent:#3EB4AE; --accent-2:#5AC6C0; --accent-soft:#0F2E2C;
-    --teal:#3EB4AE; --teal-soft:#0F2E2C;
-    --wa:#37C46C; --wa-soft:#123021;
-    --amber:#E1A945; --amber-soft:#332610;
-    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
+    --bg:#0c1312; --surface:#131e1c; --surface-2:#0f1918;
+    --ink:#eef4f3; --muted:#a4b4b2; --faint:#6f817f;
+    --teal:#3bb3a8; --teal-deep:#7fd8ce; --teal-soft:#123230; --teal-line:#1e433f;
+    --coral:#f18b7f; --coral-soft:#2a1a17;
+    --amber:#e1a945; --amber-soft:#2c2410;
+    --line:#22302e; --line-soft:#1a2725;
+    --ok:#54c98a; --ok-soft:#12271c;
+    --shadow:0 24px 60px -24px rgba(0,0,0,.6);
+    --shadow-sm:0 8px 24px -12px rgba(0,0,0,.5);
   }
 
   *{box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%}
-  /* Trava a rolagem horizontal: se algum conteúdo passar da largura da tela,
-     a página não "desloca" pro lado (era o que jogava tudo p/ a esquerda). */
-  html,body{overflow-x:clip; max-width:100%}
-  img,svg,video{max-width:100%; height:auto}
-  body{
-    margin:0; background:var(--bg); color:var(--text);
-    font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-    font-size:17px; line-height:1.6;
-    -webkit-font-smoothing:antialiased;
-  }
-  .wrap{max-width:1020px; margin:0 auto; padding:0 22px}
-  h1,h2,h3{font-family:"Inter",system-ui,-apple-system,Segoe UI,sans-serif; font-weight:800; text-wrap:balance; margin:0}
-  a{color:var(--teal); text-decoration:none}
-  a:hover{text-decoration:underline}
-  code,.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
-  .eyebrow{font-family:"Inter",sans-serif; font-weight:700; font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--teal)}
-  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ff-body);
+    -webkit-font-smoothing:antialiased;line-height:1.5;overflow-x:hidden}
+  h1,h2,h3,h4{font-family:var(--ff-disp);letter-spacing:-.025em;line-height:1.06;margin:0;text-wrap:balance}
+  p{margin:0}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  .eyebrow{font-family:var(--ff-disp);font-weight:700;font-size:.78rem;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--teal)}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--ff-disp);font-weight:700;
+    font-size:1rem;padding:14px 26px;border-radius:999px;border:1px solid transparent;cursor:pointer;
+    transition:transform .15s ease, box-shadow .2s ease}
+  .btn-primary{background:var(--teal);color:#fff;box-shadow:0 10px 24px -10px var(--teal)}
+  .btn-primary:hover{transform:translateY(-2px)}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+  .btn-ghost:hover{border-color:var(--teal);color:var(--teal)}
+  .btn-wa{background:#25D366;color:#0a3d20;box-shadow:0 10px 24px -10px #25D366}
+  .btn-wa:hover{transform:translateY(-2px)}
+  .btn-wa svg{width:20px;height:20px}
 
-  /* NAV fixa (atalhos por seção) — fixed p/ funcionar mesmo sem <html>/<body> (quirks) */
-  .nav{position:fixed; top:0; left:0; right:0; z-index:50; background:color-mix(in srgb,var(--surface) 92%,transparent); backdrop-filter:saturate(1.2) blur(8px); -webkit-backdrop-filter:saturate(1.2) blur(8px); border-bottom:1px solid var(--border)}
-  .nav-in{display:flex; gap:6px; max-width:1020px; margin:0 auto; padding:9px 22px; overflow-x:auto; scrollbar-width:none}
-  .nav-in::-webkit-scrollbar{display:none}
-  .nav a{white-space:nowrap; font-family:"Inter",sans-serif; font-weight:700; font-size:.82rem; color:var(--text-soft); text-decoration:none; padding:7px 14px; border-radius:999px; border:1px solid transparent; transition:.14s}
-  .nav a:hover{color:var(--teal); background:var(--teal-soft); text-decoration:none}
-  .nav a.on{color:#fff; background:var(--teal); border-color:var(--teal)}
-  /* fade nas bordas: indica que a barra rola p/ os lados (aparece só onde há mais) */
-  .nav::before,.nav::after{content:""; position:absolute; top:0; bottom:1px; width:40px; pointer-events:none; z-index:2; opacity:0; transition:opacity .2s}
-  .nav::before{left:0; background:linear-gradient(90deg, var(--surface), color-mix(in srgb, var(--surface), transparent 100%))}
-  .nav::after{right:0; background:linear-gradient(270deg, var(--surface), color-mix(in srgb, var(--surface), transparent 100%))}
-  .nav.can-left::before{opacity:1}
-  .nav.can-right::after{opacity:1}
-  .nav .chev{position:absolute; top:50%; right:9px; transform:translateY(-50%); z-index:3; pointer-events:none; color:var(--teal); font-size:1.1rem; font-weight:800; opacity:0; transition:opacity .2s; font-family:"Inter",sans-serif}
-  .nav.can-right .chev{opacity:.9; animation:chevpulse 1.4s ease-in-out infinite}
-  @keyframes chevpulse{0%,100%{transform:translateY(-50%) translateX(0)}50%{transform:translateY(-50%) translateX(3px)}}
-  @media(prefers-reduced-motion:reduce){ .nav.can-right .chev{animation:none} }
-  section[id]{scroll-margin-top:62px}
-  @media(max-width:560px){ .nav-in{padding:8px 14px} }
+  /* NAV */
+  nav{position:sticky;top:0;z-index:50;background:color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line-soft)}
+  nav .in{max-width:1080px;margin:0 auto;padding:11px 24px;display:flex;align-items:center;gap:20px}
+  .logo{display:flex;align-items:center;gap:9px;font-family:var(--ff-disp);font-weight:800;font-size:1.1rem;letter-spacing:-.02em}
+  .logo .dot{width:27px;height:27px;border-radius:8px;background:linear-gradient(135deg,var(--teal),var(--teal-deep));
+    display:grid;place-items:center;color:#fff;font-size:.9rem}
+  .logo b{color:var(--teal)}
+  .navlinks{display:flex;gap:22px;margin-left:auto;font-weight:500;font-size:.9rem;color:var(--muted)}
+  .navlinks a:hover{color:var(--ink)}
+  nav .btn{padding:9px 18px;font-size:.88rem}
+  @media(max-width:900px){.navlinks{display:none}}
 
   /* HERO */
-  header.hero{
-    background:
-      radial-gradient(120% 140% at 88% -20%, var(--accent-soft) 0%, transparent 55%),
-      radial-gradient(120% 120% at 0% 0%, var(--teal-soft) 0%, transparent 45%);
-    border-bottom:1px solid var(--border);
-  }
-  .hero-in{padding:92px 0 46px}
-  .brand{display:flex; align-items:center; gap:10px; font-family:"Inter",sans-serif; font-weight:800; font-size:1.15rem; letter-spacing:-.01em}
-  .brand .brand-logo{height:44px; width:auto; display:block}
-  .brand .fit{color:var(--teal)}
-  .brand .reg{font-size:.7em; color:var(--muted); font-weight:600}
-  h1{font-size:clamp(2.1rem,6vw,3.5rem); line-height:1.02; font-weight:800; letter-spacing:-.02em; margin:.5em 0 .35em; max-width:16ch}
-  h1 .accent{color:var(--accent)}
-  .lede{font-size:1.16rem; color:var(--text-soft); max-width:60ch; margin:0}
-  .facts{display:flex; flex-wrap:wrap; gap:10px; margin-top:26px}
-  .fact{background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:9px 16px; font-size:.9rem; box-shadow:var(--shadow); line-height:1.4}
-  .fact b{font-weight:600}
-  .fact .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--wa);margin-right:9px;box-shadow:0 0 0 4px var(--wa-soft);vertical-align:middle}
-  @media(max-width:560px){ .facts{flex-direction:column; align-items:stretch} .fact{border-radius:14px} }
+  .hero{padding:74px 0 38px;text-align:center;position:relative}
+  .hero::before{content:"";position:absolute;inset:0;z-index:-1;
+    background:radial-gradient(60% 55% at 50% 0%, var(--teal-soft) 0%, transparent 70%)}
+  .hero h1{font-size:clamp(2.4rem,6vw,4.2rem);font-weight:800}
+  .hero h1 .grad{background:linear-gradient(120deg,var(--teal),var(--coral));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero .sub{max-width:660px;margin:22px auto 0;font-size:clamp(1.05rem,2.3vw,1.28rem);color:var(--muted)}
+  .hero .cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+  .hero .trust{margin-top:20px;font-size:.85rem;color:var(--faint);display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}
+  .hero .trust .liv{display:inline-flex;align-items:center;gap:6px}
+  .pulse{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ok) 60%,transparent)}70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
 
-  section{padding:52px 0}
-  section + section{border-top:1px solid var(--border)}
-  .sec-head{margin-bottom:30px}
-  .sec-head h2{font-size:clamp(1.5rem,3.5vw,2.05rem); letter-spacing:-.015em}
-  .sec-head p{color:var(--text-soft); margin:.5em 0 0; max-width:64ch}
+  /* SHOT frame */
+  .shot{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .shot-bar{display:flex;align-items:center;gap:7px;padding:11px 15px;border-bottom:1px solid var(--line-soft);background:var(--surface-2)}
+  .shot-bar i{width:11px;height:11px;border-radius:50%;background:var(--line);display:block}
+  .shot-bar i:nth-child(1){background:#f2685f}.shot-bar i:nth-child(2){background:#f6be4f}.shot-bar i:nth-child(3){background:#5ec877}
+  .shot-bar .tt{margin-left:10px;font-size:.76rem;color:var(--faint);font-weight:600}
+  .hero-shot{max-width:960px;margin:44px auto 0}
 
-  /* legend chips */
-  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
-  .chip{display:inline-flex;align-items:center;gap:7px;font-size:.8rem;font-weight:600;padding:5px 11px;border-radius:999px;border:1px solid transparent;white-space:nowrap}
-  .chip .sw{width:9px;height:9px;border-radius:3px;flex:none}
-  .c-aluna{background:var(--wa-soft);color:var(--wa);border-color:color-mix(in srgb,var(--wa) 22%,transparent)}
-  .c-aluna .sw{background:var(--wa)}
-  .c-grupo{background:var(--amber-soft);color:var(--amber);border-color:color-mix(in srgb,var(--amber) 22%,transparent)}
-  .c-grupo .sw{background:var(--amber)}
-  .c-sistema{background:var(--teal-soft);color:var(--teal);border-color:color-mix(in srgb,var(--teal) 22%,transparent)}
-  .c-sistema .sw{background:var(--teal)}
-  .c-off{background:var(--surface-2);color:var(--muted);border-color:var(--border)}
-  .c-off .sw{background:var(--muted)}
+  /* chat mock */
+  .chat{display:grid;grid-template-columns:230px 1fr;min-height:430px}
+  .chat .side{border-right:1px solid var(--line-soft);padding:12px;background:var(--surface-2);overflow:hidden}
+  .chat .search{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:.78rem;color:var(--faint);margin-bottom:10px}
+  .conv{padding:8px 9px;border-radius:11px;margin-bottom:6px;border:1px solid transparent}
+  .conv.on{background:var(--teal-soft);border-color:var(--teal-line)}
+  .conv .nm{font-weight:700;font-size:.82rem}
+  .conv .ph{font-size:.7rem;color:var(--faint);margin-top:1px}
+  .conv .tg{margin-top:5px;display:flex;gap:4px;flex-wrap:wrap}
+  .tag{display:inline-block;font-size:.62rem;font-weight:600;padding:1px 7px;border-radius:999px;background:var(--teal-soft);color:var(--teal-deep)}
+  .tag.enc{background:var(--surface);color:var(--faint);border:1px solid var(--line)}
+  .tag.coral{background:var(--coral-soft);color:var(--coral)}
+  .chat .main{display:flex;flex-direction:column;padding:14px 16px;background:var(--surface)}
+  .chat .head{display:flex;align-items:center;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--line-soft);margin-bottom:12px}
+  .chat .head .av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal-deep));color:#fff;display:grid;place-items:center;font-weight:700;font-size:.85rem}
+  .chat .head .who{font-weight:700;font-size:.9rem}
+  .chat .head .who span{display:block;font-size:.72rem;color:var(--faint);font-weight:500}
+  .chat .head .tools{margin-left:auto;display:flex;gap:6px}
+  .chat .head .tools i{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);display:grid;place-items:center;font-size:.85rem;font-style:normal}
+  .bubbles{display:flex;flex-direction:column;gap:9px;overflow:hidden}
+  .bub{max-width:78%;padding:9px 13px;border-radius:15px;font-size:.85rem}
+  .bub .lab{font-size:.64rem;font-weight:700;color:var(--faint);margin-bottom:3px}
+  .bub.them{align-self:flex-start;background:var(--surface-2);border:1px solid var(--line-soft);border-bottom-left-radius:5px}
+  .bub.me{align-self:flex-end;background:var(--teal-soft);border:1px solid var(--teal-line);border-bottom-right-radius:5px}
 
-  /* RECOLHÍVEL (details) */
-  .collapse{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
-  .collapse>summary{list-style:none;cursor:pointer;padding:16px 20px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:10px;user-select:none}
-  .collapse>summary::-webkit-details-marker{display:none}
-  .collapse>summary::before{content:"▸";color:var(--accent);font-size:1rem;transition:transform .18s}
-  .collapse[open]>summary::before{transform:rotate(90deg)}
-  .collapse>summary small{font-weight:400;color:var(--muted)}
-  .collapse[open]>summary{border-bottom:1px solid var(--border)}
-  .collapse>.timeline,.collapse>.msgs{padding:18px 20px}
+  /* SECTIONS */
+  section{padding:56px 0}
+  .sec-head{text-align:center;max-width:680px;margin:0 auto 40px}
+  .sec-head h2{font-size:clamp(1.9rem,4.4vw,3rem);font-weight:800}
+  .sec-head p{margin-top:14px;color:var(--muted);font-size:1.08rem}
 
-  /* TIMELINE */
-  .timeline{display:flex;flex-direction:column;gap:14px}
-  .tl{display:grid;grid-template-columns:96px 1fr;gap:18px;align-items:start}
-  .tl-time{text-align:right;padding-top:16px}
-  .tl-time .hr{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:1.12rem;font-variant-numeric:tabular-nums;color:var(--text)}
-  .tl-time .days{font-size:.72rem;color:var(--muted);margin-top:2px}
-  .card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
-  .card::before{content:"";position:absolute;left:-1px;top:14px;bottom:14px;width:3px;border-radius:3px;background:var(--accent)}
-  .card.k-aluna::before{background:var(--wa)}
-  .card.k-grupo::before{background:var(--amber)}
-  .card.k-sistema::before{background:var(--teal)}
-  .card.k-off::before{background:var(--muted)}
-  .card-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .card h3{font-size:1.06rem;font-weight:700;letter-spacing:-.01em}
-  .card .to{margin-left:auto}
-  .card p{margin:8px 0 0;color:var(--text-soft);font-size:.96rem}
-  .tag{font-size:.72rem;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--surface-2);color:var(--text-soft);border:1px solid var(--border)}
-  .msg-ref{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:.82rem;font-weight:600;color:var(--accent)}
-  .msg-ref::before{content:"↳";opacity:.7}
+  /* stats */
+  .stats{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .stats .grid{display:grid;grid-template-columns:repeat(4,1fr)}
+  .stat{padding:34px 20px;text-align:center;border-right:1px solid var(--line-soft)}
+  .stat:last-child{border-right:none}
+  .stat .n{font-family:var(--ff-disp);font-weight:800;font-size:clamp(1.7rem,4vw,2.5rem);color:var(--teal);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+  .stat .l{margin-top:4px;font-size:.86rem;color:var(--muted)}
+  @media(max-width:720px){.stats .grid{grid-template-columns:1fr 1fr}.stat:nth-child(2){border-right:none}.stat{border-bottom:1px solid var(--line-soft)}}
 
-  /* No celular a linha do tempo empilha: o horário vira etiqueta em cima e o
-     cartão ocupa a largura inteira (senão o texto fica espremido numa coluna
-     estreita, quebrando título e etiqueta). */
-  @media(max-width:560px){
-    .wrap{padding:0 16px}
-    section{padding:38px 0}
-    .timeline{gap:16px}
-    .tl{grid-template-columns:1fr;gap:0}
-    .tl-time{display:flex;align-items:baseline;gap:9px;text-align:left;padding:0 0 9px 2px}
-    .tl-time .hr{font-size:1rem}
-    .tl-time .days{margin-top:0}
-    .tl-time .days::before{content:"· "}
-  }
+  /* two engines */
+  .engines{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .engine{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:30px;box-shadow:var(--shadow-sm)}
+  .engine .ic{font-size:2rem}
+  .engine h3{font-size:1.5rem;font-weight:800;margin:12px 0 6px}
+  .engine .tagline{color:var(--teal);font-weight:600;font-size:.92rem;margin-bottom:14px}
+  .engine p{color:var(--muted);font-size:.98rem}
+  .engine ul{list-style:none;padding:0;margin:16px 0 0;display:flex;flex-direction:column;gap:9px}
+  .engine li{display:flex;gap:9px;font-size:.94rem}
+  .engine li .ck{flex:none;color:var(--teal);font-weight:800}
+  @media(max-width:800px){.engines{grid-template-columns:1fr}}
 
-  /* continuous grid */
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
-  .mini{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:15px 16px;box-shadow:var(--shadow)}
-  .mini .freq{font-family:"JetBrains Mono",monospace;font-weight:700;color:var(--accent);font-size:.92rem}
-  .mini h3{font-size:1rem;margin:6px 0 4px}
-  .mini p{margin:0;color:var(--text-soft);font-size:.9rem}
-  a.mini-link{text-decoration:none;color:inherit;display:block;transition:.15s}
-  a.mini-link:hover{border-color:var(--accent);box-shadow:0 8px 24px rgba(40,20,32,.10);transform:translateY(-1px)}
-  .mini-cta{display:inline-block;margin-top:9px;color:var(--accent);font-weight:700;font-size:.86rem;font-family:"JetBrains Mono",monospace}
+  /* feature rows */
+  .feat{display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center;padding:50px 0;border-bottom:1px solid var(--line-soft)}
+  .feat.rev .txt{order:2}
+  .feat .txt h3{font-size:clamp(1.5rem,3.2vw,2.1rem);font-weight:800;margin-bottom:13px}
+  .feat .txt p{color:var(--muted);font-size:1.04rem;margin-bottom:18px}
+  .feat ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+  .feat li{display:flex;gap:10px;align-items:flex-start;font-size:.97rem}
+  .feat li .ck{flex:none;width:22px;height:22px;border-radius:50%;background:var(--teal-soft);color:var(--teal);display:grid;place-items:center;font-size:.8rem;font-weight:800;margin-top:1px}
+  @media(max-width:800px){.feat{grid-template-columns:1fr;gap:26px;padding:36px 0}.feat.rev .txt{order:0}}
 
-  /* MESSAGES */
-  .msgs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
-  .mcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}
-  .mcard .mhead{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
-  .mcard .mhead h3{font-size:1rem}
-  .mcard .mhead .when{margin-left:auto;font-size:.74rem;color:var(--muted);font-family:"JetBrains Mono",monospace}
-  .bubble-wrap{padding:16px;background:
-     repeating-linear-gradient(0deg,transparent,transparent 22px,color-mix(in srgb,var(--border) 30%,transparent) 22px,color-mix(in srgb,var(--border) 30%,transparent) 23px);
-     background-color:var(--surface-2);flex:1}
-  .bubble{background:var(--wa-soft);border:1px solid color-mix(in srgb,var(--wa) 25%,transparent);border-radius:4px 14px 14px 14px;padding:12px 14px;font-size:.92rem;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;color:var(--text);max-width:46ch}
-  .bubble.grp{background:var(--amber-soft);border-color:color-mix(in srgb,var(--amber) 25%,transparent)}
-  .bubble .ph{color:var(--accent);font-weight:600}
-  .bubble .aud{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:7px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--border);font-size:.82rem;color:var(--text-soft)}
-  .note{font-size:.82rem;color:var(--muted);padding:10px 16px;border-top:1px dashed var(--border)}
+  /* cost mock */
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px}
+  .tile{background:var(--surface-2);border:1px solid var(--line-soft);border-radius:14px;padding:14px 10px;text-align:center}
+  .tile .big{font-family:var(--ff-disp);font-weight:800;font-size:1.3rem;color:var(--teal);letter-spacing:-.02em}
+  .tile .big.ink{color:var(--ink)}
+  .tile .cap{font-size:.66rem;color:var(--faint);margin-top:2px}
+  .bars{padding:6px 16px 14px}
+  .barrow{display:flex;align-items:center;gap:10px;margin-top:9px;font-size:.76rem}
+  .barrow .d{width:42px;color:var(--muted);font-weight:600}
+  .barrow .track{flex:1;height:14px;border-radius:8px;background:var(--surface-2);overflow:hidden}
+  .barrow .fill{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--teal),var(--teal-deep))}
+  .barrow .v{width:56px;text-align:right;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+  .typerow{display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--line-soft);font-size:.82rem}
+  .typerow .nm{font-weight:600}.typerow .vv{margin-left:auto;font-weight:700;color:var(--teal)}
 
-  /* alerts + commands */
-  .cols{display:grid;grid-template-columns:1fr 1fr;gap:22px}
-  @media(max-width:760px){.cols{grid-template-columns:1fr}}
-  ul.clean{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
-  ul.clean li{display:flex;gap:11px;align-items:flex-start;font-size:.95rem;color:var(--text-soft)}
-  ul.clean li b{color:var(--text);font-weight:600}
-  ul.clean .ic{flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:.9rem;background:var(--accent-soft);color:var(--accent);margin-top:1px}
-  ul.clean .ic.warn{background:var(--amber-soft);color:var(--amber)}
-  ul.clean .ic.crit{background:color-mix(in srgb,#e5484d 16%,transparent);color:#d33}
+  /* campaign mock */
+  .camp{padding:16px}
+  .camp .ttl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--ff-disp);font-weight:800;font-size:1rem}
+  .camp .meta{font-size:.8rem;color:var(--muted);margin-top:8px}
+  .camp .prog{height:12px;border-radius:8px;background:var(--surface-2);overflow:hidden;margin:12px 0}
+  .camp .prog i{display:block;height:100%;width:22%;background:linear-gradient(90deg,var(--teal),var(--teal-deep))}
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted)}
 
-  pre.cmd{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;overflow-x:auto;font-family:"JetBrains Mono",monospace;font-size:.82rem;line-height:1.7;color:var(--text);box-shadow:var(--shadow)}
-  pre.cmd .c{color:var(--muted)}
-  pre.cmd b{color:var(--accent);font-weight:500}
+  /* contacts mock */
+  .ct{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line-soft)}
+  .ct .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:.8rem;flex:none}
+  .ct .nm{font-weight:600;font-size:.9rem}
+  .ct .ph{font-size:.76rem;color:var(--faint);font-variant-numeric:tabular-nums}
+  .ct .tg{margin-left:auto}
 
-  /* PRICING */
-  .price{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-  @media(max-width:680px){.price{grid-template-columns:1fr}}
-  .pcard{border:1px solid var(--border);border-radius:var(--radius);padding:26px;background:var(--surface);box-shadow:var(--shadow);display:flex;flex-direction:column}
-  .pcard.feat{border-color:color-mix(in srgb,var(--accent) 45%,transparent);background:linear-gradient(180deg,var(--accent-soft),var(--surface) 62%)}
-  .pcard .ptag{font-family:"JetBrains Mono",monospace;font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
-  .pcard .amount{font-family:"Inter",sans-serif;font-weight:800;font-size:2.5rem;letter-spacing:-.02em;line-height:1;margin:12px 0 4px;color:var(--text)}
-  .pcard .amount small{font-size:.82rem;font-weight:600;color:var(--muted);letter-spacing:0}
-  .pcard .sub{color:var(--text-soft);font-size:.95rem;margin:0 0 6px}
-  .pcard ul{list-style:none;padding:0;margin:12px 0 0;display:flex;flex-direction:column;gap:8px}
-  .pcard ul li{font-size:.9rem;color:var(--text-soft);padding-left:22px;position:relative}
-  .pcard ul li::before{content:"✓";position:absolute;left:0;top:-1px;color:var(--wa);font-weight:800}
-  .terms{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
-  .term{flex:1 1 260px;display:flex;gap:12px;align-items:flex-start;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;font-size:.92rem;color:var(--text-soft)}
-  .term b{color:var(--text);font-weight:600}
-  .term .ic{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:1rem;background:var(--teal-soft);color:var(--teal)}
+  /* timeline mock */
+  .tl-shot{padding:8px 4px}
+  .tlrow{display:grid;grid-template-columns:64px 1fr;gap:14px;align-items:start;padding:10px 16px}
+  .tlrow .hr{font-family:var(--ff-disp);font-weight:800;font-size:.95rem;color:var(--teal-deep);text-align:right;font-variant-numeric:tabular-nums;padding-top:2px}
+  .tlrow .body{border-left:2px solid var(--teal-line);padding:0 0 2px 14px;position:relative}
+  .tlrow .body::before{content:"";position:absolute;left:-6px;top:5px;width:9px;height:9px;border-radius:50%;background:var(--teal)}
+  .tlrow .body.g::before{background:var(--amber)}.tlrow .body.g{border-color:var(--amber-soft)}
+  .tlrow .ttl{font-weight:700;font-size:.9rem}
+  .tlrow .ds{font-size:.76rem;color:var(--faint)}
+  .tlmini{font-size:.62rem;font-weight:600;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:middle}
+  .tlmini.a{background:var(--ok-soft);color:var(--ok)}.tlmini.g{background:var(--amber-soft);color:var(--amber)}
 
-  /* SERVER compare */
-  .banner{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;box-shadow:var(--shadow);margin-bottom:20px}
-  .banner .big{font-family:"Inter",sans-serif;font-weight:800;font-size:1.9rem;letter-spacing:-.02em;color:var(--accent);line-height:1}
-  .banner .big small{font-size:.5em;font-weight:600;color:var(--muted)}
-  .banner .txt{flex:1 1 300px;color:var(--text-soft);font-size:.95rem}
-  .banner .txt b{color:var(--text);font-weight:600}
-  .compare{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-  @media(max-width:680px){.compare{grid-template-columns:1fr}}
-  .ccard{border:1px solid var(--border);border-radius:var(--radius);padding:24px;background:var(--surface);box-shadow:var(--shadow);display:flex;flex-direction:column}
-  .ccard.good{border-color:color-mix(in srgb,var(--wa) 42%,transparent);background:linear-gradient(180deg,var(--wa-soft),var(--surface) 60%)}
-  .ccard .clabel{font-family:"JetBrains Mono",monospace;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-  .ccard.good .clabel{color:var(--wa)}
-  .ccard .cost{font-family:"Inter",sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-.01em;margin:8px 0 2px;color:var(--text)}
-  .ccard .cost small{font-size:.6em;font-weight:600;color:var(--muted)}
-  .ccard .verdict{font-size:.86rem;font-weight:600;margin:0 0 4px}
-  .ccard.warn .verdict{color:var(--amber)}
-  .ccard.good .verdict{color:var(--wa)}
-  .ccard ul{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--border);padding-top:14px}
-  .ccard ul li{font-size:.92rem;color:var(--text-soft);padding-left:26px;position:relative;line-height:1.45}
-  .ccard.warn ul li::before{content:"✗";position:absolute;left:0;top:-1px;color:var(--amber);font-weight:800}
-  .ccard.good ul li::before{content:"✓";position:absolute;left:0;top:-1px;color:var(--wa);font-weight:800}
+  /* painel tabs mock */
+  .ptabs{display:flex;gap:6px;flex-wrap:wrap;padding:14px 16px;border-bottom:1px solid var(--line-soft)}
+  .ptab{font-size:.8rem;font-weight:600;padding:7px 13px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+  .ptab.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .phealth{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:16px}
+  .hc{background:var(--surface-2);border:1px solid var(--line-soft);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:.86rem;font-weight:600}
+  .hc .d{width:10px;height:10px;border-radius:50%;flex:none}
+  .hc .d.ok{background:var(--ok)}.hc .d.warn{background:var(--amber)}
+
+  /* steps */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .step{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:26px}
+  .step .num{font-family:var(--ff-disp);font-weight:800;width:36px;height:36px;border-radius:11px;background:var(--teal-soft);color:var(--teal);display:grid;place-items:center;margin-bottom:14px}
+  .step h4{font-weight:700;font-size:1.15rem;margin:0 0 8px}
+  .step p{color:var(--muted);font-size:.95rem}
+  @media(max-width:760px){.steps{grid-template-columns:1fr}}
+
+  /* feature grid */
+  .fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .fcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px}
+  .fcard .ic{font-size:1.5rem}
+  .fcard h4{font-weight:700;font-size:1.06rem;margin:12px 0 7px}
+  .fcard p{color:var(--muted);font-size:.92rem}
+  @media(max-width:760px){.fgrid{grid-template-columns:1fr}}
+
+  /* pricing */
+  .prices{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:840px;margin:0 auto}
+  @media(max-width:700px){.prices{grid-template-columns:1fr}}
+  .pcard{border:1px solid var(--line);border-radius:20px;padding:30px;background:var(--surface);box-shadow:var(--shadow-sm);display:flex;flex-direction:column}
+  .pcard.feat{border-color:var(--teal-line);background:linear-gradient(180deg,var(--teal-soft),var(--surface) 60%)}
+  .pcard .ptag{font-family:var(--ff-disp);font-weight:700;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--teal)}
+  .pcard .amount{font-family:var(--ff-disp);font-weight:800;font-size:2.6rem;letter-spacing:-.03em;line-height:1;margin:14px 0 4px}
+  .pcard .amount small{font-size:.8rem;font-weight:600;color:var(--muted);letter-spacing:0}
+  .pcard .badge{display:inline-block;font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--teal);background:var(--teal-soft);border-radius:6px;padding:3px 9px;margin-bottom:10px;align-self:flex-start}
+  .pcard .sub{color:var(--muted);font-size:.94rem;margin:0 0 4px}
+  .pcard ul{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:9px}
+  .pcard ul li{font-size:.9rem;color:var(--muted);padding-left:22px;position:relative}
+  .pcard ul li::before{content:"✓";position:absolute;left:0;color:var(--ok);font-weight:800}
+  .terms{display:flex;flex-wrap:wrap;gap:12px;margin:22px auto 0;max-width:840px}
+  .term{flex:1 1 250px;display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:.9rem;color:var(--muted)}
+  .term b{color:var(--ink);font-weight:600}
+  .term .ic{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:1rem;background:var(--teal-soft)}
 
   /* CTA */
-  .cta{background:linear-gradient(135deg,var(--accent),var(--accent-2));border-radius:22px;padding:46px 28px;text-align:center;box-shadow:0 14px 40px color-mix(in srgb,var(--accent) 35%,transparent);margin:8px 0 4px}
-  .cta h2{color:#fff;font-size:clamp(1.5rem,4vw,2.2rem);letter-spacing:-.015em}
-  .cta p{color:rgba(255,255,255,.92);max-width:54ch;margin:12px auto 0;font-size:1.05rem}
-  .wa-btn{display:inline-flex;align-items:center;gap:11px;margin-top:24px;background:#fff;color:#128C4B;font-weight:700;font-size:1.06rem;padding:15px 28px;border-radius:999px;text-decoration:none;box-shadow:0 10px 26px rgba(0,0,0,.22);transition:transform .12s ease}
-  .wa-btn:hover{text-decoration:none;transform:translateY(-2px)}
-  .wa-btn svg{width:22px;height:22px;flex:none}
-  @media (prefers-reduced-motion:reduce){.wa-btn{transition:none}}
+  .cta-band{text-align:center;background:linear-gradient(160deg,var(--teal),var(--teal-deep));color:#fff;border-radius:28px;padding:56px 32px;box-shadow:var(--shadow);margin:0 24px}
+  .cta-band h2{color:#fff;font-size:clamp(1.9rem,4.4vw,2.7rem)}
+  .cta-band p{color:#e6f4f2;margin-top:14px;font-size:1.08rem;max-width:560px;margin-left:auto;margin-right:auto}
+  .cta-band .btn{margin-top:26px}
 
-  footer{padding:36px 0 60px;color:var(--muted);font-size:.85rem;text-align:center}
-  .divlabel{display:flex;align-items:center;gap:14px;margin:6px 0 20px}
-  .divlabel::after{content:"";height:1px;background:var(--border);flex:1}
-  .divlabel .eyebrow{color:var(--accent)}
+  footer{padding:44px 0 60px;text-align:center;color:var(--faint);font-size:.86rem}
+  footer .logo{justify-content:center;margin-bottom:12px;color:var(--ink)}
+
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease, transform .7s ease}
+  .reveal.in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}.pulse{animation:none}}
 </style>
+</head>
+<body>
 
-<nav class="nav" aria-label="Atalhos das seções">
-  <div class="nav-in">
-    <a href="#como-funciona">Como funciona</a>
-    <a href="#sofia">🤖 Sofia</a>
-    <a href="#linha-do-tempo">Linha do tempo</a>
-    <a href="#mensagens">Mensagens</a>
-    <a href="#painel">Painel</a>
-    <a href="#alertas">Alertas</a>
-    <a href="#investimento">Investimento</a>
-    <a href="#servidor">Servidor</a>
+
+<nav>
+  <div class="in">
+    <div class="logo"><span class="dot">🤖</span> Automação <b>SlimFit</b></div>
+    <div class="navlinks">
+      <a href="#motores">O sistema</a>
+      <a href="#dia">O dia do robô</a>
+      <a href="#sofia">SoFIA</a>
+      <a href="#painel">Painel</a>
+      <a href="#preco">Investimento</a>
+    </div>
+    <a href="#preco" class="btn btn-primary">Quero no meu Studio</a>
   </div>
-  <span class="chev" aria-hidden="true">›</span>
 </nav>
 
+<!-- HERO -->
 <header class="hero">
-  <div class="wrap hero-in">
-    <div class="brand"><img class="brand-logo" alt="SlimFit Studio" src="https://drive.google.com/thumbnail?id=1pl1mh709FGcitG9uHo0J6nzMUKFYqg-w&sz=w400"> <span class="reg">Setor Bueno</span></div>
-    <h1>Manual do <span class="accent">robô</span> do Studio</h1>
-    <p class="lede">Tudo o que a automação faz sozinha — cada tarefa, o horário em que roda e a mensagem exata que envia para as alunas, as leads e a equipe.</p>
-    <div class="facts">
-      <span class="fact"><span class="dot"></span><b>Roda 24h</b>&nbsp;no servidor (VPS), sem depender do PC</span>
-      <span class="fact">🤖 <b>Sofia (IA)</b>&nbsp;atende e agenda no WhatsApp</span>
-      <span class="fact"><b>WhatsApp</b>&nbsp;do Studio sempre conectado</span>
-      <span class="fact"><b>EVO</b>&nbsp;+ <b>formulário</b> de agendamento</span>
-      <span class="fact"><b>Alertas</b>&nbsp;no seu celular se algo falhar</span>
+  <div class="wrap">
+    <div class="eyebrow">Automação de WhatsApp para estúdios</div>
+    <h1>Seu Studio no WhatsApp,<br><span class="grad">no automático.</span></h1>
+    <p class="sub">Um robô que confirma aulas, recupera faltas, faz follow-up, avisa renovações e cuida
+      da retenção — mais a <b>SoFIA</b>, a atendente com IA que conversa e agenda sozinha. 24 horas por dia,
+      sem depender de ninguém na recepção.</p>
+    <div class="cta">
+      <a href="#preco" class="btn btn-primary">Ver o investimento →</a>
+      <a href="#motores" class="btn btn-ghost">Como funciona</a>
+    </div>
+    <div class="trust">
+      <span class="liv"><span class="pulse"></span> No ar agora no SlimFit Setor Bueno</span>
+      <span>·</span><span>~30 tarefas automáticas por dia</span>
+    </div>
+  </div>
+
+  <div class="wrap hero-shot reveal">
+    <div class="shot">
+      <div class="shot-bar"><i></i><i></i><i></i><span class="tt">Painel · Conversas da SoFIA</span></div>
+      <div class="chat">
+        <div class="side">
+          <div class="search">🔎 Buscar nome, telefone</div>
+          <div class="conv on"><div class="nm">Alessandra</div><div class="ph">(62) 9••••-••••</div><div class="tg"><span class="tag">Aula agendada</span></div></div>
+          <div class="conv"><div class="nm">Beatriz</div><div class="ph">(62) 9••••-••••</div><div class="tg"><span class="tag enc">🔒 encerrada</span></div></div>
+          <div class="conv"><div class="nm">Camila</div><div class="ph">(62) 9••••-••••</div><div class="tg"><span class="tag coral">Preço</span></div></div>
+          <div class="conv"><div class="nm">Daniela</div><div class="ph">(11) 9••••-••••</div><div class="tg"><span class="tag">Contato inicial</span></div></div>
+          <div class="conv"><div class="nm">Eduarda</div><div class="ph">(62) 9••••-••••</div><div class="tg"><span class="tag">Follow-up</span></div></div>
+        </div>
+        <div class="main">
+          <div class="head">
+            <div class="av">A</div>
+            <div class="who">Alessandra<span>experimental agendada 📅</span></div>
+            <div class="tools"><i>📊</i><i>🔒</i><i>🧑</i></div>
+          </div>
+          <div class="bubbles">
+            <div class="bub them"><div class="lab">Alessandra</div>Oi! Vi vocês no Instagram 💕</div>
+            <div class="bub me"><div class="lab">SoFIA</div>Oii! 😊 Que bom te ver por aqui!</div>
+            <div class="bub me"><div class="lab">SoFIA</div>Seja muito bem-vinda ao SlimFit! Sou a SoFIA e te ajudo a agendar sua aula experimental gratuita 🧡</div>
+            <div class="bub them"><div class="lab">Alessandra</div>Queria conhecer, tem horário de manhã?</div>
+            <div class="bub me"><div class="lab">SoFIA</div>Tenho sim! Terça 7h ou quinta 8h15 — qual fica melhor?</div>
+            <div class="bub them"><div class="lab">Alessandra</div>Terça 7h 🙌</div>
+            <div class="bub me"><div class="lab">SoFIA</div>Fechado! Agendei sua experimental pra terça às 7h. Te espero 💪</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </header>
 
-<main class="wrap">
-
-  <!-- COMO FUNCIONA -->
-  <section id="como-funciona">
-    <div class="sec-head">
-      <span class="eyebrow">Visão geral</span>
-      <h2>Como o sistema funciona</h2>
-      <p>Um único programa fica ligado o tempo todo no servidor. Nos horários certos, ele entra no EVO para ler as informações, e envia as mensagens pela linha de WhatsApp do Studio. Nada precisa estar aberto no seu computador.</p>
-    </div>
+<!-- STATS -->
+<section class="stats" style="padding:0">
+  <div class="wrap" style="padding:0 24px">
     <div class="grid">
-      <div class="mini"><div class="freq">EVO</div><h3>De onde ele lê</h3><p>Aulas experimentais, presenças e faltas, contratos vencendo, aniversários, alunas ausentes e trancamentos.</p></div>
-      <div class="mini"><div class="freq">WhatsApp</div><h3>Por onde ele fala</h3><p>Uma conexão única e persistente do WhatsApp do Studio, reaproveitada por todos os envios.</p></div>
-      <a class="mini mini-link" href="https://sf-formularioexperimental.onrender.com/" target="_blank" rel="noopener"><div class="freq">Formulário</div><h3>Agendamento online</h3><p>A lead escolhe o horário no site; o sistema cadastra e matricula no EVO e envia a confirmação.</p><span class="mini-cta">Ver o formulário ao vivo →</span></a>
-      <div class="mini"><div class="freq">03:00</div><h3>Manutenção diária</h3><p>Todo dia de madrugada o WhatsApp reinicia sozinho para manter a conexão saudável.</p></div>
+      <div class="stat reveal"><div class="n">24/7</div><div class="l">Roda no servidor, sem depender do PC</div></div>
+      <div class="stat reveal"><div class="n">~30</div><div class="l">Tarefas automáticas por dia</div></div>
+      <div class="stat reveal"><div class="n">R$ 0,26</div><div class="l">Custo médio de IA por conversa</div></div>
+      <div class="stat reveal"><div class="n">4.000+</div><div class="l">Contatos organizados por tag</div></div>
     </div>
-    <div class="legend" aria-label="legenda de destinos">
-      <span class="chip c-aluna"><span class="sw"></span>Mensagem para a aluna / lead</span>
-      <span class="chip c-grupo"><span class="sw"></span>Aviso no grupo da equipe</span>
-      <span class="chip c-sistema"><span class="sw"></span>Interno / planilha</span>
+  </div>
+</section>
+
+<!-- DOIS MOTORES -->
+<section id="motores">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">O sistema</div>
+      <h2>Dois motores. Um Studio rodando sozinho.</h2>
+      <p>Um único programa fica ligado o tempo todo. Ele lê o EVO nos horários certos, fala pela linha
+        de WhatsApp do Studio e conversa com as leads pela SoFIA. Nada precisa estar aberto no seu computador.</p>
     </div>
-  </section>
-
-  <!-- SOFIA (CHATBOT COM IA) -->
-  <section id="sofia">
-    <div class="sec-head">
-      <span class="eyebrow">Atendimento com IA</span>
-      <h2>🤖 Sofia — a atendente virtual</h2>
-      <p>A Sofia é uma <b>inteligência artificial</b> que conversa com as leads no WhatsApp, tira dúvidas sobre a metodologia e <b>agenda a aula experimental sozinha</b> — em um número de WhatsApp <b>próprio dela</b>, diferente do robô de mensagens. Você controla tudo pela aba <b>🤖 Sofia</b> do painel, sem mexer em código.</p>
-    </div>
-    <div class="grid">
-      <div class="mini"><div class="freq">Conversa</div><h3>Responde sozinha, 24h</h3><p>Tira dúvidas sobre metodologia, planos, horários, endereço e Circuito — no tom de uma atendente humana, com bom senso e as regras do Studio.</p></div>
-      <div class="mini"><div class="freq">Agenda</div><h3>Marca a experimental</h3><p>Coleta nome, e-mail e o horário desejado, <b>confere a grade</b> e registra o agendamento direto no EVO (mesmo caminho do formulário). Nunca inventa horário.</p></div>
-      <div class="mini"><div class="freq">Imagens</div><h3>Grade e preços</h3><p>Quando pedem, ela envia a <b>grade de horários</b> e a <b>tabela de preços</b> como imagem — as URLs são editáveis no painel.</p></div>
-      <div class="mini"><div class="freq">Só o que tem vaga</div><h3>Não oferece horário lotado</h3><p>Antes de agendar, ela <b>consulta a vaga real</b> da turma. Se o horário pedido está cheio, avisa na hora e oferece só os que <b>têm vaga</b> naquele dia.</p></div>
-      <div class="mini"><div class="freq">Conversas</div><h3>Painel de atendimento</h3><p>Uma <b>caixa de entrada</b> no painel mostra todas as conversas. Você <b>lê e responde por lá</b> (sem WhatsApp Web) e <b>assume o controle de uma conversa</b> específica — nas outras a Sofia segue atendendo.</p></div>
-      <div class="mini"><div class="freq">Contatos</div><h3>CRM com tags</h3><p>Importa contatos (CSV), <b>etiqueta com tags</b> e filtra — inclusive quem está <b>sem tag</b> ou <b>bloqueado</b>. Dá para <b>alterar tags em lote</b> — marcar contatos na lista (ou usar o filtro inteiro) e adicionar/remover uma tag de uma vez. Base para as campanhas.</p></div>
-      <div class="mini"><div class="freq">Campanhas</div><h3>Envio em massa por tag</h3><p>Escolhe uma tag, escreve a mensagem e a <b>IA gera ~10 variações</b>; envia com <b>delays aleatórios</b>, teto por dia e janela de horário. Aceita <b>foto</b>, personaliza com <code>{nome}</code>, tem <b>enviar teste</b> e mostra a <b>previsão de término</b>.</p></div>
-      <div class="mini"><div class="freq">Humano assume</div><h3>Você entra quando quer</h3><p>Assume uma conversa pelo painel (ou respondendo pelo WhatsApp) e a Sofia <b>sai só daquela</b> — e volta quando você devolver.</p></div>
-      <div class="mini"><div class="freq">Jeito humano</div><h3>Parece gente</h3><p>Quebra respostas longas em <b>várias mensagens</b>, mostra <b>“digitando…”</b> e usa um tom leve. A velocidade e as pausas são reguláveis no painel.</p></div>
-      <div class="mini"><div class="freq">Liga / desliga</div><h3>No seu controle</h3><p>Pausa a Sofia com um clique (aí você atende tudo manualmente) e religa quando quiser. O texto/comportamento dela é editável e vale <b>na hora</b>, sem reiniciar.</p></div>
-      <div class="mini"><div class="freq">Interações</div><h3>Histórico por aluna</h3><p>Cada contato guarda o histórico de <b>atendimentos</b> (quantos, quando) com um <b>resumo</b> de cada conversa gerado pela IA.</p></div>
-      <div class="mini"><div class="freq">Automação por tag</div><h3>Etiqueta e avisa sozinha</h3><p>Cada tag pode ter um <b>gatilho</b> (aluna nova, palavra-chave, <b>intenção lida pela IA</b> — ex.: "quando perguntar sobre preço", agendou, você assumiu, encerrou sem agendar, respondeu campanha): aplica a tag e <b>avisa um número no WhatsApp</b>. Também dá pra <b>trocar de etiqueta</b> na transição de funil.</p></div>
-      <div class="mini"><div class="freq">Agrupar mensagens</div><h3>Não atropela a conversa</h3><p>Quando a aluna manda <b>várias mensagens seguidas</b>, a Sofia espera alguns segundos e responde <b>uma vez só</b>, juntando tudo — evita respostas cruzadas. O tempo é ajustável.</p></div>
-      <div class="mini"><div class="freq">Sempre no ar</div><h3>Se recupera sozinha</h3><p>Uma <b>verificação de conexão</b> checa de tempos em tempos se o WhatsApp dela está mesmo ativo; se travar, <b>te avisa no celular</b> e <b>reinicia sozinha</b>.</p></div>
-      <div class="mini"><div class="freq">Áudio</div><h3>Entende áudios</h3><p>Quando a lead manda <b>áudio</b>, a Sofia <b>transcreve</b> (fala→texto) e responde ao conteúdo — no painel aparece “🎤 …”. Opcional (usa um serviço de transcrição).</p></div>
-      <div class="mini"><div class="freq">Follow-up</div><h3>Retoma quem esfriou</h3><p>Quem conversa e <b>para de responder sem agendar</b> recebe, depois de um tempo, <b>uma</b> mensagem de retomada escrita pela IA — sem incomodar quem já agendou. Liga/desliga, tempo e <b>janela de horário</b> (ex.: 8h–19h) no painel: se o prazo vencer fora dela, a mensagem sai no <b>próximo horário permitido</b>, <b>nunca de madrugada</b>.</p></div>
-      <div class="mini"><div class="freq">Bloqueio</div><h3>Lista de bloqueio</h3><p>Como o <b>Bloquear do WhatsApp</b>: contatos bloqueados são <b>ignorados</b> por completo pela Sofia. Bloqueia direto da conversa ou dos Contatos.</p></div>
-      <div class="mini"><div class="freq">Modelo</div><h3>Escolhe a IA</h3><p>Dá para escolher <b>qual modelo da Claude</b> a Sofia usa (conversa e extração), equilibrando qualidade e custo — direto no painel.</p></div>
-      <div class="mini"><div class="freq">Encerrar</div><h3>Fecha a conversa na hora</h3><p>Um clique no <b>🔒</b> encerra a conversa sem esperar o tempo de sessão: aparece o <b>cadeado</b>, a Sofia <b>recomeça do zero</b> se a aluna voltar e o <b>follow-up não incomoda</b> mais aquele contato. Reabre sozinho quando a aluna escreve de novo.</p></div>
-      <div class="mini"><div class="freq">Exportar</div><h3>Leva seus contatos</h3><p>Baixa <b>toda a base de contatos</b> em CSV (Nome, Telefone, Tags, Instruções) — para <b>migrar de plataforma</b> ou guardar backup. O mesmo arquivo pode ser reimportado aqui.</p></div>
-      <div class="mini"><div class="freq">Histórico</div><h3>Já sabe se o lead falou antes</h3><p>Toda conversa fica <b>registrada</b> na inbox. Assim, quando um <b>lead volta</b>, a recepção <b>já vê o atendimento anterior</b> e retoma com contexto — comunicação mais assertiva desde a primeira resposta.</p></div>
-      <div class="mini"><div class="freq">Filtros</div><h3>Acha a conversa certa</h3><p>Filtra as conversas por <b>período</b> (de/até) e mostra só quem está <b>sem resposta há 24h+</b> nos últimos dias — para <b>priorizar</b> quem precisa de retorno, sem garimpar a lista inteira.</p></div>
-      <div class="mini"><div class="freq">Retenção</div><h3>Você decide quanto guarda</h3><p>Define por <b>quantos dias</b> o histórico das conversas fica guardado (ou <b>nunca apagar</b>) — quanto maior, mais contexto na volta do lead. Ajustável na Configuração.</p></div>
-      <div class="mini"><div class="freq">Pede humano</div><h3>Avisa quando precisa de você</h3><p>Se a aluna <b>pede um atendente</b> ou demonstra irritação, a SoFIA <b>manda um WhatsApp</b> para o número do Studio, <b>pinta a conversa de vermelho</b> na lista e há um <b>filtro</b> só para elas — a recepção entra rápido. As palavras que disparam são <b>editáveis</b> e não custam nada (sem IA).</p></div>
-      <div class="mini"><div class="freq">Funil</div><h3>Quanto a IA converte</h3><p>Mede, por período, <b>quantas conversas</b> a SoFIA atendeu, <b>quantas viraram agendamento</b> e a <b>taxa de conversão</b> — para saber se ela está convertendo, não só conversando.</p></div>
-      <div class="mini"><div class="freq">Custo IA</div><h3>Acompanha o gasto</h3><p>Mostra o <b>gasto real da IA</b> nas conversas por período (com período personalizado), o <b>gasto por conversa</b> (quanto custou com <b>cada aluna</b>, da maior para a menor) e permite um <b>alerta</b> quando o gasto do dia passa de um valor — sem susto na conta.</p></div>
-      <div class="mini"><div class="freq">Quem encerrou</div><h3>Pessoa ou automático</h3><p>No histórico da conversa fica registrado se a sessão foi <b>encerrada por uma pessoa</b> (com o nome do perfil) ou <b>automaticamente</b> pelo tempo de sessão — clareza de quem fez o quê.</p></div>
-      <div class="mini"><div class="freq">Fecha o funil</div><h3>Presença da experimental</h3><p>1x por semana, a SoFIA <b>lê a presença no EVO</b> e troca sozinha as tags de quem estava como <b>agendou</b>: quem <b>compareceu</b> vira "fez aula" e quem <b>faltou</b> vira "encerrado sem presença" — as demais tags (manuais) ficam intactas. Pode ainda <b>cadastrar quem fez a experimental por outro canal</b> (não passou pela SoFIA) para <b>entrar nas campanhas</b>. O <b>dia/hora</b> e um <b>número que recebe o resumo</b> são editáveis.</p></div>
-    </div>
-    <div class="note">🔑 Na aba <b>🤖 Sofia</b> do painel você edita <b>o que ela fala</b> (o roteiro completo), liga/desliga, ajusta o <b>tempo de sessão</b> (memória), a <b>pausa</b> ao responder pelo celular, o <b>agrupamento de mensagens</b>, a <b>verificação de conexão</b>, o <b>limite de experimentais por turma</b>, o <b>modelo de IA</b>, a <b>transcrição de áudio</b>, o <b>follow-up</b>, o ritmo de digitação e as imagens; vê as <b>Conversas</b> (com <b>bloqueio</b> e <b>encerrar</b> por contato, <b>filtros</b> por período e por “sem resposta”, <b>aviso e destaque quando a aluna pede atendimento humano</b>, e um selo <b>online/off-line</b> do WhatsApp dela) e define a <b>retenção</b> do histórico; os <b>Contatos</b> (com <b>Interações</b>, <b>Automação por tag</b> e <b>exportar CSV</b>), as <b>Campanhas</b>, o <b>Funil</b> (conversão), o <b>Custo da IA</b> (por período e <b>por conversa</b>) e a <b>Presença da experimental</b> (fecha o funil trocando as tags pela presença lida no EVO, 1x por semana); e conecta (ou <b>desconecta</b>) o <b>WhatsApp próprio dela</b> pelo QR — tudo em um lugar só. Se a sessão dela cair ou travar, você recebe um <b>alerta no celular</b>.</div>
-    <div class="note">🩺 O painel ainda tem uma página de <b>Saúde</b> que mostra, num lugar só, se o <b>robô</b>, a <b>SoFIA</b>, o <b>Instagram</b> e o <b>formulário</b> estão no ar — com um selo verde/amarelo/vermelho para cada um.</div>
-    <div class="note">💬 A Sofia usa uma IA da Anthropic (Claude) para conversar. Isso tem um <b>custo por conversa</b> (a chave de API do Studio), separado da mensalidade do servidor.</div>
-  </section>
-
-  <!-- LINHA DO TEMPO -->
-  <section id="linha-do-tempo">
-    <div class="sec-head">
-      <span class="eyebrow">Agenda do dia</span>
-      <h2>Linha do tempo — o que roda e quando</h2>
-      <p>Horários no fuso de Brasília. A tarja colorida à esquerda de cada cartão indica o destino da ação.</p>
-    </div>
-
-    <details class="collapse">
-      <summary>📅 Ver a linha do tempo completa <small>&nbsp;— do 05:30 ao 19:45</small></summary>
-      <div class="timeline">
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">05:30</div><div class="days">dia 28</div></div>
-        <div class="card k-grupo">
-          <div class="card-top"><h3>Aniversariantes do mês</h3><span class="chip c-grupo to"><span class="sw"></span>Grupo Equipe</span></div>
-          <p>Lista de todas as alunas que fazem aniversário no mês seguinte, para a equipe se organizar.</p>
-          <a class="msg-ref" href="#m-aniv-mes">ver mensagem</a>
-        </div>
-      </div>
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">06:10</div><div class="days">segunda</div></div>
-        <div class="card k-grupo">
-          <div class="card-top"><h3>Ausentes há 10+ dias</h3><span class="chip c-grupo to"><span class="sw"></span>Grupo Equipe</span></div>
-          <p>Lista as alunas <b>ativas</b> sem presença há 10 dias ou mais, com a data da última vinda. Quem está <b>trancada</b> é separada numa lista à parte (“não cobrar”), com a data de retorno.</p>
-          <a class="msg-ref" href="#m-ausentes">ver texto no grupo</a>
-        </div>
-      </div>
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">06:45</div><div class="days">segunda</div></div>
-        <div class="card k-grupo">
-          <div class="card-top"><h3>Presentes de tempo de casa</h3><span class="chip c-grupo to"><span class="sw"></span>Grupo Equipe</span></div>
-          <p>Alunas com presente de tempo de casa pendente (1, 2, 3 ou 4 anos), para a equipe entregar.</p>
-        </div>
-      </div>
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">07:00</div><div class="days">todos</div></div>
-        <div class="card k-aluna">
-          <div class="card-top"><h3>Instagram — boas-vindas</h3><span class="chip c-aluna to"><span class="sw"></span>Nova seguidora</span></div>
-          <p>Dá boas-vindas por <b>DM</b> a quem começou a seguir o perfil, com um convite para a aula experimental gratuita e o link do agendamento. Envia em ritmo humano (pausa de minutos entre cada uma) e só para <b>seguidoras novas</b>.</p>
-          <a class="msg-ref" href="#m-instagram">ver mensagem</a>
-        </div>
-      </div>
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">08:00</div><div class="days">todos</div></div>
-        <div class="card k-grupo">
-          <div class="card-top"><h3>Parabéns às aniversariantes</h3><span class="chip c-grupo to"><span class="sw"></span>Grupos</span></div>
-          <p>Marca a aniversariante (@) nos grupos em comum e manda os parabéns.</p>
-          <a class="msg-ref" href="#m-aniv">ver mensagem</a>
-        </div>
-      </div>
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">08:30</div><div class="days">seg–sáb</div></div>
-        <div class="card k-aluna">
-          <div class="card-top"><h3>Confirmação — aula de hoje</h3><span class="chip c-aluna to"><span class="sw"></span>Aluna</span></div>
-          <p>Confirma com a lead a aula experimental agendada para <b>hoje</b> (aulas a partir das 12h).</p>
-          <a class="msg-ref" href="#m-hoje">ver mensagem</a>
-        </div>
-      </div>
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">10:30</div><div class="days">seg–sáb</div></div>
-        <div class="card k-aluna">
-          <div class="card-top"><h3>Follow-up pós-aula — manhã</h3><span class="chip c-aluna to"><span class="sw"></span>Aluna</span></div>
-          <p>Para quem fez a experimental <b>ontem de manhã</b>: manda um áudio da professora + convite para dar andamento na matrícula.</p>
-          <a class="msg-ref" href="#m-follow">ver mensagem + áudio</a>
-        </div>
-      </div>
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">10:45</div><div class="days">todos</div></div>
-        <div class="card k-aluna">
-          <div class="card-top"><h3>Envios agendados — manhã</h3><span class="chip c-aluna to"><span class="sw"></span>Agendados</span></div>
-          <p>Dispara as mensagens que você <b>agendou no painel</b> para <b>hoje · manhã</b> (texto, ou foto com legenda). Envia uma de cada vez, com intervalo entre elas.</p>
-        </div>
-      </div>
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">11:30</div><div class="days">seg–sáb</div></div>
-        <div class="card k-aluna">
-          <div class="card-top"><h3>Faltas (no-show) — manhã</h3><span class="chip c-aluna to"><span class="sw"></span>Aluna</span></div>
-          <p>Quem faltou à experimental da manhã recebe um convite carinhoso para remarcar.</p>
-          <a class="msg-ref" href="#m-noshow">ver mensagem</a>
-        </div>
-      </div>
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">14:00</div><div class="days">todos</div></div>
-        <div class="card k-sistema">
-          <div class="card-top"><h3>Planilha de alunas &amp; aniversários</h3><span class="chip c-sistema to"><span class="sw"></span>Google Sheets</span></div>
-          <p>Atualiza a planilha com alunas ativas e aniversários, sem desalinhar as colunas que você preenche à mão.</p>
-        </div>
-      </div>
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">14:30</div><div class="days">todos</div></div>
-        <div class="card k-aluna">
-          <div class="card-top"><h3>Renovação de contrato</h3><span class="chip c-aluna to"><span class="sw"></span>Aluna</span></div>
-          <p>Avisa a aluna cujo contrato vence em <b>exatos 7 dias</b> e convida para renovar.</p>
-          <a class="msg-ref" href="#m-renov">ver mensagem</a>
-        </div>
-      </div>
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">15:30</div><div class="days">dom–sex</div></div>
-        <div class="card k-aluna">
-          <div class="card-top"><h3>Confirmação — aula de amanhã</h3><span class="chip c-aluna to"><span class="sw"></span>Aluna</span></div>
-          <p>Confirma com a lead a aula experimental agendada para <b>amanhã</b> (até 11:30).</p>
-          <a class="msg-ref" href="#m-amanha">ver mensagem</a>
-        </div>
-      </div>
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">15:45</div><div class="days">todos</div></div>
-        <div class="card k-aluna">
-          <div class="card-top"><h3>Envios agendados — tarde</h3><span class="chip c-aluna to"><span class="sw"></span>Agendados</span></div>
-          <p>Dispara as mensagens que você <b>agendou no painel</b> para <b>hoje · tarde</b> (texto, ou foto com legenda). Envia uma de cada vez, com intervalo entre elas.</p>
-        </div>
-      </div>
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">16:00</div><div class="days">seg–sáb</div></div>
-        <div class="card k-aluna">
-          <div class="card-top"><h3>Follow-up pós-aula — tarde</h3><span class="chip c-aluna to"><span class="sw"></span>Aluna</span></div>
-          <p>Mesmo follow-up com áudio da professora, para quem fez a experimental <b>ontem à tarde</b>.</p>
-          <a class="msg-ref" href="#m-follow">ver mensagem + áudio</a>
-        </div>
-      </div>
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">16:00</div><div class="days">sábado</div></div>
-        <div class="card k-sistema">
-          <div class="card-top"><h3>Presença da experimental — fecha o funil</h3><span class="chip c-sistema to"><span class="sw"></span>Tags + resumo</span></div>
-          <p>Lê a <b>presença/falta</b> das experimentais da semana no EVO e <b>troca as tags</b> de quem estava como "agendou": compareceu → "fez aula", faltou → "encerrado sem presença". Opcional: <b>cadastra quem veio por outro canal</b> para as campanhas. Manda um <b>resumo</b> do que trocou. <b>Dia e hora editáveis</b> no painel (aba 🤖 Sofia).</p>
-        </div>
-      </div>
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">16:15</div><div class="days">quarta</div></div>
-        <div class="card k-grupo">
-          <div class="card-top"><h3>Circuito — convocatória</h3><span class="chip c-grupo to"><span class="sw"></span>Grupo Circuito</span></div>
-          <p>Convoca para o Circuito de sábado no grupo. Busca a <b>professora</b> e o <b>horário</b> na Grade &gt; Horários e <b>marca a professora (@)</b>.</p>
-          <a class="msg-ref" href="#m-circuito">ver mensagem</a>
-        </div>
-      </div>
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">16:15</div><div class="days">sexta</div></div>
-        <div class="card k-grupo">
-          <div class="card-top"><h3>Circuito — lembrete</h3><span class="chip c-grupo to"><span class="sw"></span>Grupo Circuito</span></div>
-          <p>Lembrete “é amanhã!” no grupo do Circuito, com o horário de sábado.</p>
-          <a class="msg-ref" href="#m-circuito-lembrete">ver mensagem</a>
-        </div>
-      </div>
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">16:30</div><div class="days">sexta</div></div>
-        <div class="card k-grupo">
-          <div class="card-top"><h3>Resumo da semana</h3><span class="chip c-grupo to"><span class="sw"></span>Grupo Equipe</span></div>
-          <p>Fecha a semana das experimentais: agendadas, presenças, faltas e matrículas, com percentuais de conversão.</p>
-          <a class="msg-ref" href="#m-resumo-semana">ver mensagem</a>
-        </div>
-      </div>
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">19:30</div><div class="days">seg–sáb</div></div>
-        <div class="card k-aluna">
-          <div class="card-top"><h3>Faltas (no-show) — tarde/noite</h3><span class="chip c-aluna to"><span class="sw"></span>Aluna</span></div>
-          <p>Quem faltou à experimental da tarde/noite recebe o convite para remarcar.</p>
-          <a class="msg-ref" href="#m-noshow">ver mensagem</a>
-        </div>
-      </div>
-
-      <div class="tl">
-        <div class="tl-time"><div class="hr">19:45</div><div class="days">todos</div></div>
-        <div class="card k-grupo">
-          <div class="card-top"><h3>Resumo do dia</h3><span class="chip c-grupo to"><span class="sw"></span>Grupo Equipe</span></div>
-          <p>Panorama do dia em 7 blocos: reposições, experimentais que fizeram / faltaram, quem fechou contrato, rescisões, experimentais de amanhã e <b>quem está trancada hoje</b>.</p>
-          <a class="msg-ref" href="#m-resumo-dia">ver mensagem</a>
-        </div>
-      </div>
-
-      </div>
-    </details>
-  </section>
-
-  <!-- CONTÍNUOS -->
-  <section>
-    <div class="sec-head">
-      <span class="eyebrow">O tempo todo</span>
-      <h2>Rotinas contínuas</h2>
-      <p>Além dos horários fixos, algumas tarefas rodam em ciclos curtos para o agendamento online funcionar em tempo quase real.</p>
-    </div>
-    <div class="grid">
-      <div class="mini"><div class="freq">a cada 1 min</div><h3>Ponte do formulário</h3><p>Puxa da nuvem as marcações feitas no formulário de agendamento e coloca na fila de envio.</p></div>
-      <div class="mini"><div class="freq">a cada 5 min</div><h3>Agendamento automático</h3><p>Lê as conversas do ZEE e agenda a aula experimental direto no EVO.</p></div>
-      <div class="mini"><div class="freq">a cada 15 min</div><h3>Envio das confirmações</h3><p>Manda para a lead a confirmação da aula experimental agendada pelo formulário / ZEE.</p></div>
-      <div class="mini"><div class="freq">a cada 15 min</div><h3>Sinal de vida</h3><p>Registra memória e tempo ligado — usado para o alerta e para detectar tarefas perdidas.</p></div>
-    </div>
-  </section>
-
-  <!-- MENSAGENS -->
-  <section id="mensagens">
-    <div class="sec-head">
-      <span class="eyebrow">Texto exato</span>
-      <h2>As mensagens que ele envia</h2>
-      <p>Os textos abaixo saem exatamente assim. As partes em <span style="color:var(--accent);font-weight:600">destaque</span> são preenchidas automaticamente (nome, horário, data).</p>
-    </div>
-
-    <div style="display:flex;gap:14px;align-items:flex-start;background:var(--teal-soft);border:1px solid color-mix(in srgb,var(--teal) 30%,transparent);border-radius:var(--radius);padding:16px 18px;margin-bottom:26px;box-shadow:var(--shadow)">
-      <div style="flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:1.1rem;background:var(--teal);color:#fff">✏️</div>
-      <div>
-        <h3 style="font-size:1.05rem;margin:0 0 4px">Você mesmo edita esses textos</h3>
-        <p style="margin:0;color:var(--text-soft);font-size:.95rem">As mensagens principais (confirmações, follow-up, faltas, renovação, aniversário, <b>aniversariantes do mês</b>, <b>ausentes</b> e Circuito) ficam num <b>painel com login</b>, acessível pelo computador ou celular. Muda o texto, clica em salvar e <b>já vale no próximo envio — sem programador e sem reiniciar nada</b>. As variáveis entre chaves (<code>{nome}</code>, <code>{horário}</code>…) são preenchidas sozinhas — clique nelas para inserir no texto. Ainda dá para <b>pré-visualizar</b> como a aluna vê e <b>enviar um teste</b> para o seu WhatsApp antes de valer para todas, além de mudar a <b>hora e os dias</b> de cada envio na própria tela. <b>Qualquer</b> mensagem pode levar uma <b>foto</b> (flyer) junto do texto — é só anexar na tela de Configuração. Na tela de Configuração as mensagens ficam separadas em <b>📩 individuais</b> (enviadas 1 para 1 para a aluna) e <b>👥 em grupo</b> (enviadas nos grupos do WhatsApp). Os <b>nomes dos grupos</b> do WhatsApp (equipe e Circuito) também são editáveis ali, em <b>“👥 Grupos do WhatsApp”</b>.</p>
-      </div>
-    </div>
-
-    <div style="display:flex;gap:14px;align-items:flex-start;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);border-radius:var(--radius);padding:16px 18px;margin-bottom:26px;box-shadow:var(--shadow)">
-      <div style="flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:1.1rem;background:var(--accent);color:#fff">📅</div>
-      <div>
-        <h3 style="font-size:1.05rem;margin:0 0 4px">E também agenda envios avulsos</h3>
-        <p style="margin:0;color:var(--text-soft);font-size:.95rem">No mesmo painel, você agenda mensagens pontuais por WhatsApp: <b>número, texto e (opcional) uma foto</b>, escolhendo o <b>dia</b> e o <b>turno</b> (manhã ou tarde). O robô dispara às <b>10:45</b> e <b>15:45</b> — se houver várias no mesmo turno, envia uma de cada vez, com um <b>intervalo entre elas</b> para não parecer disparo em massa.</p>
-      </div>
-    </div>
-
-    <details class="collapse">
-      <summary>💬 Ver todas as mensagens <small>&nbsp;— o texto de cada envio</small></summary>
-      <div class="msgs">
-
-      <div class="mcard" id="m-aniv-mes">
-        <div class="mhead"><h3>Aniversariantes do mês (equipe)</h3><span class="when">05:30 · início do mês</span></div>
-        <div class="bubble-wrap"><div class="bubble grp">🎂 *Aniversariantes de <span class="ph">{mês}</span>* 🎉
-
-<span class="ph">📅 03/09 — Fulana
-📅 15/09 — Ciclana
-📅 28/09 — Beltrana</span>
-
-Vamos celebrar cada uma delas! 💪❤️</div></div>
-        <div class="note">A lista é montada com as aniversariantes do mês (nome e dia), em ordem de data. Se não houver ninguém, envia “Nenhuma aniversariante neste mês. 😉”.</div>
-      </div>
-
-      <div class="mcard" id="m-ausentes">
-        <div class="mhead"><h3>Ausentes 10 dias (equipe)</h3><span class="when">06:10 · segunda</span></div>
-        <div class="bubble-wrap"><div class="bubble grp">Professoras, segue abaixo a listagem de alunas faltantes a mais de 10 dias, com a data da última presença dela. Por favor, entrem em contato no privado para entender o que está acontecendo e incentivar a retomada às aulas:
-<span class="ph">• (lista de alunas)</span>
-
-🔒 Trancadas no período (não cobrar):
-<span class="ph">• (lista + data de retorno)</span></div></div>
-      </div>
-
-      <div class="mcard" id="m-instagram">
-        <div class="mhead"><h3>Boas-vindas no Instagram (DM)</h3><span class="when">07:00 · todos os dias</span></div>
-        <div class="bubble-wrap"><div class="bubble">Seja muito bem vinda ao SlimFit, a Revolução do Treinamento Feminino! ❤️
-
-Estou te presenteando com uma aula experimental gratuita para conhecer a nossa metodologia e o nosso studio! Faça o agendamento através deste link: <span class="ph">(link do formulário)</span>
-
-Nos links abaixo eu explico sobre a nossa metodologia:
--&gt; O que é o SlimFit: <span class="ph">(link do reel)</span>
-
--&gt; Personal X SlimFit: <span class="ph">(link do post)</span>
-
-Até mais!</div></div>
-        <div class="note">Enviada só para <b>quem passou a seguir</b> o perfil, em ritmo humano (pausa de minutos entre cada uma) e com limite diário — para o Instagram não bloquear.</div>
-      </div>
-
-      <div class="mcard" id="m-aniv">
-        <div class="mhead"><h3>Aniversário (nos grupos)</h3><span class="when">08:00 · todos os dias</span></div>
-        <div class="bubble-wrap"><div class="bubble grp">Hoje é aniversário da <span class="ph">@aluna</span>! 🥳🎉
-
-Muitas felicidades, saúde e sucesso!!! Que este novo ciclo venha repleto de conquistas e alegria!! Aproveite o seu dia! ❤️</div></div>
-      </div>
-
-      <div class="mcard" id="m-hoje">
-        <div class="mhead"><h3>Confirmação — hoje</h3><span class="when">08:30 · seg–sáb</span></div>
-        <div class="bubble-wrap"><div class="bubble">Olá, <span class="ph">{nome}</span>! 😊
-
-Tudo bem? Aqui é do Studio Slimfit Setor Bueno!
-
-Estamos mandando essa mensagem para confirmar a sua aula experimental de logo mais que está agendada para hoje às <span class="ph">{horário}</span>.
-
-Pode confirmar sua presença? Estamos te esperando! 💪</div></div>
-      </div>
-
-      <div class="mcard" id="m-follow">
-        <div class="mhead"><h3>Follow-up pós-aula</h3><span class="when">10:30 e 16:00 · seg–sáb</span></div>
-        <div class="bubble-wrap"><div class="bubble">Oie! Tudo bem?
-
-Segue áudio que a professora <span class="ph">{professora}</span> fez sobre a sua aula experimental! =)
-
-Sei que a primeira aula sempre é mais difícil, principalmente por ser uma metodologia nova!
-
-Mas agora que você já deu o primeiro passo 👏, o que acha de vir para mais uma aula e darmos andamento da sua matrícula?
-
-Te aguardo!!! 🥰<span class="aud">🎧 áudio da professora (nota de voz)</span></div></div>
-        <div class="note">Se a aluna já fechou contrato, o texto muda para uma mensagem de boas-vindas (“Que alegria ter você com a gente!”).</div>
-      </div>
-
-      <div class="mcard" id="m-noshow">
-        <div class="mhead"><h3>Faltou (no-show)</h3><span class="when">11:30 e 19:30 · seg–sáb</span></div>
-        <div class="bubble-wrap"><div class="bubble">Oi, <span class="ph">{nome}</span>! 😊 Tudo bem?
-
-Notamos que você não conseguiu comparecer à sua aula experimental de hoje (<span class="ph">{horário}</span>). Acontece! 💛
-
-Que tal remarcar? Vai ser um prazer te receber. É só me responder por aqui que a gente encontra um novo horário pra você! 🙌</div></div>
-      </div>
-
-      <div class="mcard" id="m-renov">
-        <div class="mhead"><h3>Renovação de contrato</h3><span class="when">14:30 · todos os dias</span></div>
-        <div class="bubble-wrap"><div class="bubble">Oi, <span class="ph">{nome}</span>! Tudo bem? 😊
-Que alegria ter você no SlimFit! 🥳
-Estou enviando essa mensagem para avisar que o seu plano vence no dia <span class="ph">{data}</span>. A gente ia adorar continuar com você firme nos treinos! ❤️
-Podemos dar andamento na renovação? Prefere manter o mesmo plano ou aumentar a frequência? 💪
-Qualquer dúvida, é só me chamar! 😉</div></div>
-      </div>
-
-      <div class="mcard" id="m-amanha">
-        <div class="mhead"><h3>Confirmação — amanhã</h3><span class="when">15:30 · dom–sex</span></div>
-        <div class="bubble-wrap"><div class="bubble">Olá, <span class="ph">{nome}</span>! 😊
-
-Tudo bem? Aqui é do Studio Slimfit Setor Bueno!
-
-Estamos mandando essa mensagem para confirmar a sua aula experimental que está agendada para amanhã às <span class="ph">{horário}</span>.
-
-Pode confirmar sua presença? Estamos te esperando! 💪</div></div>
-      </div>
-
-      <div class="mcard" id="m-circuito">
-        <div class="mhead"><h3>Circuito — convocatória</h3><span class="when">16:15 · quarta</span></div>
-        <div class="bubble-wrap"><div class="bubble grp">🔥 SÁBADO É DIA DE QUEIMAR CALORIAS NO CIRCUITO! 🔥
-⚡️Comandada pela professora <span class="ph">@professora</span>.
-
-Checkin Aberto!!!
-
-⏰ Sábado às <span class="ph">09h45</span></div></div>
-        <div class="note">A <b>professora</b> e o <b>horário</b> são lidos da Grade &gt; Horários — se mudarem, a mensagem acompanha sozinha. A professora é <b>@marcada</b> no grupo.</div>
-      </div>
-
-      <div class="mcard" id="m-circuito-lembrete">
-        <div class="mhead"><h3>Circuito — lembrete</h3><span class="when">16:15 · sexta</span></div>
-        <div class="bubble-wrap"><div class="bubble grp">🔥 *É AMANHÃ!* 🔥
-⚡️ Estamos esperando todas vocês!
-
-⏰ Sábado às <span class="ph">09h45</span></div></div>
-      </div>
-
-      <div class="mcard" id="m-resumo-semana">
-        <div class="mhead"><h3>Resumo da semana (equipe)</h3><span class="when">16:30 · sexta</span></div>
-        <div class="bubble-wrap"><div class="bubble grp">📊 *Resumo da semana — Aulas experimentais*
-
-• Agendadas/Remarcadas: *<span class="ph">24</span>*
-• Presenças: *<span class="ph">18</span>* (<span class="ph">75%</span>)
-• Faltas: *<span class="ph">6</span>*
-• Matrículas: *<span class="ph">9</span>* (<span class="ph">50%</span> das presenças)</div></div>
-        <div class="note">Os números são calculados a partir dos cartões do EVO da semana, com os percentuais de conversão.</div>
-      </div>
-
-      <div class="mcard" id="m-resumo-dia">
-        <div class="mhead"><h3>Resumo do dia (equipe)</h3><span class="when">19:45 · todos os dias</span></div>
-        <div class="bubble-wrap"><div class="bubble grp">📋 *Resumo do dia — <span class="ph">20/08/2026</span>*
-
-🔁 *Reposições*
-<span class="ph">• 07:00 — Reposição — Fulana</span>
-
-✅ *Experimentais que fizeram aula*
-<span class="ph">• 08:00 — Presença — Ciclana</span>
-
-❌ *Experimentais que faltaram*
-<span class="ph">• 09:30 — Falta — Beltrana</span>
-
-🎉 *Fechou contrato*
-<span class="ph">• Fulana — Plano Trimestral</span>
-
-✂️ *Rescisões*
-<span class="ph">_nenhuma rescisão hoje_</span>
-
-📅 *Experimentais de amanhã (21/08)*
-<span class="ph">• 10:00 — Nova Aluna</span>
-
-🔒 *Trancadas hoje*
-<span class="ph">• Aluna X — retorna 05/09</span></div></div>
-        <div class="note">Cada bloco é preenchido com os dados reais do dia; quando um bloco não tem ninguém, aparece “nenhuma/nenhum”.</div>
-      </div>
-
-      <div class="mcard" id="m-form">
-        <div class="mhead"><h3>Confirmação do formulário</h3><span class="when">agendamento online</span></div>
-        <div class="bubble-wrap"><div class="bubble">Oie, <span class="ph">{nome}</span>! 🎉 Tudo bem? Me chamo Juliana e sou do *Studio Slim Fit* do Setor Bueno.
-
-Estou mandando essa mensagem para informar que a sua aula experimental está confirmada para *<span class="ph">{data e hora}</span>*.
-Qualquer dúvida que tiver, ou precisar remarcar a sua aula, pode me chamar por aqui.❤️
-
-*Endereço:* R. C-235, 846, Setor Bueno, Goiânia-GO.
-*Localização:* (link do mapa)
-
-Se possível, tente chegar 10 minutos antes para você conhecer o Studio e conversarmos! 💪
-Muito bem vinda ao #SlimFit! ❤️</div></div>
-        <div class="note">Enviada quando a lead agenda pelo formulário online (não tem horário fixo — sai logo após a marcação).</div>
-      </div>
-
-      </div>
-    </details>
-  </section>
-
-  <!-- PAINEL DO STUDIO -->
-  <section id="painel">
-    <div class="sec-head">
-      <span class="eyebrow">Sem programador</span>
-      <h2>O painel do Studio</h2>
-      <p>Um site com login, aberto pelo computador ou celular, para controlar o robô e a Sofia sem mexer em código. Endereço: <a href="https://painelsfbueno.duckdns.org/" target="_blank" rel="noopener">painelsfbueno.duckdns.org</a>. Cada pessoa entra com o <b>seu usuário</b> e vê só as telas que você liberar.</p>
-    </div>
-    <div class="grid">
-      <div class="mini"><div class="freq">📈 Formulário</div><h3>Funil de agendamento</h3><p>Quantas <b>pessoas</b> visitaram, quantas <b>agendaram</b> e a <b>conversão por pessoa</b> — por período, com horários/dias de pico e horários de aula mais escolhidos. O funil ainda mostra <b>de onde vieram</b> as pessoas e os agendamentos (por canal), e cada link traz <b>acessos e agendamentos</b>.</p></div>
-      <div class="mini"><div class="freq">💬 WhatsApp</div><h3>Configuração · Agendamento · Log</h3><p><b>Configuração:</b> conexão (QR / desconectar), textos de cada mensagem e horários. <b>Agendamento:</b> envios avulsos. <b>Log:</b> tudo o que o robô enviou no dia (total, enviados, falhas, por tipo).</p></div>
-      <div class="mini"><div class="freq">📸 Instagram</div><h3>Boas-vindas no IG</h3><p>Liga/pausa as DMs, define o <b>limite por dia</b>, edita a mensagem e o horário, reimporta os cookies quando a sessão cai e envia um <b>DM de teste</b>.</p></div>
-      <div class="mini"><div class="freq">🤖 Sofia</div><h3>Configuração · Conversas · Contatos · Campanhas</h3><p>Edita o roteiro da IA e as configs; lê e <b>responde as conversas</b> (assumindo o controle quando quiser); gerencia os <b>contatos com tags</b>; e cria <b>campanhas</b> por tag. Conecta/desconecta o WhatsApp da Sofia pelo QR.</p></div>
-      <div class="mini"><div class="freq">👤 Perfis</div><h3>Usuários e acesso</h3><p>Cria usuários com senha e <b>escolhe quais telas cada um vê</b> (ex.: só Conversas da Sofia). Vale na hora, sem reiniciar.</p></div>
-    </div>
-    <div class="note">🔒 O painel abre sempre por <b>HTTPS</b> e pede login; cada usuário só acessa as telas liberadas. As edições ficam guardadas no servidor e entram em <b>backup diário</b> automático.</div>
-    <div class="note">🔗 Para saber <b>de onde vêm</b> os acessos (Instagram, WhatsApp, anúncio), use um link etiquetado em cada canal — ex.: <code>…/?origem=instagram</code>, <code>…/?origem=whatsapp</code>, <code>…/?origem=ads</code>. A aba Indicadores passa a mostrar a conversão por canal — inclusive a quebra <b>de onde vieram</b> pessoas e agendamentos dentro do próprio funil.</div>
-  </section>
-
-  <!-- ALERTAS + MANUTENÇÃO -->
-  <section id="alertas">
-    <div class="sec-head">
-      <span class="eyebrow">Segurança</span>
-      <h2>Alertas &amp; manutenção</h2>
-      <p>O sistema se vigia sozinho e avisa você no celular (app ntfy) quando precisa de atenção.</p>
-    </div>
-    <div class="cols">
-      <div>
-        <div class="divlabel"><span class="eyebrow">Você é avisado quando…</span></div>
-        <ul class="clean">
-          <li><span class="ic crit">!</span><span><b>O robô ou o painel saem do ar</b> — um vigia externo confere a cada 5 min e avisa na hora (e avisa de novo quando volta).</span></li>
-          <li><span class="ic crit">!</span><span><b>O WhatsApp cai</b> e precisa de QR — o robô fica parado até alguém escanear (no painel, aba WhatsApp, ou no servidor).</span></li>
-          <li><span class="ic crit">!</span><span><b>O reconector automático falha</b> — precisa de reinício manual.</span></li>
-          <li><span class="ic warn">▲</span><span><b>Uma tarefa dá erro</b> ao rodar (ex.: instabilidade do EVO).</span></li>
-          <li><span class="ic warn">▲</span><span><b>Uma confirmação se perde</b> (número sem WhatsApp ou tentativas esgotadas).</span></li>
-          <li><span class="ic warn">▲</span><span><b>Follow-up, faltas ou renovação</b> tiveram falhas — um resumo (“2 de 8 falharam”).</span></li>
-          <li><span class="ic warn">▲</span><span><b>O formulário fica fora do ar</b> por muito tempo.</span></li>
+    <div class="engines">
+      <div class="engine reveal">
+        <div class="ic">⚙️</div>
+        <h3>O Robô</h3>
+        <div class="tagline">As rotinas do dia, no piloto automático</div>
+        <p>Ele cuida de tudo que se repete todo dia — na hora exata, com a mensagem exata, sem ninguém lembrar.</p>
+        <ul>
+          <li><span class="ck">›</span> Confirma a aula experimental de hoje e de amanhã</li>
+          <li><span class="ck">›</span> Recupera faltas (no-show) com convite para remarcar</li>
+          <li><span class="ck">›</span> Follow-up pós-aula com áudio da professora</li>
+          <li><span class="ck">›</span> Avisa renovação de contrato 7 dias antes</li>
+          <li><span class="ck">›</span> Aniversários, ausentes, Circuito e resumos da equipe</li>
         </ul>
       </div>
-      <div>
-        <div class="divlabel"><span class="eyebrow">Comandos úteis (no servidor)</span></div>
-        <pre class="cmd"><span class="c"># ver o que está acontecendo, ao vivo</span>
-pm2 logs slimfit-exp
-
-<span class="c"># reiniciar o robô (após atualizar)</span>
-git pull
-pm2 restart slimfit-exp
-
-<span class="c"># enviar renovação de uma data específica</span>
-node src/renovar-contratos.js <b>--data=18/08</b>       <span class="c"># simula</span>
-node src/renovar-contratos.js --data=18/08 <b>--enviar</b>
-
-<span class="c"># mensagem pontual para números específicos</span>
-node src/enviar-mensagem.js <b>--arquivo</b>=msg.txt \
-  <b>--para</b>=6299..., 6299... <b>--enviar</b></pre>
-        <div class="note" style="border:0;padding-left:0">Envios manuais compartilham a conexão do WhatsApp: pare o robô antes (<code>pm2 stop slimfit-exp</code>) e religue depois (<code>pm2 start slimfit-exp</code>).</div>
+      <div class="engine reveal">
+        <div class="ic">🤖</div>
+        <h3>A SoFIA</h3>
+        <div class="tagline">A atendente com IA, num número só dela</div>
+        <p>Conversa com as leads no WhatsApp, tira dúvidas no tom do Studio e agenda a experimental sozinha.</p>
+        <ul>
+          <li><span class="ck">›</span> Responde 24h e só oferece horário com vaga real</li>
+          <li><span class="ck">›</span> Agenda direto no EVO — nunca inventa horário</li>
+          <li><span class="ck">›</span> Etiqueta o funil sozinha e faz campanhas por tag</li>
+          <li><span class="ck">›</span> Você assume a conversa quando quiser</li>
+          <li><span class="ck">›</span> Entende áudios e retoma quem esfriou</li>
+        </ul>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- INVESTIMENTO -->
-  <section id="investimento">
-    <div class="sec-head">
-      <span class="eyebrow">Investimento</span>
-      <h2>Quanto custa para o seu Studio</h2>
-      <p>Um robô que confirma experimentais, recupera faltas, faz follow-up com áudio, avisa renovações e cuida da retenção — mais a <b>Sofia</b>, a atendente virtual com IA que conversa e agenda no WhatsApp. Tudo trabalhando sozinho, 24 horas por dia.</p>
+<!-- O DIA DO ROBÔ (timeline) -->
+<section id="dia" style="background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">O dia do robô</div>
+      <h2>Do amanhecer ao fim da noite, sem falhar.</h2>
+      <p>Cada tarefa roda no horário certo, no fuso de Brasília. Verde = mensagem para a aluna · âmbar = aviso no grupo da equipe.</p>
+    </div>
+    <div class="shot reveal" style="max-width:760px;margin:0 auto">
+      <div class="shot-bar"><i></i><i></i><i></i><span class="tt">Linha do tempo · seg–sáb</span></div>
+      <div class="tl-shot">
+        <div class="tlrow"><div class="hr">07:00</div><div class="body"><div class="ttl">Boas-vindas no Instagram <span class="tlmini a">aluna</span></div><div class="ds">DM para novas seguidoras com o link do agendamento.</div></div></div>
+        <div class="tlrow"><div class="hr">08:00</div><div class="body g"><div class="ttl">Parabéns às aniversariantes <span class="tlmini g">grupo</span></div><div class="ds">Marca a aniversariante nos grupos e manda os parabéns.</div></div></div>
+        <div class="tlrow"><div class="hr">08:30</div><div class="body"><div class="ttl">Confirmação — aula de hoje <span class="tlmini a">aluna</span></div><div class="ds">Confirma a experimental agendada para hoje.</div></div></div>
+        <div class="tlrow"><div class="hr">10:30</div><div class="body"><div class="ttl">Follow-up pós-aula <span class="tlmini a">aluna</span></div><div class="ds">Áudio da professora + convite para a matrícula.</div></div></div>
+        <div class="tlrow"><div class="hr">11:30</div><div class="body"><div class="ttl">Recupera faltas <span class="tlmini a">aluna</span></div><div class="ds">Convite carinhoso para remarcar quem faltou.</div></div></div>
+        <div class="tlrow"><div class="hr">14:30</div><div class="body"><div class="ttl">Renovação de contrato <span class="tlmini a">aluna</span></div><div class="ds">Avisa quem vence em 7 dias e convida a renovar.</div></div></div>
+        <div class="tlrow"><div class="hr">15:30</div><div class="body"><div class="ttl">Confirmação — aula de amanhã <span class="tlmini a">aluna</span></div><div class="ds">Confirma a experimental de amanhã.</div></div></div>
+        <div class="tlrow"><div class="hr">16:00</div><div class="body"><div class="ttl">Presença da experimental <span class="tlmini a">funil</span></div><div class="ds">Lê a presença no EVO e fecha o funil trocando as tags.</div></div></div>
+        <div class="tlrow"><div class="hr">19:45</div><div class="body g"><div class="ttl">Resumo do dia <span class="tlmini g">grupo</span></div><div class="ds">Panorama do dia para a equipe, em blocos.</div></div></div>
+      </div>
+    </div>
+    <p style="text-align:center;color:var(--faint);font-size:.86rem;margin-top:16px">…e ainda ponte do formulário a cada 1 min, agendamento automático a cada 5 min e confirmações a cada 15 min.</p>
+  </div>
+</section>
+
+<!-- SOFIA em detalhe -->
+<section id="sofia">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">A SoFIA por dentro</div>
+      <h2>Uma atendente de verdade. Não um robô de respostas prontas.</h2>
     </div>
 
-    <div style="display:flex;gap:14px;align-items:flex-start;background:var(--teal-soft);border:1px solid color-mix(in srgb,var(--teal) 30%,transparent);border-radius:var(--radius);padding:16px 18px;margin-bottom:24px;box-shadow:var(--shadow)">
-      <div style="flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:1.1rem;background:var(--teal);color:#fff">🔁</div>
-      <div>
-        <h3 style="font-size:1.05rem;margin:0 0 4px">É um <span style="color:var(--accent)">serviço anual</span> — não uma compra única</h3>
-        <p style="margin:0;color:var(--text-soft);font-size:.95rem">O valor é <b>por ano</b> e mantém tudo <b>no ar, atualizado e com suporte</b>: o robô, a Sofia e o formulário rodando 24h, acompanhando as mudanças do WhatsApp e do EVO, com ajustes ao longo do ano. Não é um programa que se compra uma vez e fica seu para sempre — <b>sem a renovação anual, o serviço é encerrado</b>.</p>
+    <div class="feat reveal">
+      <div class="txt">
+        <h3>Conversa como gente. E te passa o bastão quando precisa.</h3>
+        <p>Responde no tom do Studio, quebra as mensagens como quem digita e nunca deixa a aluna no vácuo.
+          Quer entrar? É um clique — e só você escreve enquanto estiver na conversa.</p>
+        <ul>
+          <li><span class="ck">✓</span> Você <b>assume a conversa</b> — a SoFIA para na hora.</li>
+          <li><span class="ck">✓</span> <b>Trava por atendente:</b> dois da equipe nunca falam junto.</li>
+          <li><span class="ck">✓</span> Passou o tempo, a SoFIA <b>reassume sozinha</b>.</li>
+          <li><span class="ck">✓</span> Cada mensagem mostra <b>quem escreveu</b>.</li>
+        </ul>
+      </div>
+      <div class="shot">
+        <div class="shot-bar"><i></i><i></i><i></i><span class="tt">Atendimento humano</span></div>
+        <div class="main" style="padding:16px">
+          <div class="head" style="border:0;margin:0;padding:0 0 12px">
+            <div class="av">R</div>
+            <div class="who">Rodrigo<span>assumido por <b>você</b> 🧑</span></div>
+            <div class="tools"><i>🔒</i></div>
+          </div>
+          <div class="bubbles">
+            <div class="bub them"><div class="lab">Rodrigo</div>Qual valor de vocês?</div>
+            <div class="bub me" style="background:var(--ok-soft);border-color:transparent"><div class="lab">Você · via painel</div>Oi Rodrigo! Deixa eu te passar certinho 😊</div>
+            <div class="bub them"><div class="lab">Rodrigo</div>Perfeito, obrigado!</div>
+          </div>
+          <div style="margin-top:14px;font-size:.78rem;color:var(--faint);display:flex;gap:8px;align-items:center">
+            <span class="pulse" style="background:var(--coral)"></span> Travada só para você por 60 min — a SoFIA está de fora.
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="price">
+    <div class="feat rev reveal">
+      <div class="txt">
+        <h3>Cada aluna no lugar certo do funil. Automático.</h3>
+        <p>A SoFIA lê a intenção da conversa e etiqueta sozinha: quem agendou, quem sumiu, quem perguntou
+          preço, quem não tem interesse. E cruza a presença no EVO para fechar o funil.</p>
+        <ul>
+          <li><span class="ck">✓</span> Tags por intenção <b>na hora da conversa</b>.</li>
+          <li><span class="ck">✓</span> Move quem <b>compareceu</b> na experimental.</li>
+          <li><span class="ck">✓</span> Filtra e exporta <b>4.000+ contatos</b> por etiqueta.</li>
+        </ul>
+      </div>
+      <div class="shot">
+        <div class="shot-bar"><i></i><i></i><i></i><span class="tt">Contatos</span></div>
+        <div>
+          <div class="ct"><div class="av" style="background:#4a8f88">AC</div><div><div class="nm">Ábyla</div><div class="ph">(62) 9••••-••••</div></div><span class="tg tag">Encerrado sem agendamento</span></div>
+          <div class="ct"><div class="av" style="background:#3f6f9f">A</div><div><div class="nm">Adelyne</div><div class="ph">(62) 9••••-••••</div></div><span class="tg tag coral">Agendou · sem presença</span></div>
+          <div class="ct"><div class="av" style="background:#8a6db0">AF</div><div><div class="nm">Adriana</div><div class="ph">(62) 9••••-••••</div></div><span class="tg tag" style="background:var(--ok-soft);color:var(--ok)">Ex-aluna</span></div>
+          <div class="ct" style="border:0"><div class="av" style="background:#b06d84">C</div><div><div class="nm">Cristina</div><div class="ph">(62) 9••••-••••</div></div><span class="tg tag">Fez experimental</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feat reveal">
+      <div class="txt">
+        <h3>Campanhas em massa que parecem escritas à mão.</h3>
+        <p>Escolha uma tag, peça uma ideia para a IA e ela cria <b>10 variações</b> da mesma mensagem —
+          com ritmo humano, foto e no horário que você definir.</p>
+        <ul>
+          <li><span class="ck">✓</span> A IA <b>escreve a frase</b> a partir do que você pedir.</li>
+          <li><span class="ck">✓</span> <b>10 variações</b> automáticas, editáveis antes de enviar.</li>
+          <li><span class="ck">✓</span> Dias, horários e pausas <b>no seu controle</b>.</li>
+        </ul>
+      </div>
+      <div class="shot">
+        <div class="shot-bar"><i></i><i></i><i></i><span class="tt">Campanhas</span></div>
+        <div class="camp">
+          <div class="ttl">Camp · Agendou, mas não compareceu <span class="chip">🏷️ Sem presença</span></div>
+          <div style="margin-top:8px"><span class="chip">📷 com foto</span> <span class="chip" style="color:var(--teal);border-color:var(--teal-line);background:var(--teal-soft)">📤 enviando</span></div>
+          <div class="prog"><i></i></div>
+          <div class="meta">50 enviadas · 198 na fila · 249 no total · <b>~50/dia</b><br>📅 das 09:00 às 18:30 · 35–70s entre envios · término previsto ~4 dias</div>
+          <div style="margin-top:12px"><span class="chip" style="text-decoration:underline">ver variações (10)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feat rev reveal">
+      <div class="txt">
+        <h3>Você vê exatamente quanto custa. Até por aluna.</h3>
+        <p>Nada de conta surpresa. Gasto de IA por dia, por tipo e por conversa — em reais, com a cotação
+          do dólar já aplicada, e alerta quando passa do limite do dia.</p>
+        <ul>
+          <li><span class="ck">✓</span> Custo <b>por dia, por tipo e por conversa</b>.</li>
+          <li><span class="ck">✓</span> Convertido para <b>reais</b> automaticamente.</li>
+          <li><span class="ck">✓</span> Escolha o modelo de IA e <b>economize</b>.</li>
+        </ul>
+      </div>
+      <div class="shot">
+        <div class="shot-bar"><i></i><i></i><i></i><span class="tt">Custo da IA</span></div>
+        <div class="tiles">
+          <div class="tile"><div class="big">R$ 10,53</div><div class="cap">gasto · 7 dias</div></div>
+          <div class="tile"><div class="big ink">41</div><div class="cap">conversas</div></div>
+          <div class="tile"><div class="big ink">1,9M</div><div class="cap">tokens</div></div>
+          <div class="tile"><div class="big">R$ 0,26</div><div class="cap">média/conversa</div></div>
+        </div>
+        <div class="bars">
+          <div class="barrow"><span class="d">28/08</span><span class="track"><span class="fill" style="width:92%"></span></span><span class="v">R$ 5,92</span></div>
+          <div class="barrow"><span class="d">27/08</span><span class="track"><span class="fill" style="width:72%"></span></span><span class="v">R$ 4,61</span></div>
+        </div>
+        <div class="typerow"><span>💬</span><span class="nm">Conversas</span><span style="color:var(--faint)">· 41×</span><span class="vv">R$ 10,51</span></div>
+        <div class="typerow"><span>🏷️</span><span class="nm">Tags por intenção</span><span style="color:var(--faint)">· 7×</span><span class="vv">R$ 0,02</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PAINEL -->
+<section id="painel" style="background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Sem programador</div>
+      <h2>Tudo num painel só. Do computador ou do celular.</h2>
+      <p>Um site com login (HTTPS) para controlar o robô e a SoFIA sem tocar em código. Cada pessoa entra
+        com o seu usuário e vê só as telas que você liberar.</p>
+    </div>
+    <div class="shot reveal" style="max-width:760px;margin:0 auto 26px">
+      <div class="shot-bar"><i></i><i></i><i></i><span class="tt">Painel do Studio · Saúde</span></div>
+      <div class="ptabs">
+        <span class="ptab">📈 Formulário</span><span class="ptab">💬 WhatsApp</span><span class="ptab">📸 Instagram</span>
+        <span class="ptab on">🤖 SoFIA</span><span class="ptab">👤 Perfis</span><span class="ptab">🩺 Saúde</span>
+      </div>
+      <div class="phealth">
+        <div class="hc"><span class="d ok"></span> Robô — no ar</div>
+        <div class="hc"><span class="d ok"></span> SoFIA — online</div>
+        <div class="hc"><span class="d ok"></span> Formulário — no ar</div>
+        <div class="hc"><span class="d warn"></span> Instagram — pausado</div>
+      </div>
+    </div>
+    <div class="fgrid">
+      <div class="fcard reveal"><div class="ic">📈</div><h4>Funil de agendamento</h4><p>Quantas pessoas visitaram, quantas agendaram, conversão por canal e horários de pico.</p></div>
+      <div class="fcard reveal"><div class="ic">💬</div><h4>WhatsApp do robô</h4><p>Conexão por QR, textos de cada mensagem, horários e o log de tudo que saiu no dia.</p></div>
+      <div class="fcard reveal"><div class="ic">📸</div><h4>Instagram</h4><p>Boas-vindas por DM para novas seguidoras, com limite diário e mensagem editável.</p></div>
+      <div class="fcard reveal"><div class="ic">👤</div><h4>Perfis e acesso</h4><p>Cria usuários e escolhe quais telas cada um vê. Login também pelo Google.</p></div>
+      <div class="fcard reveal"><div class="ic">🩺</div><h4>Página de saúde</h4><p>Robô, SoFIA, Instagram e formulário — verde, amarelo ou vermelho, num lugar só.</p></div>
+      <div class="fcard reveal"><div class="ic">🔔</div><h4>Alertas no celular</h4><p>Se algo sai do ar ou o WhatsApp cai, um vigia externo te avisa na hora — e quando volta.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- COMO FUNCIONA -->
+<section>
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Implantação</div>
+      <h2>No ar em dias, não em meses.</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><div class="num">1</div><h4>Conecta ao seu EVO e WhatsApp</h4><p>Tudo instalado e configurado no seu ambiente — o robô e a SoFIA com número próprio.</p></div>
+      <div class="step reveal"><div class="num">2</div><h4>Ajusta ao seu Studio</h4><p>Textos, horários, tom da SoFIA e regras. Você edita no painel e vale na hora.</p></div>
+      <div class="step reveal"><div class="num">3</div><h4>Ele assume o operacional</h4><p>Confirma, recupera, agenda e etiqueta. Você acompanha tudo e é avisado se algo falha.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- INVESTIMENTO -->
+<section id="preco" style="background:var(--surface);border-top:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Investimento</div>
+      <h2>Um serviço anual — não uma compra única.</h2>
+      <p>Um valor por ano que mantém tudo no ar, atualizado e com suporte: o robô, a SoFIA e o formulário
+        rodando 24h, acompanhando as mudanças do WhatsApp e do EVO.</p>
+    </div>
+    <div class="prices reveal">
       <div class="pcard feat">
         <span class="ptag">1º ano · implementação</span>
         <div class="amount">R$ 1.400<small> / ano</small></div>
-        <div style="font-size:.92rem;color:var(--text-soft);margin:0 0 6px"><span style="font-family:'JetBrains Mono',monospace;font-size:.64rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:2px 8px">já com a Sofia</span></div>
+        <span class="badge">já com a SoFIA</span>
         <p class="sub">Tudo instalado, configurado e funcionando no seu EVO e no seu WhatsApp.</p>
         <ul>
           <li>Instalação e configuração completa</li>
-          <li><b>🤖 Sofia — atendente virtual com IA</b> (tira dúvidas e agenda sozinha no WhatsApp)</li>
-          <li>Todos os fluxos ativos (confirmação, follow-up, faltas, renovação, aniversários, resumos)</li>
+          <li>🤖 SoFIA — atendente com IA que agenda sozinha</li>
+          <li>Todos os fluxos ativos (confirmação, follow-up, faltas, renovação, resumos)</li>
           <li>Formulário de agendamento online</li>
           <li>Alertas de saúde no seu celular</li>
         </ul>
       </div>
       <div class="pcard">
-        <span class="ptag">Anos seguintes · renovação anual</span>
+        <span class="ptag">Anos seguintes · renovação</span>
         <div class="amount">R$ 1.400 <small>+ IPCA / ano</small></div>
-        <div style="font-size:.92rem;color:var(--text-soft);margin:0 0 6px"><span style="font-family:'JetBrains Mono',monospace;font-size:.64rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--teal);background:var(--teal-soft);border-radius:6px;padding:2px 8px">com a Sofia, sempre no ar</span></div>
-        <p class="sub">Continuidade e manutenção. Você decide se renova a cada ano.</p>
+        <span class="badge" style="color:var(--muted);background:var(--surface-2)">continuidade</span>
+        <p class="sub">Manutenção e ajustes. Você decide se renova a cada ano.</p>
         <ul>
           <li>Manutenção e ajustes de funcionamento</li>
           <li>Acompanhamento das mudanças do EVO / WhatsApp</li>
@@ -859,97 +610,45 @@ node src/enviar-mensagem.js <b>--arquivo</b>=msg.txt \
         </ul>
       </div>
     </div>
-
-    <div class="terms">
-      <div class="term"><span class="ic">🔁</span><span><b>Serviço anual</b> (não é compra única): um valor <b>por ano</b> que mantém tudo funcionando, atualizado e com suporte. Sem renovar, o serviço encerra.</span></div>
+    <div class="terms reveal">
+      <div class="term"><span class="ic">🖥️</span><span><b>Servidor à parte:</b> ~R$ 30/mês, pago direto à plataforma de hospedagem (fora deste valor).</span></div>
+      <div class="term"><span class="ic">🤖</span><span><b>IA da SoFIA à parte:</b> cobra por conversa, conforme o uso — você acompanha em R$ no painel. A implementação já está inclusa.</span></div>
       <div class="term"><span class="ic">💳</span><span><b>Pagamento anual</b>, não mensal — um único valor por ano, sem mensalidade.</span></div>
-      <div class="term"><span class="ic">🖥️</span><span><b>Servidor à parte:</b> contratado e pago diretamente por quem contrata (custo baixo, fora deste valor).</span></div>
-      <div class="term"><span class="ic">🤖</span><span><b>IA da Sofia à parte:</b> a Sofia usa uma IA que cobra <b>por conversa</b> (conforme o uso), paga diretamente ao provedor — como o servidor. A implementação dela <b>já está inclusa</b> no valor.</span></div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- SERVIDOR -->
-  <section id="servidor">
-    <div class="sec-head">
-      <span class="eyebrow">O servidor</span>
-      <h2>Onde o robô fica ligado 24h</h2>
-      <p>O robô roda num servidor na nuvem (um computador dedicado, sempre ligado). Esse é o <b>principal custo recorrente</b> — e ele é pago <b>diretamente à plataforma de hospedagem</b>. (Se usar a Sofia, a IA dela tem um custo por conversa à parte — veja abaixo.)</p>
-    </div>
+<!-- CTA -->
+<section>
+  <div class="cta-band reveal">
+    <div class="eyebrow" style="color:#bfe8e3">Fale com a gente</div>
+    <h2>Quer a automação no seu Studio?</h2>
+    <p>Implantação completa, no seu EVO e no seu WhatsApp, com tudo funcionando 24 horas. Me chama que eu te explico como colocar pra rodar.</p>
+    <a class="btn btn-wa" href="https://wa.me/5562981718205?text=Ol%C3%A1!%20Vi%20o%20site%20da%20automa%C3%A7%C3%A3o%20SlimFit%20e%20quero%20saber%20mais." target="_blank" rel="noopener">
+      <svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M16.04 3C9.4 3 4 8.4 4 15.04c0 2.12.56 4.13 1.62 5.92L4 29l8.23-1.58a12 12 0 0 0 3.8.62h.01c6.64 0 12.04-5.4 12.04-12.04C28.08 8.4 22.68 3 16.04 3zm0 21.96c-1.18 0-2.34-.24-3.42-.7l-.24-.1-4.88.94.98-4.76-.16-.25a9.9 9.9 0 0 1-1.54-5.29c0-5.5 4.48-9.98 9.98-9.98 2.67 0 5.17 1.04 7.06 2.93a9.92 9.92 0 0 1 2.92 7.06c0 5.5-4.48 9.98-9.98 9.98zm5.48-7.48c-.3-.15-1.78-.88-2.05-.98-.28-.1-.48-.15-.68.15-.2.3-.78.98-.96 1.18-.18.2-.35.22-.65.07-.3-.15-1.27-.47-2.42-1.5-.9-.8-1.5-1.78-1.67-2.08-.18-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.68-1.63-.93-2.23-.24-.58-.5-.5-.68-.51h-.58c-.2 0-.53.07-.8.38-.28.3-1.05 1.03-1.05 2.5 0 1.48 1.08 2.9 1.23 3.1.15.2 2.12 3.24 5.14 4.54.72.31 1.28.5 1.72.63.72.23 1.38.2 1.9.12.58-.09 1.78-.73 2.03-1.43.25-.7.25-1.3.18-1.43-.07-.13-.27-.2-.57-.35z"/></svg>
+      Falar no WhatsApp
+    </a>
+  </div>
+</section>
 
-    <div class="banner">
-      <div class="big">~R$ 30<small>/mês</small></div>
-      <div class="txt">Valor aproximado no plano de 12 a 24 meses. <b>O pagamento é feito direto à plataforma de hospedagem</b> — não passa por quem implementa o robô. Você contrata em seu nome e mantém o controle.</div>
-    </div>
-
-    <div class="compare" style="grid-template-columns:1fr">
-      <div class="ccard good">
-        <span class="clabel">No servidor · sempre ligado</span>
-        <div class="cost">~R$ 30<small> /mês, direto à plataforma</small></div>
-        <p class="verdict">Onde tudo roda, 24 horas por dia.</p>
-        <ul>
-          <li>Funciona <b>24 horas</b>: os parabéns saem no fim de semana e as confirmações de aula também.</li>
-          <li>Independente do PC da recepção — <b>libera a recepcionista</b> para funções realmente efetivas.</li>
-          <li><b>Manutenção muito mais fácil</b>: nenhuma alteração precisa mexer em computador do Studio.</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="terms">
-      <div class="term"><span class="ic">💡</span><span>É um <b>computador dedicado na nuvem</b>, sempre ligado — por isso o robô e a Sofia funcionam de madrugada, no fim de semana e sem depender de ninguém na recepção.</span></div>
-      <div class="term"><span class="ic">🤖</span><span><b>Sofia (IA):</b> além do servidor há um custo <b>por conversa</b> da IA, conforme o uso, pago direto ao provedor. Você acompanha o gasto em R$ no painel.</span></div>
-    </div>
-  </section>
-
-  <!-- CTA -->
-  <section>
-    <div class="cta">
-      <h2>Quer o robô no seu Studio?</h2>
-      <p>Implantação completa, no seu EVO e no seu WhatsApp, com tudo funcionando 24 horas. Me chama que eu te explico como colocar pra rodar.</p>
-      <a class="wa-btn" href="https://wa.me/5562981718205?text=Ol%C3%A1!%20Vi%20o%20manual%20do%20rob%C3%B4%20SlimFit%20e%20quero%20saber%20mais." target="_blank" rel="noopener">
-        <svg viewBox="0 0 32 32" fill="#25D366" aria-hidden="true"><path d="M16.04 3C9.4 3 4 8.4 4 15.04c0 2.12.56 4.13 1.62 5.92L4 29l8.23-1.58a12 12 0 0 0 3.8.62h.01c6.64 0 12.04-5.4 12.04-12.04C28.08 8.4 22.68 3 16.04 3zm0 21.96c-1.18 0-2.34-.24-3.42-.7l-.24-.1-4.88.94.98-4.76-.16-.25a9.9 9.9 0 0 1-1.54-5.29c0-5.5 4.48-9.98 9.98-9.98 2.67 0 5.17 1.04 7.06 2.93a9.92 9.92 0 0 1 2.92 7.06c0 5.5-4.48 9.98-9.98 9.98zm5.48-7.48c-.3-.15-1.78-.88-2.05-.98-.28-.1-.48-.15-.68.15-.2.3-.78.98-.96 1.18-.18.2-.35.22-.65.07-.3-.15-1.27-.47-2.42-1.5-.9-.8-1.5-1.78-1.67-2.08-.18-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.68-1.63-.93-2.23-.24-.58-.5-.5-.68-.51h-.58c-.2 0-.53.07-.8.38-.28.3-1.05 1.03-1.05 2.5 0 1.48 1.08 2.9 1.23 3.1.15.2 2.12 3.24 5.14 4.54.72.31 1.28.5 1.72.63.72.23 1.38.2 1.9.12.58-.09 1.78-.73 2.03-1.43.25-.7.25-1.3.18-1.43-.07-.13-.27-.2-.57-.35z"/></svg>
-        Fale comigo no WhatsApp
-      </a>
-    </div>
-  </section>
-
-  <footer>
-    Studio SlimFit · Setor Bueno · Goiânia — manual da automação de WhatsApp.<br>
-    Horários no fuso de Brasília. Todas as leituras vêm do EVO em tempo real; os envios saem pela linha do Studio.
-  </footer>
-
-</main>
+<footer>
+  <div class="wrap">
+    <div class="logo"><span class="dot">🤖</span> Automação <b>SlimFit</b></div>
+    <p>Automação de WhatsApp para estúdios de treinamento — robô + SoFIA.</p>
+    <p style="margin-top:6px">No ar no SlimFit Setor Bueno · Goiânia · horários no fuso de Brasília</p>
+  </div>
+</footer>
 
 <script>
-  // Destaca na barra fixa a seção que está na tela.
   (function(){
-    var links = Array.prototype.slice.call(document.querySelectorAll('.nav a'));
-    var map = {};
-    links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
-    if (!('IntersectionObserver' in window)) return;
-    var obs = new IntersectionObserver(function(entries){
-      entries.forEach(function(e){
-        if (e.isIntersecting && map[e.target.id]) {
-          links.forEach(function(l){ l.classList.remove('on'); });
-          map[e.target.id].classList.add('on');
-        }
-      });
-    }, { rootMargin: '-45% 0px -50% 0px' });
-    document.querySelectorAll('section[id]').forEach(function(s){ obs.observe(s); });
-  })();
-
-  // Mostra o fade/seta nas bordas conforme a barra pode rolar para os lados.
-  (function(){
-    var nav = document.querySelector('.nav');
-    var sc = nav && nav.querySelector('.nav-in');
-    if (!nav || !sc) return;
-    function upd(){
-      var max = sc.scrollWidth - sc.clientWidth - 1;
-      nav.classList.toggle('can-left', sc.scrollLeft > 2);
-      nav.classList.toggle('can-right', sc.scrollLeft < max);
-    }
-    sc.addEventListener('scroll', upd, { passive: true });
-    window.addEventListener('resize', upd);
-    upd();
-    setTimeout(upd, 400); // recalcula depois que as fontes carregam
+    var els=document.querySelectorAll('.reveal');
+    if(!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});return;}
+    var io=new IntersectionObserver(function(en){
+      en.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+    },{threshold:.12});
+    els.forEach(function(e){io.observe(e)});
   })();
 </script>
+
+</body>
+</html>
