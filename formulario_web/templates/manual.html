@@ -824,6 +824,14 @@ node src/enviar-mensagem.js <b>--arquivo</b>=msg.txt \
       <p>Um robô que confirma experimentais, recupera faltas, faz follow-up com áudio, avisa renovações e cuida da retenção — mais a <b>Sofia</b>, a atendente virtual com IA que conversa e agenda no WhatsApp. Tudo trabalhando sozinho, 24 horas por dia.</p>
     </div>
 
+    <div style="display:flex;gap:14px;align-items:flex-start;background:var(--teal-soft);border:1px solid color-mix(in srgb,var(--teal) 30%,transparent);border-radius:var(--radius);padding:16px 18px;margin-bottom:24px;box-shadow:var(--shadow)">
+      <div style="flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:1.1rem;background:var(--teal);color:#fff">🔁</div>
+      <div>
+        <h3 style="font-size:1.05rem;margin:0 0 4px">É um <span style="color:var(--accent)">serviço anual</span> — não uma compra única</h3>
+        <p style="margin:0;color:var(--text-soft);font-size:.95rem">O valor é <b>por ano</b> e mantém tudo <b>no ar, atualizado e com suporte</b>: o robô, a Sofia e o formulário rodando 24h, acompanhando as mudanças do WhatsApp e do EVO, com ajustes ao longo do ano. Não é um programa que se compra uma vez e fica seu para sempre — <b>sem a renovação anual, o serviço é encerrado</b>.</p>
+      </div>
+    </div>
+
     <div class="price">
       <div class="pcard feat">
         <span class="ptag">1º ano · implementação</span>
@@ -839,7 +847,7 @@ node src/enviar-mensagem.js <b>--arquivo</b>=msg.txt \
         </ul>
       </div>
       <div class="pcard">
-        <span class="ptag">Anos seguintes · opcional</span>
+        <span class="ptag">Anos seguintes · renovação anual</span>
         <div class="amount">R$ 1.400 <small>+ IPCA / ano</small></div>
         <div style="font-size:.92rem;color:var(--text-soft);margin:0 0 6px"><span style="font-family:'JetBrains Mono',monospace;font-size:.64rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--teal);background:var(--teal-soft);border-radius:6px;padding:2px 8px">com a Sofia, sempre no ar</span></div>
         <p class="sub">Continuidade e manutenção. Você decide se renova a cada ano.</p>
@@ -853,6 +861,7 @@ node src/enviar-mensagem.js <b>--arquivo</b>=msg.txt \
     </div>
 
     <div class="terms">
+      <div class="term"><span class="ic">🔁</span><span><b>Serviço anual</b> (não é compra única): um valor <b>por ano</b> que mantém tudo funcionando, atualizado e com suporte. Sem renovar, o serviço encerra.</span></div>
       <div class="term"><span class="ic">💳</span><span><b>Pagamento anual</b>, não mensal — um único valor por ano, sem mensalidade.</span></div>
       <div class="term"><span class="ic">🖥️</span><span><b>Servidor à parte:</b> contratado e pago diretamente por quem contrata (custo baixo, fora deste valor).</span></div>
       <div class="term"><span class="ic">🤖</span><span><b>IA da Sofia à parte:</b> a Sofia usa uma IA que cobra <b>por conversa</b> (conforme o uso), paga diretamente ao provedor — como o servidor. A implementação dela <b>já está inclusa</b> no valor.</span></div>
@@ -872,32 +881,22 @@ node src/enviar-mensagem.js <b>--arquivo</b>=msg.txt \
       <div class="txt">Valor aproximado no plano de 12 a 24 meses. <b>O pagamento é feito direto à plataforma de hospedagem</b> — não passa por quem implementa o robô. Você contrata em seu nome e mantém o controle.</div>
     </div>
 
-    <div class="compare">
-      <div class="ccard warn">
-        <span class="clabel">No seu computador</span>
-        <div class="cost">~R$ 15<small> /mês de energia</small></div>
-        <p class="verdict">Dá para usar? Sim. Recomendo? Não.</p>
-        <ul>
-          <li>A recepcionista fica <b>sem usar o computador</b> enquanto os jobs estão rodando.</li>
-          <li>Se o computador estiver <b>desligado, nada funciona</b> — nada de parabéns no fim de semana ou confirmação fora do horário.</li>
-          <li>Qualquer alteração exige <b>acessar o computador da recepção</b>.</li>
-        </ul>
-      </div>
+    <div class="compare" style="grid-template-columns:1fr">
       <div class="ccard good">
-        <span class="clabel">No servidor · recomendado</span>
+        <span class="clabel">No servidor · sempre ligado</span>
         <div class="cost">~R$ 30<small> /mês, direto à plataforma</small></div>
-        <p class="verdict">A melhor escolha para o Studio.</p>
+        <p class="verdict">Onde tudo roda, 24 horas por dia.</p>
         <ul>
           <li>Funciona <b>24 horas</b>: os parabéns saem no fim de semana e as confirmações de aula também.</li>
           <li>Independente do PC da recepção — <b>libera a recepcionista</b> para funções realmente efetivas.</li>
-          <li><b>Manutenção muito mais fácil</b>: nenhuma alteração precisa mexer no computador do Studio.</li>
+          <li><b>Manutenção muito mais fácil</b>: nenhuma alteração precisa mexer em computador do Studio.</li>
         </ul>
       </div>
     </div>
 
     <div class="terms">
-      <div class="term"><span class="ic">💡</span><span>Na prática, a diferença é de apenas <b>~R$ 15/mês</b> frente a deixar o seu PC ligado o tempo todo — e o servidor entrega tranquilidade e libera a equipe.</span></div>
-      <div class="term"><span class="ic">🤖</span><span><b>Sofia (IA):</b> se ativar a atendente virtual, além do servidor há um custo <b>por conversa</b> da IA, conforme o uso, pago direto ao provedor. Você liga e desliga a Sofia quando quiser no painel.</span></div>
+      <div class="term"><span class="ic">💡</span><span>É um <b>computador dedicado na nuvem</b>, sempre ligado — por isso o robô e a Sofia funcionam de madrugada, no fim de semana e sem depender de ninguém na recepção.</span></div>
+      <div class="term"><span class="ic">🤖</span><span><b>Sofia (IA):</b> além do servidor há um custo <b>por conversa</b> da IA, conforme o uso, pago direto ao provedor. Você acompanha o gasto em R$ no painel.</span></div>
     </div>
   </section>
 
