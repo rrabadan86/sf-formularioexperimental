@@ -226,7 +226,8 @@ cd SF-Chat_Experimental-Mensagens/Experimental</pre>
       <h3><span class="num">2</span> Preparar tudo (sistema + deps + <code>.env</code>)</h3>
       <div class="term">
         <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">setup</span></div>
-<pre class="term-body">bash setup-novo-studio.sh --slug <b>lagosul</b> --studio <b>"Studio SlimFit Lago Sul"</b> --install-deps</pre>
+<pre class="term-body">bash setup-novo-studio.sh --slug <b>lagosul</b> --studio <b>"Studio SlimFit Lago Sul"</b> \
+  --evo-tenant <b>slimfitlagosul</b> --evo-branch <b>22</b> --install-deps</pre>
       </div>
       <p>O <code>--install-deps</code> instala <b>Node 20, git, Chromium, python3-venv,
         pm2 e tsx</b>; depois o script instala as dependências do projeto (Node +
@@ -242,12 +243,19 @@ cd SF-Chat_Experimental-Mensagens/Experimental</pre>
       <h3><span class="num">3</span> Preencher as credenciais <b>[POR STUDIO]</b></h3>
       <p>Edite os dois <code>.env</code> (o script diz quais campos):</p>
       <ul>
-        <li><code>Experimental/.env</code> → <code>EVO_DNS</code>, <code>EVO_TOKEN</code>,
-          <code>FORM_CLOUD_URL</code>, <code>ZEE_STUDIO_PHONE</code>.</li>
+        <li><code>Experimental/.env</code> → <b><code>EVO_EMAIL</code> + <code>EVO_PASSWORD</code></b>
+          (login do robô no EVO — <b>sem eles os jobs diários do robô falham</b>),
+          <code>EVO_DNS</code>, <code>EVO_TOKEN</code>, <code>FORM_CLOUD_URL</code>,
+          <code>ZEE_STUDIO_PHONE</code>. Confira <code>EVO_URL</code> e os
+          <code>*_PATH</code>/<code>*_HASH</code> (já vêm montados pelo <code>--evo-tenant</code>/<code>--evo-branch</code>).</li>
         <li><code>ChatBot/.env</code> → <code>ANTHROPIC_API_KEY</code>,
           <code>SOFIA_BOOK_URL</code>.</li>
         <li>Confira que <code>SOFIA_DIR</code> é <b>igual</b> nos dois.</li>
       </ul>
+      <div class="tip">🔎 <b>Onde achar o tenant e o branch do EVO:</b> na URL do EVO da unidade,
+        no formato <code>.../app/<b>&lt;tenant&gt;</b>/<b>&lt;branch&gt;</b>/...</code> — ex.:
+        <code>.../app/slimfitlagosul/22/gerencial/...</code> → tenant <code>slimfitlagosul</code>, branch <code>22</code>.
+        Se não passar as flags, o script cai no padrão da unidade original (<code>slimfit</code>/<code>15</code>).</div>
     </div>
 
     <div class="stepblock">
