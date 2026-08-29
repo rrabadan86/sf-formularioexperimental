@@ -271,7 +271,20 @@ cd SF-Chat_Experimental-Mensagens/Experimental</pre>
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">5</span> Subir tudo — com HTTPS automático — e ler os QRs</h3>
+      <h3><span class="num">5</span> Conferir o <code>.env</code> antes de subir (<code>--check</code>)</h3>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">validar</span></div>
+<pre class="term-body">bash setup-novo-studio.sh --slug <b>lagosul</b> --check</pre>
+      </div>
+      <p>Uma <b>validação de pré-voo</b>: confere que os dois <code>.env</code> existem e
+        estão completos — tokens do EVO (API e navegador), os <b>três tokens</b> do
+        formulário, <code>SOFIA_DIR</code> <b>igual</b> nos dois arquivos, nada com o
+        exemplo <code>SEU-FORM</code>, e avisa se o EVO ficou no padrão original
+        (<code>slimfit/15</code>) ou se falta Xvfb. Só suba quando ele imprimir <b>✅</b>.</p>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">6</span> Subir tudo — com HTTPS automático — e ler os QRs</h3>
       <div class="term">
         <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">subir</span></div>
 <pre class="term-body">bash setup-novo-studio.sh --slug <b>lagosul</b> --start --domain <b>painel-lagosul.seu-dominio</b>
@@ -653,7 +666,7 @@ curl -sI https://<b>form-lagosul1</b>.onrender.com/api/book-sofia | head -1</pre
 <span class="c"># SOFIA_TOKEN já está aqui (igual ao da Render)</span></pre>
       </div>
       <p>Reinicie o robô e a SoFIA para pegarem os endereços: <code>pm2 restart slimfit-exp slimfit-sofia --update-env</code>. A ponte roda a cada minuto e puxa as marcações para a fila de envio; a SoFIA passa a agendar direto pelo formulário.</p>
-      <div class="tip">💡 O <code>--check</code> (Fase 3) confere justamente isto: que <code>FORM_CLOUD_URL</code> e <code>SOFIA_BOOK_URL</code> apontam para o <b>mesmo</b> formulário e que os três tokens não ficaram no exemplo <code>SEU-FORM</code>. Rode-o antes do <code>--start</code>.</div>
+      <div class="tip">💡 O <code>--check</code> (passo 5 do guia rápido, no topo) confere justamente isto: que <code>FORM_CLOUD_URL</code> e <code>SOFIA_BOOK_URL</code> apontam para o <b>mesmo</b> formulário e que os três tokens não ficaram no exemplo <code>SEU-FORM</code>. Rode-o antes do <code>--start</code>.</div>
     </div>
 
     <div class="stepblock">
