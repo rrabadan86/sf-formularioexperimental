@@ -532,6 +532,8 @@ curl -d "Instalacao concluida — teste de alerta" ntfy.sh/<b>SEU_NTFY_TOPIC</b>
   <section>
     <div class="phase"><span class="pn">Fase 4</span><h2>Deixar rodando 24/7</h2></div>
 
+    <div class="tip">📛 <b>Nome dos processos no PM2.</b> Se você subiu tudo pelo <b>script</b> (<code>setup-novo-studio.sh --start</code>), os processos se chamam <code>SEU-SLUG-exp</code>, <code>SEU-SLUG-painel</code> e <code>SEU-SLUG-sofia</code> — ex.: com <code>--slug lagosul1</code> viram <code>lagosul1-exp</code>, <code>lagosul1-painel</code>, <code>lagosul1-sofia</code>. Os exemplos manuais abaixo usam <code>slimfit-exp</code> / <code>slimfit-painel</code> / <code>sofia-listener</code> (a unidade original, instalada à mão): <b>troque pelo seu nome</b> nos comandos <code>pm2</code>. E o script já faz esta Fase 4 sozinho — o passo manual é só para quem instala sem ele.</div>
+
     <div class="stepblock">
       <h3><span class="num">4.1</span> Subir com o PM2 (e voltar sozinho após reboot)</h3>
       <p>O agendador roda sob o PM2 via o wrapper <code>scheduler-vps.sh</code> (que já embrulha em <code>xvfb-run</code>).</p>
