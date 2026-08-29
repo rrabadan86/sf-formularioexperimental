@@ -143,11 +143,11 @@ STUDIO_OUTBOX_FILE = _clean("STUDIO_OUTBOX_FILE", os.path.join(_BASE_DIR, "confi
 # Placeholders da mensagem: {name} {quando}  (quando = "sexta-feira, 10/07 às 16:15")
 ZEE_CONFIRM_TEMPLATE = os.getenv(
     "ZEE_CONFIRM_TEMPLATE",
-    "Oie, {name}! 🎉 Tudo bem? Me chamo Juliana e sou do *Studio Slim Fit* do Setor Bueno.\n\n"
+    "Oie, {name}! 🎉 Tudo bem? Aqui é do *[NOME DA UNIDADE]*.\n\n"
     "Estou mandando essa mensagem para informar que a sua aula experimental está confirmada para *{quando}*.\n"
     "Qualquer dúvida que tiver, ou precisar remarcar a sua aula, pode me chamar por aqui.❤️\n\n"
-    "*Endereço:* R. C-235, 846, Setor Bueno, Goiânia-GO, 74280-130.\n"
-    "*Localização:* https://goo.gl/maps/LFBZhkzbCZ5wJ99f6\n\n"
+    "*Endereço:* [ENDEREÇO DA UNIDADE]\n"
+    "*Localização:* [LINK DO MAPA DA UNIDADE]\n\n"
     "Se possível, tente chegar 10 minutos antes para você conhecer o Studio e conversarmos! 💪\n"
     "Muito bem vinda ao #SlimFit - A Revolução do Treinamento Feminino! ❤️",
 )
