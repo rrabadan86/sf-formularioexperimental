@@ -920,6 +920,15 @@ PATH=/usr/local/bin:/usr/bin:/bin
   <!-- FASE 9 — SOFIA (CHATBOT COM IA) -->
   <section>
     <div class="phase"><span class="pn">Fase 9</span><h2>🤖 SoFIA — a atendente com IA</h2></div>
+
+    <div class="call danger" style="margin:0 0 16px">
+      <div class="ic">!</div>
+      <div>
+        <h3>O roteiro padrão é da unidade ORIGINAL — reescreva antes de divulgar</h3>
+        <p>A SoFIA sobe com um <b>roteiro padrão escrito para o Studio original</b> (Setor Bueno, Goiânia). Ele contém <b>endereço, mapa, ponto de referência, e-mail, WhatsApp da secretária, Instagram e o link do formulário</b> daquela unidade. <b>Antes de conectar o WhatsApp e divulgar</b>, entre no painel (<b>🤖 SoFIA → Configuração → roteiro</b>) e <b>troque TODOS</b> esses dados pelos da sua unidade — senão a SoFIA vai passar o <b>endereço e os contatos do Setor Bueno</b> para as suas leads. Reveja também as <b>imagens de grade e preços</b> (mídias da SoFIA) e a <b>mensagem de confirmação</b> do formulário (<code>ZEE_CONFIRM_TEMPLATE</code>, Fase 5) — todas trazem dados da unidade original.</p>
+      </div>
+    </div>
+
     <p class="sec-head" style="color:var(--text-soft);max-width:70ch"><b>Peça central do sistema</b> (o script <code>setup-novo-studio.sh</code> já sobe o processo <code>${slug}-sofia</code> junto com o robô e o painel — esta fase é a referência manual, caso instale sem o script). A Sofia atende as leads no WhatsApp e agenda a aula experimental sozinha, usando uma IA da Anthropic (Claude). Ela roda em um processo próprio (<code>sofia-listener</code>) e usa um <b>número de WhatsApp exclusivo</b>, diferente do robô de mensagens. Tudo o que ela fala e faz é editável pela aba <b>🤖 Sofia</b> do painel — incluindo o <b>modelo de IA</b>, o <b>follow-up</b> de leads que esfriaram, a <b>lista de bloqueio</b> e a <b>transcrição de áudio</b> (opcional).</p>
 
     <div class="stepblock">
