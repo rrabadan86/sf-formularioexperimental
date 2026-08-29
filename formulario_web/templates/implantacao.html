@@ -561,33 +561,106 @@ pm2 logs slimfit-exp --lines 50  <span class="c"># sem erros</span></pre>
 
   <!-- FASE 5 -->
   <section>
-    <div class="phase"><span class="pn">Fase 5</span><h2>Formulário na nuvem (opcional)</h2></div>
-    <p class="sec-head" style="color:var(--text-soft);max-width:66ch">Se você vender o agendamento online junto, publique o formulário na Render (é separado do servidor). Ele reusa o mesmo pacote de agendamento.</p>
+    <div class="phase"><span class="pn">Fase 5</span><h2>Formulário de agendamento na nuvem (Render)</h2></div>
+    <p class="sec-head" style="color:var(--text-soft);max-width:72ch">O formulário roda <b>fora da VPS</b>, na <b>Render</b> (grátis para começar), e é ele quem fala com a API do EVO para marcar a aula. Ele é o <b>coração do agendamento</b> em duas frentes: o <b>link público</b> que a aluna preenche sozinha <b>e</b> o endereço que a <b>SoFIA</b> usa para agendar pela conversa (<code>/api/book-sofia</code>). Ou seja: se você vende o link online <b>ou</b> a SoFIA, esta fase é <b>obrigatória</b>. É um <b>deploy separado por unidade</b> (cada loja tem o seu, com o EVO e os tokens dela).</p>
+
+    <div class="tip">📋 <b>Antes de começar</b>, tenha em mãos: o <b>EVO da unidade</b> (<code>EVO_DNS</code>, <code>EVO_TOKEN</code> e os ids da aula da <b>Fase 3</b>) e os <b>três tokens</b> que o <code>setup</code> gerou no <code>Experimental/.env</code> da VPS — <code>FORM_SLOTS_TOKEN</code>, <code>FORM_OUTBOX_TOKEN</code> e <code>SOFIA_TOKEN</code>. Você vai colar os <b>mesmos valores</b> aqui na Render.</div>
 
     <div class="stepblock">
-      <h3><span class="num">5.1</span> Criar o serviço na Render</h3>
+      <h3><span class="num">5.1</span> Ter o repositório do formulário no seu GitHub</h3>
       <ul class="chk">
-        <li><span class="box">✓</span><span>Crie um <b>Web Service</b> na Render apontando para o repositório do formulário.</span></li>
-        <li><span class="box">✓</span><span>Comando de start (já usado): <code>gunicorn app:app --workers 1 --timeout 120</code>.</span></li>
+        <li><span class="box">✓</span><span>O formulário é um projeto <b>separado</b> do robô (repositório próprio, ex.: <code>sf-formularioexperimental</code>). Ele já vem com <b>Procfile</b> e <b>requirements.txt</b> prontos — a Render lê os dois sozinha.</span></li>
+        <li><span class="box">✓</span><span>Garanta que esse repositório está na <b>sua conta do GitHub</b> (faça um <b>fork</b> ou receba o convite). A Render vai puxar direto de lá.</span></li>
       </ul>
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">5.2</span> Variáveis de ambiente do formulário (na Render)</h3>
+      <h3><span class="num">5.2</span> Criar o Web Service na Render (passo a passo)</h3>
+      <ul class="chk">
+        <li><span class="box">✓</span><span>Entre em <b>render.com</b> → <b>Sign up</b> (dá para entrar <b>com o GitHub</b>, já autoriza de uma vez).</span></li>
+        <li><span class="box">✓</span><span>No painel, clique em <b>New +</b> → <b>Web Service</b>.</span></li>
+        <li><span class="box">✓</span><span>Em <b>Connect a repository</b>, autorize a Render a ver seus repositórios e escolha o repositório do <b>formulário</b>. (Se não aparecer, clique em <b>Configure account</b> e libere o acesso a esse repo.)</span></li>
+        <li><span class="box">✓</span><span>Preencha a configuração exatamente assim:</span></li>
+      </ul>
       <div class="fieldnote">
-        <div class="fnh">Environment · Render</div>
+        <div class="fnh">New Web Service · Render</div>
         <table>
-          <tr><td>EVO_URL / EVO_TOKEN / EVO_DNS</td><td>Acesso do EVO da unidade para a API de agendamento.</td></tr>
-          <tr><td>ZEE_CONFIRM_TEMPLATE</td><td>O <b>texto da confirmação</b> com o nome, endereço, mapa e persona <b>da unidade</b> (é aqui que personaliza a mensagem do formulário — sem editar código).</td></tr>
-          <tr><td>ZEE_STUDIO_PHONE</td><td>Número da recepção que recebe os alertas de turma lotada.</td></tr>
-          <tr><td>FORM_OUTBOX_TOKEN</td><td>O <b>mesmo</b> token do <code>.env</code> da VPS — é o que liga o formulário ao robô.</td></tr>
+          <tr><td>Name</td><td>Um nome por unidade, ex.: <code>form-lagosul1</code> (vira o endereço <code>form-lagosul1.onrender.com</code>).</td></tr>
+          <tr><td>Region</td><td><b>Oregon</b> ou <b>Ohio</b> (EUA) servem bem; escolha a mais próxima que estiver disponível no plano.</td></tr>
+          <tr><td>Branch</td><td><code>main</code> (a Render redeploya sozinha a cada push nessa branch).</td></tr>
+          <tr><td>Root Directory</td><td><b>Deixe em branco</b> — o <code>Procfile</code> na raiz já aponta para <code>formulario_web.app:app</code>.</td></tr>
+          <tr><td>Runtime</td><td><b>Python 3</b> (a Render detecta pelo <code>requirements.txt</code>).</td></tr>
+          <tr><td>Build Command</td><td><code>pip install -r requirements.txt</code></td></tr>
+          <tr><td>Start Command</td><td><code>gunicorn formulario_web.app:app --workers 1 --threads 8 --timeout 120 --bind 0.0.0.0:$PORT</code><br><span style="color:var(--text-soft);font-size:.9em">(já é o do <code>Procfile</code> — a Render costuma preencher sozinha; se preencher, não precisa mexer.)</span></td></tr>
+          <tr><td>Instance Type</td><td><b>Free</b> para testar. (Veja o aviso do plano grátis no passo 5.6.)</td></tr>
         </table>
+      </div>
+      <div class="tip">Ainda <b>não clique em Create</b> — primeiro role até <b>Environment Variables</b> e preencha o passo 5.3. Assim o primeiro deploy já sobe configurado.</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">5.3</span> Variáveis de ambiente do formulário (na Render)</h3>
+      <p>Ainda na tela de criação (ou depois em <b>Environment</b>), adicione uma a uma. As de <b>token</b> têm que ser <b>idênticas</b> às do <code>Experimental/.env</code> da VPS — é o que liga o formulário ao robô e à SoFIA.</p>
+      <div class="fieldnote">
+        <div class="fnh">Environment · Render — EVO da unidade (API de agendamento)</div>
+        <table>
+          <tr><td>EVO_DNS</td><td>DNS do EVO da unidade (o <b>mesmo</b> valor do <code>.env</code> da VPS).</td></tr>
+          <tr><td>EVO_TOKEN</td><td>Token da API do EVO da unidade.</td></tr>
+          <tr><td>EVO_BRANCH_ID</td><td>Número da unidade no EVO.</td></tr>
+          <tr><td>EVO_ACTIVITY_ID / EVO_SERVICE_ID</td><td>Ids da aula experimental (da <b>Fase 3</b>, <code>--evo-ids</code>). Pode usar os nomes em <code>EVO_ACTIVITY</code> / <code>EVO_SERVICE</code>.</td></tr>
+        </table>
+      </div>
+      <div class="fieldnote">
+        <div class="fnh">Environment · Render — tokens (iguais aos da VPS) + mensagem</div>
+        <table>
+          <tr><td>FORM_SLOTS_TOKEN</td><td>O robô <b>envia a grade</b> de horários ao formulário com este token. <b>Mesmo</b> valor do <code>.env</code>.</td></tr>
+          <tr><td>FORM_OUTBOX_TOKEN</td><td>O robô <b>puxa</b> agendamentos/confirmações/indicadores do formulário com este token. <b>Mesmo</b> valor do <code>.env</code>.</td></tr>
+          <tr><td>SOFIA_TOKEN</td><td>Autoriza a <b>SoFIA</b> a agendar pelo <code>/api/book-sofia</code>. <b>Mesmo</b> valor do <code>ChatBot/.env</code>.</td></tr>
+          <tr><td>ZEE_CONFIRM_TEMPLATE</td><td>Texto da <b>confirmação</b> com nome, endereço, mapa e persona <b>da unidade</b> (personaliza a mensagem sem mexer em código).</td></tr>
+          <tr><td>ZEE_STUDIO_PHONE</td><td>Número da recepção que recebe o alerta de <b>turma lotada</b>.</td></tr>
+          <tr><td>PAINEL_URL</td><td>(opcional) Endereço do painel da unidade — usado em links de retorno.</td></tr>
+        </table>
+      </div>
+      <div class="tip">Depois clique em <b>Create Web Service</b>. A Render roda o build e sobe; acompanhe em <b>Logs</b> até ver <code>Booting worker</code> / <code>Listening at</code>.</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">5.4</span> Pegar o endereço e testar</h3>
+      <p>No topo do serviço aparece a URL pública, ex.: <code>https://form-lagosul1.onrender.com</code>. Abra no navegador — deve carregar o formulário. Teste também o endpoint da SoFIA (tem que existir):</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">seu PC / servidor</span></div>
+<pre class="term-body"><span class="c"># a home do formulário responde?</span>
+curl -sI https://<b>form-lagosul1</b>.onrender.com | head -1        <span class="c"># HTTP/2 200</span>
+
+<span class="c"># o endpoint da SoFIA existe? (sem token deve recusar, e tudo bem)</span>
+curl -sI https://<b>form-lagosul1</b>.onrender.com/api/book-sofia | head -1</pre>
       </div>
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">5.3</span> Ligar a ponte formulário → robô</h3>
-      <p>No <code>.env</code> da VPS, aponte <code>FORM_CLOUD_URL</code> para o endereço da Render e use o <b>mesmo</b> <code>FORM_OUTBOX_TOKEN</code>. A ponte roda a cada minuto e puxa as marcações para a fila de envio.</p>
+      <h3><span class="num">5.5</span> Ligar as pontes no VPS (formulário ↔ robô ↔ SoFIA)</h3>
+      <p>Com a URL da Render em mãos, aponte os <code>.env</code> da VPS para ela. São <b>duas linhas</b>, em <b>dois arquivos</b>:</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">Experimental/.env</span></div>
+<pre class="term-body">FORM_CLOUD_URL=https://<b>form-lagosul1</b>.onrender.com
+<span class="c"># FORM_SLOTS_TOKEN e FORM_OUTBOX_TOKEN já estão aqui (iguais aos da Render)</span></pre>
+      </div>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">ChatBot/.env</span></div>
+<pre class="term-body">SOFIA_BOOK_URL=https://<b>form-lagosul1</b>.onrender.com/api/book-sofia
+<span class="c"># SOFIA_TOKEN já está aqui (igual ao da Render)</span></pre>
+      </div>
+      <p>Reinicie o robô e a SoFIA para pegarem os endereços: <code>pm2 restart slimfit-exp slimfit-sofia --update-env</code>. A ponte roda a cada minuto e puxa as marcações para a fila de envio; a SoFIA passa a agendar direto pelo formulário.</p>
+      <div class="tip">💡 O <code>--check</code> (Fase 3) confere justamente isto: que <code>FORM_CLOUD_URL</code> e <code>SOFIA_BOOK_URL</code> apontam para o <b>mesmo</b> formulário e que os três tokens não ficaram no exemplo <code>SEU-FORM</code>. Rode-o antes do <code>--start</code>.</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">5.6</span> Sobre o plano grátis da Render</h3>
+      <p>O plano <b>Free</b> "dorme" depois de <b>~15 min sem acesso</b> — a primeira aluna a abrir o link espera uns <b>30–50 s</b> o serviço acordar (as seguintes já são instantâneas). Isso não perde dado, mas atrapalha a primeira impressão. Duas saídas:</p>
+      <ul class="chk">
+        <li><span class="box">✓</span><span><b>Manter acordado de graça:</b> o robô já bate no formulário a cada minuto (empurra a grade e puxa marcações), o que naturalmente reduz o "sono" enquanto o robô está no ar.</span></li>
+        <li><span class="box">✓</span><span><b>Plano pago (Starter, ~US$ 7/mês):</b> não dorme nunca e é o recomendado para uma unidade que já está vendendo. Troque em <b>Settings → Instance Type</b>.</span></li>
+      </ul>
     </div>
   </section>
 
@@ -686,13 +759,60 @@ curl -s http://127.0.0.1:8080/login | head -c 60   <span class="c"># deve vir HT
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">7.2</span> Subdomínio grátis (DuckDNS)</h3>
-      <p>Sem precisar comprar domínio: crie um subdomínio grátis apontando para o IP da VPS.</p>
-      <ul class="chk">
-        <li><span class="box">✓</span><span>Em <b>duckdns.org</b> (login com Google), crie um domínio, ex.: <code>painel-unidade</code> → <code>painel-unidade.duckdns.org</code>.</span></li>
-        <li><span class="box">✓</span><span>No campo <b>current ip</b>, coloque o <b>IPv4 da VPS</b> — pegue com <code>curl -s -4 ifconfig.me</code> (não use o IP do seu PC).</span></li>
-        <li><span class="box">✓</span><span>Confira que bateu: <code>getent hosts painel-unidade.duckdns.org</code> deve mostrar o mesmo IPv4.</span></li>
-      </ul>
+      <h3><span class="num">7.2</span> Subdomínio grátis (DuckDNS) — passo a passo</h3>
+      <p>Para o painel ter um endereço e HTTPS você precisa de um domínio. Sem comprar nada, o <b>DuckDNS</b> te dá um subdomínio grátis (<code>algo.duckdns.org</code>) apontando para o IP da VPS. Faça <b>uma vez por painel</b> (cada loja pode ter o seu, ex.: <code>painel-lagosul1.duckdns.org</code>).</p>
+
+      <div class="stepblock" style="margin-top:6px">
+        <h3 style="font-size:1rem"><span class="num">a</span> Descobrir o IPv4 da VPS</h3>
+        <p>Rode <b>dentro da VPS</b> (por SSH) — é o IP <b>do servidor</b>, não o do seu PC:</p>
+        <div class="term">
+          <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body">curl -s -4 ifconfig.me ; echo        <span class="c"># ex.: 203.0.113.45 — anote</span></pre>
+        </div>
+      </div>
+
+      <div class="stepblock">
+        <h3 style="font-size:1rem"><span class="num">b</span> Criar a conta e o subdomínio</h3>
+        <ul class="chk">
+          <li><span class="box">✓</span><span>Abra <b>duckdns.org</b> e clique em <b>Sign in</b> — entre com <b>Google</b>, <b>GitHub</b> ou <b>Reddit</b> (não precisa criar senha).</span></li>
+          <li><span class="box">✓</span><span>No campo <b>sub domain</b>, digite o nome que quer (ex.: <code>painel-lagosul1</code>) e clique em <b>add domain</b>. Fica <code>painel-lagosul1.duckdns.org</code>.</span></li>
+          <li><span class="box">✓</span><span>No topo da página há um <b>token</b> (uma chave longa). <b>Copie e guarde</b> — é ele que autoriza atualizar o IP (passo <b>d</b>).</span></li>
+        </ul>
+      </div>
+
+      <div class="stepblock">
+        <h3 style="font-size:1rem"><span class="num">c</span> Apontar para a VPS</h3>
+        <p>Na linha do seu domínio, no campo <b>current ip</b>, cole o <b>IPv4 da VPS</b> (passo <b>a</b>) e clique em <b>update ip</b>.</p>
+      </div>
+
+      <div class="stepblock">
+        <h3 style="font-size:1rem"><span class="num">d</span> (Recomendado) Manter o IP sempre certo, sozinho</h3>
+        <p>Se o IP da VPS mudar algum dia, o painel some. Um <b>cron a cada 5 min</b> reavisa o DuckDNS do IP atual — é a forma oficial e à prova de futuro. Troque <b>SEU-SUBDOMINIO</b> e <b>SEU-TOKEN</b> pelos seus:</p>
+        <div class="term">
+          <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body"><span class="c"># cria o atualizador</span>
+mkdir -p ~/duckdns
+cat > ~/duckdns/duck.sh <<'SH'
+echo url="https://www.duckdns.org/update?domains=<b>SEU-SUBDOMINIO</b>&token=<b>SEU-TOKEN</b>&ip=" \
+  | curl -k -o ~/duckdns/duck.log -K -
+SH
+chmod +x ~/duckdns/duck.sh
+~/duckdns/duck.sh ; cat ~/duckdns/duck.log   <span class="c"># deve escrever: OK</span>
+
+<span class="c"># agenda a cada 5 minutos</span>
+( crontab -l 2>/dev/null; echo "*/5 * * * * ~/duckdns/duck.sh >/dev/null 2>&1" ) | crontab -</pre>
+        </div>
+        <div class="tip">Deixar o <code>ip=</code> <b>vazio</b> (como acima) faz o DuckDNS usar o IP de quem chamou — ou seja, o da própria VPS. Simples e certeiro.</div>
+      </div>
+
+      <div class="stepblock">
+        <h3 style="font-size:1rem"><span class="num">e</span> Conferir que propagou</h3>
+        <div class="term">
+          <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
+<pre class="term-body">getent hosts <b>painel-lagosul1</b>.duckdns.org   <span class="c"># tem que mostrar o MESMO IPv4 da VPS</span></pre>
+        </div>
+        <div class="tip">Bateu o IP? Então o domínio está pronto. Agora o Caddy (passo 7.3) emite o HTTPS por cima. Se ainda não bateu, espere 1–2 min e rode de novo (propagação de DNS).</div>
+      </div>
     </div>
 
     <div class="stepblock">
