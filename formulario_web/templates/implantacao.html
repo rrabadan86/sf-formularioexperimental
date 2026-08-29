@@ -631,10 +631,17 @@ pm2 logs slimfit-exp --lines 50  <span class="c"># sem erros</span></pre>
           <tr><td>FORM_SLOTS_TOKEN</td><td>O robô <b>envia a grade</b> de horários ao formulário com este token. <b>Mesmo</b> valor do <code>.env</code>.</td></tr>
           <tr><td>FORM_OUTBOX_TOKEN</td><td>O robô <b>puxa</b> agendamentos/confirmações/indicadores do formulário com este token. <b>Mesmo</b> valor do <code>.env</code>.</td></tr>
           <tr><td>SOFIA_TOKEN</td><td>Autoriza a <b>SoFIA</b> a agendar pelo <code>/api/book-sofia</code>. <b>Mesmo</b> valor do <code>ChatBot/.env</code>.</td></tr>
-          <tr><td>ZEE_CONFIRM_TEMPLATE</td><td>Texto da <b>confirmação</b> com nome, endereço, mapa e persona <b>da unidade</b> (personaliza a mensagem sem mexer em código).</td></tr>
-          <tr><td>ZEE_STUDIO_PHONE</td><td>Número da recepção que recebe o alerta de <b>turma lotada</b>.</td></tr>
-          <tr><td>PAINEL_URL</td><td>(opcional) Endereço do painel da unidade — usado em links de retorno.</td></tr>
+          <tr><td>ZEE_CONFIRM_TEMPLATE</td><td><b>Obrigatório por unidade.</b> Texto da <b>confirmação</b> que a aluna recebe, com nome, <b>endereço</b>, mapa e persona <b>da unidade</b>. <b>Sem definir</b>, o padrão traz a persona (<i>Juliana</i>) e o <b>endereço do Setor Bueno</b> — ou seja, toda aluna que agendar recebe o endereço errado. Placeholders: <code>{name}</code> e <code>{quando}</code>.</td></tr>
+          <tr><td>ZEE_STUDIO_PHONE</td><td>Número da recepção que recebe o alerta de <b>turma lotada</b>. <b>Sem definir</b>, o alerta vai para a recepção da <b>unidade original</b>.</td></tr>
+          <tr><td>PAINEL_URL</td><td>Endereço do <b>painel desta unidade</b> (o formulário redireciona para ele). <b>Sem definir</b>, aponta para o painel do <b>Setor Bueno</b>.</td></tr>
         </table>
+      </div>
+      <div class="call danger" style="margin-top:12px">
+        <div class="ic">!</div>
+        <div>
+          <h3>Confira os textos padrão antes de publicar</h3>
+          <p>Assim como o roteiro da SoFIA (Fase 9), a <b>mensagem de confirmação</b>, o <b>telefone da recepção</b> e o <b>link do painel</b> vêm com os dados da unidade <b>original (Setor Bueno)</b>. Preencha <code>ZEE_CONFIRM_TEMPLATE</code>, <code>ZEE_STUDIO_PHONE</code> e <code>PAINEL_URL</code> com os desta unidade — senão a aluna recebe o endereço e os contatos do Setor Bueno na confirmação.</p>
+        </div>
       </div>
       <div class="tip">Depois clique em <b>Create Web Service</b>. A Render roda o build e sobe; acompanhe em <b>Logs</b> até ver <code>Booting worker</code> / <code>Listening at</code>.</div>
     </div>
