@@ -84,6 +84,16 @@ class EvoClient:
                             espera, tentativa)
                 time.sleep(espera)
                 continue
+            # HTTP 5xx = erro TEMPORÁRIO do servidor do EVO (W12), não da nossa
+            # requisição (auth/params dariam 401/400/422). Em vez de derrubar o job
+            # inteiro (ex.: o push_slots da grade, que roda a cada 10 min), espera
+            # um pouco e tenta de novo — como no 429. Se persistir, aí sim levanta.
+            if resp.status_code >= 500 and tentativa < 4:
+                espera = min(5 * tentativa, 20)
+                log.warning("EVO %d (erro temporário do servidor). Aguardando %.0fs e tentando de novo (%d/3)...",
+                            resp.status_code, espera, tentativa)
+                time.sleep(espera)
+                continue
             if not resp.ok:
                 raise EvoError(f"EVO {method} {path} -> HTTP {resp.status_code}: {_error_detail(resp)}")
             if resp.status_code == 204 or not resp.content:
