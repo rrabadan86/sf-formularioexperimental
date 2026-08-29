@@ -453,7 +453,7 @@ nano .env                    <span class="c"># preencha; salve com Ctrl+O, Enter
         <div class="fnh">Os campos que mudam por unidade</div>
         <table>
           <tr><td>STUDIO_NOME</td><td>Nome do Studio como aparece para a aluna. Ex.: <b>Studio SlimFit Jardim Goiás</b>.</td></tr>
-          <tr><td>EVO_URL</td><td>Use <b>https://evo5.w12app.com.br</b> (o login acontece no evo5; o domínio seguro é capturado sozinho).</td></tr>
+          <tr><td>EVO_URL</td><td>Endereço do <b>tenant</b> da unidade: <b>https://&lt;tenant&gt;.w12app.com.br</b> (ex.: <code>https://slimfit.w12app.com.br</code>). O SPA redireciona sozinho para o <code>evo5</code> e o domínio seguro é capturado depois — <b>não</b> ponha <code>evo5</code> aqui, senão a sessão cai no login. Pelo script, já vem montado pelo <code>--evo-tenant</code>.</td></tr>
           <tr><td>EVO_EMAIL / EVO_PASSWORD</td><td>Login do EVO da unidade.</td></tr>
           <tr><td>EVO_EXPERIMENTAL_PATH</td><td>Troque o <b>número da filial</b> no caminho pelo da unidade.</td></tr>
           <tr><td>HEADLESS</td><td>Deixe <b>false</b> — a instalação roda com Xvfb (tela virtual).</td></tr>
