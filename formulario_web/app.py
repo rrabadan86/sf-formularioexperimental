@@ -738,7 +738,10 @@ def api_book_sofia():
     # 2) Validação mínima (sem CPF/nascimento — fluxo leve do WhatsApp).
     if len(nome.split()) < 2:
         return jsonify({"ok": False, "erro": "nome incompleto"}), 400
-    if not email or "@" not in email:
+    # E-mail é OPCIONAL no fluxo do WhatsApp / cadastro express (balcão/telefone
+    # pode não ter e-mail): o EVO identifica a aluna pelo telefone. Se vier, valida
+    # o formato; se vier vazio, segue sem e-mail.
+    if email and "@" not in email:
         return jsonify({"ok": False, "erro": "email inválido"}), 400
     if not when:
         return jsonify({"ok": False, "erro": "horário não informado"}), 400
@@ -746,7 +749,7 @@ def api_book_sofia():
     # 3) Agenda no EVO reusando TODA a sua lógica (cadastro + venda + matrícula,
     #    deduplicação, limite de experimentais, etc.). CPF/nascimento ficam de fora.
     try:
-        res = book_experimental(name=nome, when=when, email=email, phone=telefone)
+        res = book_experimental(name=nome, when=when, email=(email or None), phone=telefone)
     except TurmaLotadaError as e:
         # Turma cheia / inexistente / fora de janela: o lead JÁ foi cadastrado no EVO.
         # Devolvemos as alternativas para a Sofia oferecer outro horário à aluna.
