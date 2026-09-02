@@ -874,8 +874,27 @@ def api_aluna_teste():
     try:
         evo = EvoClient()
         if id_member:
-            sessoes = evo.member_sessions(int(id_member)) or []
-            return jsonify({"ok": True, "idMember": id_member, "qtd": len(sessoes), "sessoes": sessoes})
+            # DIAGNÓSTICO: tenta várias formas de listar a agenda da aluna e mostra
+            # qual traz dados (com data e sem data, v1 e v2). Assim descobrimos o
+            # endpoint/param certo sem adivinhar.
+            from datetime import datetime as _dt, timedelta as _td
+            idm = int(id_member)
+            d0 = _dt.now().strftime("%Y-%m-%d")
+            d1 = (_dt.now() + _td(days=60)).strftime("%Y-%m-%d")
+            diag = {}
+            def _tenta(nome, path, params):
+                try:
+                    r = evo._request("GET", path, params=params) or []
+                    n = len(r) if isinstance(r, list) else (1 if r else 0)
+                    amostra = (r[0] if isinstance(r, list) and r else (r if not isinstance(r, list) else None))
+                    diag[nome] = {"qtd": n, "amostra": amostra}
+                except Exception as ex:
+                    diag[nome] = {"erro": str(ex)[:200]}
+            _tenta("A_member_sessions_datas", "/api/v2/activities/member/sessions", {"idMember": idm, "dateStart": d0, "dateEnd": d1, "take": 50})
+            _tenta("B_schedule_idmember_semana", "/api/v1/activities/schedule", {"idMember": idm, "date": d0, "showFullWeek": True, "take": 50})
+            _tenta("C_enroll_member_v2", "/api/v2/activities/enroll/member", {"idMember": idm})
+            _tenta("D_member_enrollment_v1", "/api/v1/activities/enrollment/member-enrollment", {"idMember": idm})
+            return jsonify({"ok": True, "idMember": id_member, "diagnostico": diag})
         if telefone:
             membros = []
             for np in (True, False):
