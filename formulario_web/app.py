@@ -998,6 +998,31 @@ def api_aluna_remarcar():
         return jsonify({"ok": False, "erro": str(e)}), 500
 
 
+@app.post("/api/aluna/turmas")
+def api_aluna_turmas():
+    """Turmas de um dia com horário e vagas (para a aluna escolher na remarcação)."""
+    if not SOFIA_TOKEN or request.headers.get("X-Sofia-Token") != SOFIA_TOKEN:
+        return jsonify({"ok": False, "erro": "não autorizado"}), 401
+    d = request.get_json(silent=True) or {}
+    dia = _dia(d.get("data"))
+    if not dia:
+        return jsonify({"ok": False, "erro": "informe data (AAAA-MM-DD)"}), 400
+    try:
+        grade = EvoClient().list_schedule(dia, show_full_week=False) or []
+        out = [{
+            "idConfiguration": g.get("idConfiguration"),
+            "turma": g.get("name"),
+            "inicio": g.get("startTime"), "fim": g.get("endTime"),
+            "vagas": (g.get("capacity") or 0) - (g.get("ocupation") or 0),
+            "professora": g.get("instructor"),
+        } for g in grade]
+        # a Sofia só deve oferecer turma com vaga
+        return jsonify({"ok": True, "data": dia, "turmas": [t for t in out if t["vagas"] > 0]}), 200
+    except Exception as e:
+        app.logger.exception("Sofia: falha ao listar turmas")
+        return jsonify({"ok": False, "erro": str(e)}), 500
+
+
 @app.get("/api/aluna/teste")
 def api_aluna_teste():
     """Ajudante de TESTE p/ abrir no navegador do celular (token via query).
