@@ -882,6 +882,27 @@ def _remarcar_core(id_member, id_configuration, activity_date, simular=True):
     simular=True -> não altera nada, só devolve o plano."""
     evo = EvoClient()
     dia_novo = _dia(activity_date)
+
+    # 0) A turma existe NESSE dia e tem vaga? (evita marcar uma turma que não roda
+    #    no dia pedido — ex.: pedir a turma de quinta num sábado.)
+    grade = evo.list_schedule(dia_novo, show_full_week=False) or []
+    alvo = next((g for g in grade if str(g.get("idConfiguration")) == str(id_configuration)), None)
+    if not alvo:
+        return {"ok": False, "motivo": "turma_nao_roda_nesse_dia",
+                "erro": f"a turma {id_configuration} não tem aula em {dia_novo}",
+                "turmas_do_dia": [{"idConfiguration": g.get("idConfiguration"), "turma": g.get("name"),
+                                   "inicio": g.get("startTime"),
+                                   "vagas": (g.get("capacity") or 0) - (g.get("ocupation") or 0)}
+                                  for g in grade]}
+    vagas = (alvo.get("capacity") or 0) - (alvo.get("ocupation") or 0)
+    if vagas <= 0:
+        return {"ok": False, "motivo": "turma_lotada",
+                "erro": f"{alvo.get('name')} {alvo.get('startTime')} em {dia_novo} está lotada",
+                "turmas_do_dia": [{"idConfiguration": g.get("idConfiguration"), "turma": g.get("name"),
+                                   "inicio": g.get("startTime"),
+                                   "vagas": (g.get("capacity") or 0) - (g.get("ocupation") or 0)}
+                                  for g in grade]}
+
     sessoes = evo.member_sessions(int(id_member)) or []
 
     agenda = [{
@@ -899,7 +920,9 @@ def _remarcar_core(id_member, id_configuration, activity_date, simular=True):
 
     plano = {
         "idMember": int(id_member),
-        "marcar": {"idConfiguration": int(id_configuration), "data": dia_novo},
+        "marcar": {"idConfiguration": int(id_configuration), "data": dia_novo,
+                   "turma": alvo.get("name"), "inicio": alvo.get("startTime"),
+                   "fim": alvo.get("endTime"), "vagas": vagas},
         "cancelar_mesmo_dia": mesmo_dia,
         "proxima_aula_outro_dia": proxima,
         "agenda_atual": agenda,
