@@ -866,6 +866,94 @@ def api_aluna_agenda():
         app.logger.exception("Sofia: falha na agenda da aluna")
         return jsonify({"ok": False, "erro": f"{e}"}), 500
 
+def _dia(s):
+    """'2026-09-03T00:00:00' ou '2026-09-03' -> '2026-09-03'."""
+    return (str(s or "")[:10]) or None
+
+
+def _remarcar_core(id_member, id_configuration, activity_date, simular=True):
+    """Remarcação da ALUNA, com as regras do Studio:
+      - marca a aula nova (consome reposição/cota — quem valida é o EVO);
+      - se a nova aula cair no MESMO DIA de uma já agendada, cancela a antiga
+        (regra: só 1 aula de SlimFit por dia);
+      - devolve a 'próxima aula' de OUTRO dia, para a Sofia perguntar se mantém.
+    Ordem à prova de falha: marca primeiro; só cancela a do mesmo dia DEPOIS que
+    a nova entrou. Se a marcação falhar, a aluna não perde nada.
+    simular=True -> não altera nada, só devolve o plano."""
+    evo = EvoClient()
+    dia_novo = _dia(activity_date)
+    sessoes = evo.member_sessions(int(id_member)) or []
+
+    agenda = [{
+        "idConfiguration": s.get("idConfiguration"),
+        "idActivitySession": s.get("idActivitieSession") or s.get("idActivitySession"),
+        "atividade": s.get("activitieName") or s.get("name"),
+        "data": _dia(s.get("date")),
+        "inicio": s.get("startTime"),
+        "status": s.get("statusName"),
+    } for s in sessoes]
+
+    mesmo_dia = [a for a in agenda if a["data"] == dia_novo]
+    outros_dias = sorted([a for a in agenda if a["data"] != dia_novo], key=lambda a: (a["data"] or "", a["inicio"] or ""))
+    proxima = outros_dias[0] if outros_dias else None
+
+    plano = {
+        "idMember": int(id_member),
+        "marcar": {"idConfiguration": int(id_configuration), "data": dia_novo},
+        "cancelar_mesmo_dia": mesmo_dia,
+        "proxima_aula_outro_dia": proxima,
+        "agenda_atual": agenda,
+    }
+    if simular:
+        return {"ok": True, "simulacao": True, "plano": plano}
+
+    # 1) marca a aula nova — o EVO valida reposição/cota e recusa se não puder
+    try:
+        evo.enroll_schedule(id_configuration=int(id_configuration),
+                            activity_date=dia_novo, id_member=int(id_member))
+    except Exception as e:
+        return {"ok": False, "etapa": "marcar", "motivo": "nao_foi_possivel_marcar",
+                "erro": str(e)[:300], "plano": plano}
+
+    # 2) marcou: agora cancela a(s) do mesmo dia (1 aula/dia)
+    cancelados = []
+    for a in mesmo_dia:
+        r = evo.unenroll_member(id_member=int(id_member),
+                                id_configuration=a.get("idConfiguration"),
+                                activity_date=a.get("data"),
+                                id_activity_session=a.get("idActivitySession"))
+        cancelados.append({"aula": a, "resultado": r})
+
+    return {"ok": True, "simulacao": False, "marcada": plano["marcar"],
+            "cancelados_mesmo_dia": cancelados,
+            "proxima_aula_outro_dia": proxima, "plano": plano}
+
+
+@app.post("/api/aluna/remarcar")
+def api_aluna_remarcar():
+    """Remarca a aula da aluna. Por segurança, 'simular' vem TRUE por padrão:
+    só executa de verdade com {"simular": false}."""
+    if not SOFIA_TOKEN or request.headers.get("X-Sofia-Token") != SOFIA_TOKEN:
+        return jsonify({"ok": False, "erro": "não autorizado"}), 401
+    d = request.get_json(silent=True) or {}
+    id_member, telefone = d.get("idMember"), only_digits(d.get("telefone"))
+    id_configuration, activity_date = d.get("idConfiguration"), d.get("activityDate")
+    simular = d.get("simular", True) is not False
+    if not id_configuration or not activity_date:
+        return jsonify({"ok": False, "erro": "informe idConfiguration e activityDate"}), 400
+    try:
+        if not id_member:
+            if not telefone:
+                return jsonify({"ok": False, "erro": "informe idMember ou telefone"}), 400
+            id_member = EvoClient().find_member_id(phone=telefone)
+            if not id_member:
+                return jsonify({"ok": True, "encontrada": False}), 200
+        return jsonify(_remarcar_core(id_member, id_configuration, activity_date, simular)), 200
+    except Exception as e:
+        app.logger.exception("Sofia: falha na remarcação")
+        return jsonify({"ok": False, "erro": str(e)}), 500
+
+
 @app.get("/api/aluna/teste")
 def api_aluna_teste():
     """Ajudante de TESTE p/ abrir no navegador do celular (token via query).
@@ -874,8 +962,28 @@ def api_aluna_teste():
         return jsonify({"ok": False, "erro": "não autorizado (token)"}), 401
     telefone = only_digits(request.args.get("telefone"))
     id_member = request.args.get("idMember")
+    turmas_dia = request.args.get("turmas")          # ?turmas=2026-09-05
+    marcar = request.args.get("marcar")              # ?marcar=<idConfiguration>
+    data_nova = request.args.get("data")             # ?data=2026-09-05
+    executar = request.args.get("executar") == "1"   # sem isso = SIMULA
     try:
         evo = EvoClient()
+        # Turmas de um dia (pra escolher o idConfiguration da aula nova)
+        if turmas_dia:
+            grade = evo.list_schedule(turmas_dia, show_full_week=False) or []
+            out = [{
+                "idConfiguration": g.get("idConfiguration"),
+                "turma": g.get("name"),
+                "data": _dia(g.get("activityDate")),
+                "inicio": g.get("startTime"), "fim": g.get("endTime"),
+                "capacidade": g.get("capacity"), "ocupacao": g.get("ocupation"),
+                "professora": g.get("instructor"),
+            } for g in grade]
+            return jsonify({"ok": True, "dia": turmas_dia, "qtd": len(out), "turmas": out})
+        # Remarcação (simula por padrão; executar=1 aplica de verdade)
+        if id_member and marcar and data_nova:
+            r = _remarcar_core(int(id_member), int(marcar), data_nova, simular=not executar)
+            return jsonify(r)
         if id_member:
             # DIAGNÓSTICO: tenta várias formas de listar a agenda da aluna e mostra
             # qual traz dados (com data e sem data, v1 e v2). Assim descobrimos o

@@ -427,6 +427,55 @@ class EvoClient:
                  id_configuration, params["activityDate"], id_prospect)
         return data
 
+    def change_session_status(self, status, id_member, id_configuration=None,
+                              activity_date=None, id_activity_session=None, branch_id=None):
+        """Muda o status da aluna numa sessão: 0=Presente, 1=Falta, 2=Falta JUSTIFICADA.
+        A falta justificada é o que gera reposição (conforme as regras do EVO).
+        Endpoint: POST /api/v1/activities/schedule/enroll/change-status."""
+        params = {"status": int(status), "idMember": int(id_member)}
+        if id_activity_session:
+            params["idActivitySession"] = int(id_activity_session)
+        else:
+            params["idConfiguration"] = int(id_configuration)
+            params["activityDate"] = fmt_date_evo(activity_date)
+        bid = self._bid(branch_id)
+        if bid:
+            params["idBranch"] = bid
+        return self._request("POST", "/api/v1/activities/schedule/enroll/change-status", params=params)
+
+    def unenroll_member(self, id_member, id_configuration=None, activity_date=None,
+                        id_activity_session=None):
+        """CANCELA (desmarca) a aluna de uma sessão, liberando a vaga.
+
+        O swagger não detalha os parâmetros do DELETE, então tentamos as
+        combinações plausíveis até uma responder — mesmo padrão do update_prospect.
+        BEST-EFFORT: nunca levanta exceção. Retorna:
+          {"ok": True,  "via": "<descrição da tentativa que funcionou>"}
+          {"ok": False, "erro": "...", "tentativas": [...]}"""
+        data_fmt = fmt_date_evo(activity_date) if activity_date else None
+        tentativas = []
+        if id_activity_session:
+            tentativas.append(("DELETE", "/api/v1/activities/enrollment",
+                               {"idMember": int(id_member), "idActivitySession": int(id_activity_session)}))
+            tentativas.append(("DELETE", "/api/v2/activities/enroll",
+                               {"idMember": int(id_member), "idActivitySession": int(id_activity_session)}))
+        if id_configuration and data_fmt:
+            tentativas.append(("DELETE", "/api/v1/activities/enrollment",
+                               {"idMember": int(id_member), "idConfiguration": int(id_configuration),
+                                "activityDate": data_fmt}))
+            tentativas.append(("DELETE", "/api/v2/activities/enroll",
+                               {"idMember": int(id_member), "idConfiguration": int(id_configuration),
+                                "activityDate": data_fmt}))
+        erros = []
+        for metodo, caminho, params in tentativas:
+            try:
+                self._request(metodo, caminho, params=params)
+                log.info("Aluna %s desmarcada via %s %s", id_member, metodo, caminho)
+                return {"ok": True, "via": f"{metodo} {caminho} {sorted(params.keys())}"}
+            except Exception as e:
+                erros.append(f"{metodo} {caminho}: {str(e)[:120]}")
+        return {"ok": False, "erro": "nenhuma variante de cancelamento funcionou", "tentativas": erros}
+
     # --------------- agendamento da aula experimental ---------------
     def book_experimental_class(self, id_prospect, activity_date, activity=None,
                                 service=None, id_activity=None, id_service=None,
