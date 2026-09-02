@@ -57,6 +57,9 @@ EVO_DNS = _clean("EVO_DNS")
 EVO_TOKEN = _clean("EVO_TOKEN")
 # Filial (opcional; obrigatório apenas em chaves multi-filial).
 EVO_BRANCH_ID = _clean("EVO_BRANCH_ID")
+# Funcionario que assina as acoes na agenda (o EVO exige idEmployee para
+# CANCELAR uma matricula: "Enter IdEmployee to proceed").
+EVO_ID_EMPLOYEE = _clean("EVO_ID_EMPLOYEE")
 EVO_DDI = _clean("EVO_DDI", "55")
 EVO_TIMEOUT = int(_clean("EVO_TIMEOUT", "30"))
 

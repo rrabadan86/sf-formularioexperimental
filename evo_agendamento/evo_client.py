@@ -444,7 +444,7 @@ class EvoClient:
         return self._request("POST", "/api/v1/activities/schedule/enroll/change-status", params=params)
 
     def unenroll_member(self, id_member, id_configuration=None, activity_date=None,
-                        id_activity_session=None):
+                        id_activity_session=None, id_employee=None):
         """CANCELA (desmarca) a aluna de uma sessão, liberando a vaga.
 
         O swagger não detalha os parâmetros do DELETE, então tentamos as
@@ -453,19 +453,23 @@ class EvoClient:
           {"ok": True,  "via": "<descrição da tentativa que funcionou>"}
           {"ok": False, "erro": "...", "tentativas": [...]}"""
         data_fmt = fmt_date_evo(activity_date) if activity_date else None
+        # O EVO recusa o cancelamento sem idEmployee ("Enter IdEmployee to proceed"):
+        # e o funcionario que assina a acao na agenda.
+        emp = id_employee or config.EVO_ID_EMPLOYEE
+        if not emp:
+            return {"ok": False, "erro": "EVO_ID_EMPLOYEE nao configurado (o EVO exige idEmployee para cancelar)"}
+        base = {"idEmployee": int(emp)}
         tentativas = []
         if id_activity_session:
             tentativas.append(("DELETE", "/api/v1/activities/enrollment",
-                               {"idMember": int(id_member), "idActivitySession": int(id_activity_session)}))
+                               dict(base, idMember=int(id_member), idActivitySession=int(id_activity_session))))
             tentativas.append(("DELETE", "/api/v2/activities/enroll",
-                               {"idMember": int(id_member), "idActivitySession": int(id_activity_session)}))
+                               dict(base, idMember=int(id_member), idActivitySession=int(id_activity_session))))
         if id_configuration and data_fmt:
             tentativas.append(("DELETE", "/api/v1/activities/enrollment",
-                               {"idMember": int(id_member), "idConfiguration": int(id_configuration),
-                                "activityDate": data_fmt}))
+                               dict(base, idMember=int(id_member), idConfiguration=int(id_configuration), activityDate=data_fmt)))
             tentativas.append(("DELETE", "/api/v2/activities/enroll",
-                               {"idMember": int(id_member), "idConfiguration": int(id_configuration),
-                                "activityDate": data_fmt}))
+                               dict(base, idMember=int(id_member), idConfiguration=int(id_configuration), activityDate=data_fmt)))
         erros = []
         for metodo, caminho, params in tentativas:
             try:

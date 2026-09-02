@@ -991,6 +991,21 @@ def api_aluna_teste():
     executar = request.args.get("executar") == "1"   # sem isso = SIMULA
     try:
         evo = EvoClient()
+        # Funcionarios (pra descobrir o idEmployee que o EVO exige no cancelamento)
+        if request.args.get("funcionarios"):
+            res = {}
+            for caminho in ("/api/v1/employees", "/api/v2/employees", "/api/v1/employee"):
+                try:
+                    r = evo._request("GET", caminho, params={"take": 50}) or []
+                    itens = r if isinstance(r, list) else [r]
+                    res[caminho] = [{
+                        "idEmployee": (e.get("idEmployee") or e.get("idFuncionario") or e.get("id")),
+                        "nome": (e.get("name") or e.get("firstName") or e.get("nome")),
+                    } for e in itens if isinstance(e, dict)][:50]
+                except Exception as ex:
+                    res[caminho] = {"erro": str(ex)[:160]}
+            return jsonify({"ok": True, "funcionarios": res})
+
         # Turmas de um dia (pra escolher o idConfiguration da aula nova)
         if turmas_dia:
             grade = evo.list_schedule(turmas_dia, show_full_week=False) or []
