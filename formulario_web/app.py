@@ -991,6 +991,16 @@ def api_aluna_teste():
     executar = request.args.get("executar") == "1"   # sem isso = SIMULA
     try:
         evo = EvoClient()
+        # Testa SO o cancelamento de uma sessao (nao marca nada antes).
+        # ?cancelar=<idConfiguration>&data=<yyyy-mm-dd>&sessao=<idActivitySession>
+        if request.args.get("cancelar") and id_member:
+            r = evo.unenroll_member(
+                id_member=int(id_member),
+                id_configuration=int(request.args.get("cancelar")),
+                activity_date=request.args.get("data"),
+                id_activity_session=(int(request.args["sessao"]) if request.args.get("sessao") else None))
+            return jsonify({"ok": True, "cancelamento": r})
+
         # Funcionarios (pra descobrir o idEmployee que o EVO exige no cancelamento)
         if request.args.get("funcionarios"):
             res = {}

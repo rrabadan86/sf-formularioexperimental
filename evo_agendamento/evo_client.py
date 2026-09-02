@@ -459,23 +459,36 @@ class EvoClient:
         if not emp:
             return {"ok": False, "erro": "EVO_ID_EMPLOYEE nao configurado (o EVO exige idEmployee para cancelar)"}
         base = {"idEmployee": int(emp)}
-        tentativas = []
+        cfg = {"idMember": int(id_member)}
+        if id_configuration:
+            cfg["idConfiguration"] = int(id_configuration)
+        if data_fmt:
+            cfg["activityDate"] = data_fmt
+        ses = {"idMember": int(id_member)}
         if id_activity_session:
-            tentativas.append(("DELETE", "/api/v1/activities/enrollment",
-                               dict(base, idMember=int(id_member), idActivitySession=int(id_activity_session))))
-            tentativas.append(("DELETE", "/api/v2/activities/enroll",
-                               dict(base, idMember=int(id_member), idActivitySession=int(id_activity_session))))
-        if id_configuration and data_fmt:
-            tentativas.append(("DELETE", "/api/v1/activities/enrollment",
-                               dict(base, idMember=int(id_member), idConfiguration=int(id_configuration), activityDate=data_fmt)))
-            tentativas.append(("DELETE", "/api/v2/activities/enroll",
-                               dict(base, idMember=int(id_member), idConfiguration=int(id_configuration), activityDate=data_fmt)))
+            ses["idActivitySession"] = int(id_activity_session)
+        if id_configuration:
+            ses["idConfiguration"] = int(id_configuration)
+        if data_fmt:
+            ses["activityDate"] = data_fmt
+        tentativas = []
+        # (a) mesma rota do POST de matricula (contraparte natural do enroll)
+        tentativas.append(("DELETE", "/api/v1/activities/schedule/enroll", dict(base, **ses), None))
+        # (b) rotas de enrollment/enroll com TODOS os campos na query
+        tentativas.append(("DELETE", "/api/v1/activities/enrollment", dict(base, **ses), None))
+        tentativas.append(("DELETE", "/api/v2/activities/enroll", dict(base, **ses), None))
+        # (c) mesmas rotas, mas com os campos no CORPO (json) — alguns endpoints
+        #     do EVO ignoram a query no DELETE
+        tentativas.append(("DELETE", "/api/v1/activities/enrollment", base, dict(cfg)))
+        tentativas.append(("DELETE", "/api/v2/activities/enroll", base, dict(cfg)))
+        # (d) rota de booking (v2), que e a usada para marcar
+        tentativas.append(("DELETE", "/api/v2/activities/booking", dict(base, **ses), None))
         erros = []
-        for metodo, caminho, params in tentativas:
+        for metodo, caminho, params, corpo in tentativas:
             try:
-                self._request(metodo, caminho, params=params)
+                self._request(metodo, caminho, params=params, json=corpo)
                 log.info("Aluna %s desmarcada via %s %s", id_member, metodo, caminho)
-                return {"ok": True, "via": f"{metodo} {caminho} {sorted(params.keys())}"}
+                return {"ok": True, "via": f"{metodo} {caminho} query={sorted(params.keys())} body={sorted((corpo or {}).keys())}"}
             except Exception as e:
                 erros.append(f"{metodo} {caminho}: {str(e)[:120]}")
         return {"ok": False, "erro": "nenhuma variante de cancelamento funcionou", "tentativas": erros}
