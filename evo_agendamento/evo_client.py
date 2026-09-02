@@ -443,55 +443,55 @@ class EvoClient:
             params["idBranch"] = bid
         return self._request("POST", "/api/v1/activities/schedule/enroll/change-status", params=params)
 
-    def unenroll_member(self, id_member, id_configuration=None, activity_date=None,
-                        id_activity_session=None, id_employee=None):
-        """CANCELA (desmarca) a aluna de uma sessão, liberando a vaga.
+    def unenroll_member(self, id_member, id_configuration_participation=None,
+                        id_employee=None, branch_id=None):
+        """APAGA A MATRICULA da aluna numa turma (DELETE /api/v1/activities/enrollment).
 
-        O swagger não detalha os parâmetros do DELETE, então tentamos as
-        combinações plausíveis até uma responder — mesmo padrão do update_prospect.
-        BEST-EFFORT: nunca levanta exceção. Retorna:
-          {"ok": True,  "via": "<descrição da tentativa que funcionou>"}
-          {"ok": False, "erro": "...", "tentativas": [...]}"""
-        data_fmt = fmt_date_evo(activity_date) if activity_date else None
-        # O EVO recusa o cancelamento sem idEmployee ("Enter IdEmployee to proceed"):
-        # e o funcionario que assina a acao na agenda.
+        ATENCAO: isto remove a MATRICULA RECORRENTE — a aluna sai de TODAS as
+        ocorrencias futuras daquela turma, nao de um dia so. Para desmarcar
+        apenas UMA aula, use cancelar_sessao() (change-status), que e reversivel.
+
+        Parametros exigidos pelo EVO (todos na query): idMember, idEmployee e
+        idConfigurationParticipation (o id da PARTICIPACAO, nao o da turma).
+        BEST-EFFORT: nao levanta excecao."""
         emp = id_employee or config.EVO_ID_EMPLOYEE
         if not emp:
-            return {"ok": False, "erro": "EVO_ID_EMPLOYEE nao configurado (o EVO exige idEmployee para cancelar)"}
-        base = {"idEmployee": int(emp)}
-        cfg = {"idMember": int(id_member)}
-        if id_configuration:
-            cfg["idConfiguration"] = int(id_configuration)
-        if data_fmt:
-            cfg["activityDate"] = data_fmt
-        ses = {"idMember": int(id_member)}
-        if id_activity_session:
-            ses["idActivitySession"] = int(id_activity_session)
-        if id_configuration:
-            ses["idConfiguration"] = int(id_configuration)
-        if data_fmt:
-            ses["activityDate"] = data_fmt
-        tentativas = []
-        # (a) mesma rota do POST de matricula (contraparte natural do enroll)
-        tentativas.append(("DELETE", "/api/v1/activities/schedule/enroll", dict(base, **ses), None))
-        # (b) rotas de enrollment/enroll com TODOS os campos na query
-        tentativas.append(("DELETE", "/api/v1/activities/enrollment", dict(base, **ses), None))
-        tentativas.append(("DELETE", "/api/v2/activities/enroll", dict(base, **ses), None))
-        # (c) mesmas rotas, mas com os campos no CORPO (json) — alguns endpoints
-        #     do EVO ignoram a query no DELETE
-        tentativas.append(("DELETE", "/api/v1/activities/enrollment", base, dict(cfg)))
-        tentativas.append(("DELETE", "/api/v2/activities/enroll", base, dict(cfg)))
-        # (d) rota de booking (v2), que e a usada para marcar
-        tentativas.append(("DELETE", "/api/v2/activities/booking", dict(base, **ses), None))
+            return {"ok": False, "erro": "EVO_ID_EMPLOYEE nao configurado"}
+        if not id_configuration_participation:
+            return {"ok": False, "erro": "idConfigurationParticipation e obrigatorio"}
+        bid = self._bid(branch_id)
+        base = {"idMember": int(id_member), "idEmployee": int(emp)}
+        if bid:
+            base["idBranch"] = bid
+        # v1 usa idConfigurationParticipation; v2 usa idConfigurationEnroll — mesmo
+        # numero, nomes diferentes. Tenta v1 e cai para v2.
+        alvo = str(id_configuration_participation)
         erros = []
-        for metodo, caminho, params, corpo in tentativas:
+        for caminho, campo in (("/api/v1/activities/enrollment", "idConfigurationParticipation"),
+                               ("/api/v2/activities/enroll", "idConfigurationEnroll")):
             try:
-                self._request(metodo, caminho, params=params, json=corpo)
-                log.info("Aluna %s desmarcada via %s %s", id_member, metodo, caminho)
-                return {"ok": True, "via": f"{metodo} {caminho} query={sorted(params.keys())} body={sorted((corpo or {}).keys())}"}
+                self._request("DELETE", caminho, params=dict(base, **{campo: alvo}))
+                log.info("Matricula %s da aluna %s apagada via %s", alvo, id_member, caminho)
+                return {"ok": True, "via": f"DELETE {caminho} ({campo})"}
             except Exception as e:
-                erros.append(f"{metodo} {caminho}: {str(e)[:120]}")
-        return {"ok": False, "erro": "nenhuma variante de cancelamento funcionou", "tentativas": erros}
+                erros.append(f"{caminho}: {str(e)[:140]}")
+        return {"ok": False, "erro": "nao foi possivel apagar a matricula", "tentativas": erros}
+
+    def cancelar_sessao(self, id_member, status=2, id_configuration=None,
+                        activity_date=None, id_activity_session=None, branch_id=None):
+        """Desmarca a aluna de UMA aula mudando o status da participacao.
+        status: 0=Presente, 1=Falta, 2=Falta JUSTIFICADA (gera reposicao conforme
+        as regras do EVO). E REVERSIVEL: basta chamar de novo com status=0.
+        BEST-EFFORT: nao levanta excecao."""
+        try:
+            self.change_session_status(status=status, id_member=id_member,
+                                       id_configuration=id_configuration,
+                                       activity_date=activity_date,
+                                       id_activity_session=id_activity_session,
+                                       branch_id=branch_id)
+            return {"ok": True, "via": f"change-status status={status}"}
+        except Exception as e:
+            return {"ok": False, "erro": str(e)[:300]}
 
     # --------------- agendamento da aula experimental ---------------
     def book_experimental_class(self, id_prospect, activity_date, activity=None,

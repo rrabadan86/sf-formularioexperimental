@@ -941,7 +941,10 @@ def _remarcar_core(id_member, id_configuration, activity_date, simular=True):
     # 2) marcou: agora cancela a(s) do mesmo dia (1 aula/dia)
     cancelados = []
     for a in mesmo_dia:
-        r = evo.unenroll_member(id_member=int(id_member),
+        # Desmarca a aula do mesmo dia mudando o status da participacao (falta
+        # justificada = 2). NAO apagamos a matricula recorrente aqui: isso tiraria
+        # a aluna de todas as ocorrencias futuras da turma.
+        r = evo.cancelar_sessao(id_member=int(id_member), status=2,
                                 id_configuration=a.get("idConfiguration"),
                                 activity_date=a.get("data"),
                                 id_activity_session=a.get("idActivitySession"))
@@ -1016,14 +1019,28 @@ def api_aluna_teste():
                     res[caminho] = {"erro": str(ex)[:160]}
             return jsonify({"ok": True, "matriculas": res})
 
+        # Desmarca UMA aula mudando o status (REVERSIVEL: status=0 volta ao normal)
+        # ?status=2&idMember=&turma=<idConfiguration>&data=<yyyy-mm-dd>[&sessao=]
+        if request.args.get("status") is not None and id_member:
+            r = evo.cancelar_sessao(
+                id_member=int(id_member), status=int(request.args["status"]),
+                id_configuration=(int(request.args["turma"]) if request.args.get("turma") else None),
+                activity_date=request.args.get("data"),
+                id_activity_session=(int(request.args["sessao"]) if request.args.get("sessao") else None))
+            return jsonify({"ok": True, "mudanca_de_status": r})
+
+        # APAGA A MATRICULA recorrente (cuidado: tira de todas as ocorrencias)
+        # ?matricula=<idConfigurationParticipation>&idMember=
+        if request.args.get("matricula") and id_member:
+            r = evo.unenroll_member(id_member=int(id_member),
+                                    id_configuration_participation=request.args["matricula"])
+            return jsonify({"ok": True, "matricula_apagada": r})
+
         # Testa SO o cancelamento de uma sessao (nao marca nada antes).
         # ?cancelar=<idConfiguration>&data=<yyyy-mm-dd>&sessao=<idActivitySession>
         if request.args.get("cancelar") and id_member:
-            r = evo.unenroll_member(
-                id_member=int(id_member),
-                id_configuration=int(request.args.get("cancelar")),
-                activity_date=request.args.get("data"),
-                id_activity_session=(int(request.args["sessao"]) if request.args.get("sessao") else None))
+            r = evo.unenroll_member(id_member=int(id_member),
+                                    id_configuration_participation=request.args.get("cancelar"))
             return jsonify({"ok": True, "cancelamento": r})
 
         # Funcionarios (pra descobrir o idEmployee que o EVO exige no cancelamento)
