@@ -1037,6 +1037,33 @@ def api_aluna_teste():
     executar = request.args.get("executar") == "1"   # sem isso = SIMULA
     try:
         evo = EvoClient()
+        # DIAGNOSTICO de CONTRATO: parcelas, data de termino, trancamentos e
+        # reposicoes. Tenta os endpoints candidatos e mostra o que cada um da.
+        # ?contrato=1&idMember=
+        if request.args.get("contrato") and id_member:
+            idm = int(id_member)
+            res = {}
+            def _t(nome, caminho, params):
+                try:
+                    r = evo._request("GET", caminho, params=params)
+                    itens = r if isinstance(r, list) else [r]
+                    itens = [x for x in itens if isinstance(x, dict)]
+                    res[nome] = {"qtd": len(itens), "campos": sorted(itens[0].keys())[:40] if itens else [],
+                                 "amostra": itens[0] if itens else r}
+                except Exception as ex:
+                    res[nome] = {"erro": str(ex)[:180]}
+            # 1) contrato/vigencia: membro com dados de contrato
+            _t("A_member_com_memberships", "/api/v2/members",
+               {"idsMembers": str(idm), "showMemberships": "true", "showActivityData": "true", "take": 1})
+            # 2) contratos do membro (vigencia, inicio/fim, status)
+            _t("B_membermembership", "/api/v1/membermembership", {"idMember": idm, "take": 10})
+            _t("C_members_memberships", f"/api/v1/members/{idm}/memberships", {"take": 10})
+            # 3) financeiro: parcelas em aberto
+            _t("D_receivables", "/api/v1/receivables", {"idMember": idm, "take": 10})
+            # 4) servicos/creditos do membro (candidato p/ reposicoes)
+            _t("E_members_services", "/api/v1/members/services", {"idMember": idm, "take": 10})
+            return jsonify({"ok": True, "idMember": idm, "diagnostico": res})
+
         # Lista as MATRICULAS da aluna com os ids reais (idConfigurationEnroll /
         # idConfigurationParticipation) — candidatos ao "IdConfiguration" que o
         # DELETE exige. ?matriculas=1&idMember=
