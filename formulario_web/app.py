@@ -991,6 +991,31 @@ def api_aluna_teste():
     executar = request.args.get("executar") == "1"   # sem isso = SIMULA
     try:
         evo = EvoClient()
+        # Lista as MATRICULAS da aluna com os ids reais (idConfigurationEnroll /
+        # idConfigurationParticipation) — candidatos ao "IdConfiguration" que o
+        # DELETE exige. ?matriculas=1&idMember=
+        if request.args.get("matriculas") and id_member:
+            res = {}
+            for caminho in ("/api/v1/activities/enrollment",
+                            "/api/v2/activities/enroll/member",
+                            "/api/v1/activities/enrollment/member-enrollment"):
+                try:
+                    r = evo._request("GET", caminho, params={"idMember": int(id_member)}) or []
+                    itens = r if isinstance(r, list) else [r]
+                    res[caminho] = [{
+                        "idConfigurationEnroll": e.get("idConfigurationEnroll"),
+                        "idConfigurationParticipation": e.get("idConfigurationParticipation"),
+                        "idConfiguration": e.get("idConfiguration"),
+                        "atividade": e.get("activityName") or e.get("activitieName"),
+                        "status": e.get("status"),
+                        "inicio": e.get("startTime"),
+                        "weekDay": e.get("weekDay"),
+                        "startDate": e.get("startDate"),
+                    } for e in itens if isinstance(e, dict)][-8:]
+                except Exception as ex:
+                    res[caminho] = {"erro": str(ex)[:160]}
+            return jsonify({"ok": True, "matriculas": res})
+
         # Testa SO o cancelamento de uma sessao (nao marca nada antes).
         # ?cancelar=<idConfiguration>&data=<yyyy-mm-dd>&sessao=<idActivitySession>
         if request.args.get("cancelar") and id_member:
