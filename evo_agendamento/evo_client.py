@@ -299,6 +299,69 @@ class EvoClient:
                 break
         return None
 
+    def member_contract(self, id_member, branch_id=None):
+        """Resumo do CONTRATO VIGENTE da aluna, pronto para a Sofia responder.
+
+        Regras do Studio:
+          - "vigente" NAO e so status "active": um contrato TRANCADO fica como
+            "suspended" e continua sendo o contrato dela;
+          - planos de CIRCUITO SLIM sao ignorados (assunto de recepcao) — sem isso
+            o Circuito "active" mascararia o plano principal suspenso;
+          - o limite de trancamento e de 30 dias por contrato (daysLeftToFreeze
+            traz esse total permitido; o que resta e o total menos o ja usado).
+
+        Retorna dict com plano, vigencia, situacao, trancamento, reposicoes e
+        proxima cobranca. Sem contrato vigente, devolve {"tem_contrato": False}."""
+        from datetime import datetime as _dt
+        def _d(v):
+            try: return _dt.strptime(str(v)[:10], "%Y-%m-%d").date()
+            except Exception: return None
+        hoje = _dt.now().date()
+
+        dados = self._request("GET", "/api/v2/members", params={
+            "idsMembers": str(int(id_member)), "showMemberships": "true", "take": 1,
+        }) or []
+        m = (dados[0] if isinstance(dados, list) and dados else dados) or {}
+        contratos = m.get("memberships") or []
+
+        # fora os Circuitos (recepcao cuida) e fora os encerrados/cancelados
+        VIGENTES = ("active", "suspended")
+        elegiveis = [c for c in contratos
+                     if "circuito" not in str(c.get("name") or "").lower()
+                     and str(c.get("membershipStatus") or "").lower() in VIGENTES]
+        if not elegiveis:
+            return {"tem_contrato": False,
+                    "nome": (m.get("firstName") or "").strip(),
+                    "idMember": int(id_member)}
+        # o de termino mais distante e o contrato em vigor
+        c = sorted(elegiveis, key=lambda x: (_d(x.get("endDate")) or hoje))[-1]
+
+        freezes = c.get("freezes") or []
+        usados = sum(int(f.get("daysFreeze") or 0) for f in freezes)
+        permitido = int(c.get("daysLeftToFreeze") or 0)          # total do contrato (30 nos planos FREE)
+        atual = next((f for f in freezes
+                      if (_d(f.get("startSuspend")) or hoje) <= hoje <= (_d(f.get("endSuspend")) or hoje)), None)
+        fim = _d(c.get("endDate"))
+        return {
+            "tem_contrato": True,
+            "idMember": int(id_member),
+            "nome": (m.get("firstName") or "").strip(),
+            "plano": str(c.get("name") or "").strip(),
+            "vezes_por_semana": c.get("weeklyLimit"),
+            "inicio": str(c.get("startDate") or "")[:10],
+            "termino": str(c.get("endDate") or "")[:10],
+            "dias_para_terminar": ((fim - hoje).days if fim else None),
+            "situacao": str(c.get("membershipStatus") or "").lower(),
+            "trancado_agora": bool(atual),
+            "trancado_ate": (str(atual.get("endSuspend"))[:10] if atual else None),
+            "trancamento_dias_usados": usados,
+            "trancamento_dias_permitidos": permitido,
+            "trancamento_dias_restantes": max(0, permitido - usados),
+            "reposicoes_disponiveis": int(c.get("pendingRepositions") or 0),
+            "proxima_cobranca": (str(c.get("nextCharge"))[:10] if c.get("nextCharge") else None),
+            "valor_proxima_cobranca": c.get("valueNextMonth"),
+        }
+
     def member_sessions(self, id_member, date_start=None, date_end=None, days_ahead=60,
                         branch_id=None, take=50):
         """Agenda da ALUNA: sessões FUTURAS que ela marcou (SLIMFIT etc.). O endpoint

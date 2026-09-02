@@ -883,6 +883,17 @@ def _remarcar_core(id_member, id_configuration, activity_date, simular=True):
     evo = EvoClient()
     dia_novo = _dia(activity_date)
 
+    # 0a) Contrato trancado nao pode marcar aula — o EVO recusaria, e a aluna
+    #     merece uma resposta clara em vez de um erro tecnico.
+    try:
+        ct = evo.member_contract(int(id_member))
+        if ct.get("tem_contrato") and ct.get("trancado_agora"):
+            return {"ok": False, "motivo": "contrato_trancado",
+                    "erro": f"contrato trancado até {ct.get('trancado_ate')}",
+                    "contrato": ct}
+    except Exception:
+        pass  # se a leitura do contrato falhar, segue o fluxo normal
+
     # 0) A turma existe NESSE dia e tem vaga? (evita marcar uma turma que não roda
     #    no dia pedido — ex.: pedir a turma de quinta num sábado.)
     grade = evo.list_schedule(dia_novo, show_full_week=False) or []
@@ -998,6 +1009,28 @@ def api_aluna_remarcar():
         return jsonify({"ok": False, "erro": str(e)}), 500
 
 
+@app.post("/api/aluna/contrato")
+def api_aluna_contrato():
+    """Resumo do contrato vigente da aluna (plano, vigência, trancamento,
+    reposições e próxima cobrança). Só leitura."""
+    if not SOFIA_TOKEN or request.headers.get("X-Sofia-Token") != SOFIA_TOKEN:
+        return jsonify({"ok": False, "erro": "não autorizado"}), 401
+    d = request.get_json(silent=True) or {}
+    id_member, telefone = d.get("idMember"), only_digits(d.get("telefone"))
+    try:
+        evo = EvoClient()
+        if not id_member:
+            if not telefone:
+                return jsonify({"ok": False, "erro": "informe idMember ou telefone"}), 400
+            id_member = evo.find_member_id(phone=telefone)
+            if not id_member:
+                return jsonify({"ok": True, "encontrada": False}), 200
+        return jsonify({"ok": True, "encontrada": True, **evo.member_contract(int(id_member))}), 200
+    except Exception as e:
+        app.logger.exception("Sofia: falha ao ler o contrato")
+        return jsonify({"ok": False, "erro": str(e)}), 500
+
+
 @app.post("/api/aluna/turmas")
 def api_aluna_turmas():
     """Turmas de um dia com horário e vagas (para a aluna escolher na remarcação)."""
@@ -1037,6 +1070,10 @@ def api_aluna_teste():
     executar = request.args.get("executar") == "1"   # sem isso = SIMULA
     try:
         evo = EvoClient()
+        # Resumo do contrato (o que a Sofia vai responder). ?contratoResumo=1&idMember=
+        if request.args.get("contratoResumo") and id_member:
+            return jsonify({"ok": True, **evo.member_contract(int(id_member))})
+
         # DIAGNOSTICO de CONTRATO: parcelas, data de termino, trancamentos e
         # reposicoes. Tenta os endpoints candidatos e mostra o que cada um da.
         # ?contrato=1&idMember=
