@@ -265,6 +265,50 @@ class EvoClient:
         data = self._request("GET", "/api/v1/prospects/services", params=params)
         return data if isinstance(data, list) else []
 
+    # --------------- members (alunas contratadas) — leitura ---------------
+    def find_members(self, phone=None, document=None, name=None, normalize_phone=True,
+                     show_memberships=True, branch_id=None):
+        """Busca ALUNAS (members) por telefone, CPF ou nome. Retorna lista (pode ser
+        vazia). É o cadastro de aluna CONTRATADA — diferente de prospect/lead.
+        Endpoint: GET /api/v2/members. status=1 = ativas (inclui suspensas/VIPs)."""
+        params = {"take": 10, "status": 1}
+        if phone:
+            params["phone"] = _evo_cellphone(phone, config.EVO_DDI) if normalize_phone else only_digits(phone)
+        if document:
+            params["document"] = only_digits(document)
+        if name:
+            params["name"] = name
+        if show_memberships:
+            params["showMemberships"] = "true"
+            params["showActivityData"] = "true"
+        bid = self._bid(branch_id)
+        if bid:
+            params["idBranch"] = bid
+        data = self._request("GET", "/api/v2/members", params=params) or []
+        return data if isinstance(data, list) else ([data] if data else [])
+
+    def find_member_id(self, phone=None, document=None):
+        """Atalho: idMember da 1ª aluna que casar (telefone com/sem o 9, depois CPF),
+        ou None. NÃO cria nada — só consulta."""
+        for np in (True, False):
+            membros = self.find_members(phone=phone, document=document, normalize_phone=np)
+            if membros:
+                m = membros[0]
+                return m.get("idMember") or m.get("idMembro")
+            if not phone:
+                break
+        return None
+
+    def member_sessions(self, id_member, branch_id=None, take=50):
+        """Agenda da ALUNA: sessões de atividade marcadas para ela.
+        Endpoint: GET /api/v2/activities/member/sessions. Só leitura."""
+        params = {"idMember": int(id_member), "take": take}
+        bid = self._bid(branch_id)
+        if bid:
+            params["idBranch"] = bid
+        data = self._request("GET", "/api/v2/activities/member/sessions", params=params) or []
+        return data if isinstance(data, list) else []
+
     # --------------- serviços / horários (descoberta) ---------------
     def list_services(self, experimental_only=False, branch_id=None):
         """Lista serviços. Com experimental_only=True, filtra os que liberam aula

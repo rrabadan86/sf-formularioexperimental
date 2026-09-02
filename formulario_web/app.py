@@ -799,5 +799,69 @@ def api_book_sofia():
         "activity": res.activity,
     })
 
+# ─────────────────────────────────────────────────────────────────────────
+#  ALUNAS (members) — remarcação/reposição. FASE 1: só LEITURA (não altera
+#  nada no EVO). A Sofia usa isto para achar a aluna e ver a agenda dela.
+# ─────────────────────────────────────────────────────────────────────────
+@app.post("/api/aluna/buscar")
+def api_aluna_buscar():
+    """Acha a ALUNA contratada por telefone (ou CPF). Só consulta."""
+    if not SOFIA_TOKEN or request.headers.get("X-Sofia-Token") != SOFIA_TOKEN:
+        return jsonify({"ok": False, "erro": "não autorizado"}), 401
+    dados = request.get_json(silent=True) or {}
+    telefone = only_digits(dados.get("telefone"))
+    document = only_digits(dados.get("cpf") or dados.get("document"))
+    if not telefone and not document:
+        return jsonify({"ok": False, "erro": "informe telefone ou cpf"}), 400
+    try:
+        evo = EvoClient()
+        membros = []
+        for np in (True, False):
+            membros = evo.find_members(phone=(telefone or None), document=(document or None), normalize_phone=np)
+            if membros:
+                break
+            if not telefone:
+                break
+        if not membros:
+            return jsonify({"ok": True, "encontrada": False}), 200
+        m = membros[0]
+        return jsonify({
+            "ok": True, "encontrada": True,
+            "idMember": m.get("idMember") or m.get("idMembro"),
+            "nome": (m.get("firstName") or m.get("registerName") or "").strip(),
+            "sobrenome": (m.get("lastName") or ""),
+            "status": m.get("membershipStatus"),
+        }), 200
+    except Exception as e:
+        app.logger.exception("Sofia: falha ao buscar aluna")
+        return jsonify({"ok": False, "erro": f"{e}"}), 500
+
+@app.post("/api/aluna/agenda")
+def api_aluna_agenda():
+    """Agenda (sessões marcadas) da aluna. Só consulta."""
+    if not SOFIA_TOKEN or request.headers.get("X-Sofia-Token") != SOFIA_TOKEN:
+        return jsonify({"ok": False, "erro": "não autorizado"}), 401
+    dados = request.get_json(silent=True) or {}
+    id_member = dados.get("idMember")
+    if not id_member:
+        return jsonify({"ok": False, "erro": "idMember não informado"}), 400
+    try:
+        evo = EvoClient()
+        sessoes = evo.member_sessions(int(id_member)) or []
+        out = []
+        for s in sessoes:
+            out.append({
+                "idConfiguration": s.get("idConfiguration") or s.get("idConfigurationEnroll"),
+                "idActivitySession": s.get("idActivitieSession") or s.get("idActivitySession"),
+                "atividade": s.get("activitieName") or s.get("name"),
+                "data": s.get("date"),
+                "inicio": s.get("startTime"),
+                "fim": s.get("endTime"),
+            })
+        return jsonify({"ok": True, "sessoes": out}), 200
+    except Exception as e:
+        app.logger.exception("Sofia: falha na agenda da aluna")
+        return jsonify({"ok": False, "erro": f"{e}"}), 500
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", "8000")), debug=True)
