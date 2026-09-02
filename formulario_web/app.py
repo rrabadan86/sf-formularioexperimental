@@ -863,5 +863,39 @@ def api_aluna_agenda():
         app.logger.exception("Sofia: falha na agenda da aluna")
         return jsonify({"ok": False, "erro": f"{e}"}), 500
 
+@app.get("/api/aluna/teste")
+def api_aluna_teste():
+    """Ajudante de TESTE p/ abrir no navegador do celular (token via query).
+    Só leitura. Remover quando a Sofia estiver ligada nesses endpoints."""
+    if not SOFIA_TOKEN or request.args.get("token") != SOFIA_TOKEN:
+        return jsonify({"ok": False, "erro": "não autorizado (token)"}), 401
+    telefone = only_digits(request.args.get("telefone"))
+    id_member = request.args.get("idMember")
+    try:
+        evo = EvoClient()
+        if id_member:
+            sessoes = evo.member_sessions(int(id_member)) or []
+            return jsonify({"ok": True, "idMember": id_member, "qtd": len(sessoes), "sessoes": sessoes})
+        if telefone:
+            membros = []
+            for np in (True, False):
+                membros = evo.find_members(phone=telefone, normalize_phone=np)
+                if membros:
+                    break
+            if not membros:
+                return jsonify({"ok": True, "encontrada": False, "telefone": telefone})
+            m = membros[0]
+            return jsonify({
+                "ok": True, "encontrada": True,
+                "idMember": m.get("idMember") or m.get("idMembro"),
+                "nome": (m.get("firstName") or m.get("registerName") or "").strip(),
+                "sobrenome": m.get("lastName") or "",
+                "dica": "agora abra a mesma URL trocando telefone por idMember=<esse número> para ver a agenda",
+            })
+        return jsonify({"ok": False, "erro": "passe ?telefone=... ou ?idMember=..."}), 400
+    except Exception as e:
+        app.logger.exception("teste aluna")
+        return jsonify({"ok": False, "erro": str(e)}), 500
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", "8000")), debug=True)
