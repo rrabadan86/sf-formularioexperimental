@@ -986,7 +986,7 @@ pm2 logs sofia-listener        <span class="c"># espere aparecer "PRONTA"</span>
         <div class="ic">!</div>
         <div>
           <h3>O QR é um login — trate como senha</h3>
-          <p>O QR conecta a conta de WhatsApp da Sofia. Ele é gerado <b>localmente</b> (nunca enviado para sites de QR externos). Não compartilhe o print. A sessão fica guardada em <code>ChatBot/.wwebjs_auth</code> (fora do Git).</p>
+          <p>O QR conecta a conta de WhatsApp da Sofia. Ele é gerado <b>localmente</b> (nunca enviado para sites de QR externos). Não compartilhe o print. A sessão fica guardada em <code>&lt;SOFIA_DIR&gt;/.wwebjs_auth</code> — com <code>SOFIA_DIR</code> definido, ex.: <code>/root/sofia-data/.wwebjs_auth</code> (sem ela, cai em <code>ChatBot/.wwebjs_auth</code>); fora do Git.</p>
         </div>
       </div>
     </div>
@@ -1004,6 +1004,8 @@ pm2 logs sofia-listener        <span class="c"># espere aparecer "PRONTA"</span>
           <li><b>Configuração → Jeito de responder</b>: define de quantos em quantos <b>segundos as Conversas se atualizam</b> sozinhas (padrão 4s).</li>
           <li><b>Tags</b>: a <b>Presença da experimental</b> (troca de tags pelo EVO) mudou da Configuração para cá.</li>
           <li><b>Perfis → Acessos</b> (só admin): define <b>quantos dias a sessão dura</b> (padrão 7) e vê as <b>sessões ativas</b>, podendo <b>encerrar</b> qualquer uma — a pessoa é deslogada e precisa entrar de novo.</li>
+          <li>🔌 <b>Conexão da SoFIA mais robusta</b> (só <code>git pull</code>): usa a <b>versão ao vivo</b> do WhatsApp Web (não trava mais numa versão fixa que saiu do repositório), <b>reconecta sozinha</b> após queda e, num <b>logout</b>, apaga o login morto e gera um <b>QR novo</b> automaticamente; se falhar em sequência, espera cada vez mais antes de tentar (não “martela” o WhatsApp). O <b>User-Agent</b> é fixado para o WhatsApp Web não recusar o navegador.</li>
+          <li>🎓 <b>Alunas contratadas</b> <b>(em implantação)</b>: a SoFIA reconhece a <b>etiqueta de aluna</b> e, no <b>horário da recepção</b> (configurável), fica <b>calada</b> para elas — quem atende é a recepcionista; fora desse horário responde de forma <b>diferenciada</b> (sem apresentação nem preço). Configurável em <b>SoFIA → Configuração → 🎓 Alunas contratadas</b> (etiqueta, janela e WhatsApp de aviso). Está sendo movida para o <b>número das alunas</b>; enquanto isso, permanece <b>desligada</b>.</li>
         </ul>
       </div>
     </div>
@@ -1028,6 +1030,10 @@ cd Experimental && npm install && pm2 restart slimfit-exp
 pm2 restart slimfit-exp
 pm2 stop slimfit-exp</pre>
     </div>
+    <div class="tip"><b>SoFIA pediu QR do nada ou travou em “Iniciando…”?</b> Quase sempre <code>pm2 restart sofia-listener</code> já resolve — ela se recupera sozinha. Se insistir, limpe <b>só o login</b> dela (conversas, etiquetas e roteiro <b>não</b> são tocados) e suba de novo. O login fica em <code>&lt;SOFIA_DIR&gt;/.wwebjs_auth</code> (ex.: <code>/root/sofia-data</code>):
+<pre class="term-body">pm2 stop sofia-listener
+rm -rf /root/sofia-data/.wwebjs_auth /root/sofia-data/.wwebjs_cache
+pm2 start sofia-listener</pre></div>
   </section>
 
   <!-- CHECKLIST FINAL -->
