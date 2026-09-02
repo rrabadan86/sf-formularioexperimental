@@ -930,25 +930,43 @@ def _remarcar_core(id_member, id_configuration, activity_date, simular=True):
     if simular:
         return {"ok": True, "simulacao": True, "plano": plano}
 
-    # 1) marca a aula nova — o EVO valida reposição/cota e recusa se não puder
-    try:
-        evo.enroll_schedule(id_configuration=int(id_configuration),
-                            activity_date=dia_novo, id_member=int(id_member))
-    except Exception as e:
-        return {"ok": False, "etapa": "marcar", "motivo": "nao_foi_possivel_marcar",
-                "erro": str(e)[:300], "plano": plano}
-
-    # 2) marcou: agora cancela a(s) do mesmo dia (1 aula/dia)
+    # ORDEM: desmarca a do MESMO DIA primeiro, depois marca a nova. Assim a aluna
+    # nunca fica com duas aulas no mesmo dia (a regra do Studio e 1 por dia).
+    # Se a marcacao falhar, desfazemos o cancelamento (rollback) para ela nao
+    # ficar sem aula nenhuma. A vaga da turma nova ja foi conferida la em cima.
     cancelados = []
     for a in mesmo_dia:
-        # Desmarca a aula do mesmo dia mudando o status da participacao (falta
-        # justificada = 2). NAO apagamos a matricula recorrente aqui: isso tiraria
-        # a aluna de todas as ocorrencias futuras da turma.
         r = evo.cancelar_sessao(id_member=int(id_member), status=2,
                                 id_configuration=a.get("idConfiguration"),
                                 activity_date=a.get("data"),
                                 id_activity_session=a.get("idActivitySession"))
         cancelados.append({"aula": a, "resultado": r})
+        if not r.get("ok"):
+            # nao conseguiu liberar o dia: aborta ANTES de marcar, e desfaz o que
+            # ja tinha cancelado — estado final igual ao inicial.
+            for feito in cancelados[:-1]:
+                evo.cancelar_sessao(id_member=int(id_member), status=0,
+                                    id_configuration=feito["aula"].get("idConfiguration"),
+                                    activity_date=feito["aula"].get("data"),
+                                    id_activity_session=feito["aula"].get("idActivitySession"))
+            return {"ok": False, "etapa": "cancelar", "motivo": "nao_liberou_o_dia",
+                    "erro": r.get("erro"), "cancelados_mesmo_dia": cancelados, "plano": plano}
+
+    # 2) dia livre: marca a aula nova
+    try:
+        evo.enroll_schedule(id_configuration=int(id_configuration),
+                            activity_date=dia_novo, id_member=int(id_member))
+    except Exception as e:
+        # ROLLBACK: devolve a(s) aula(s) que tinhamos cancelado
+        restaurados = []
+        for feito in cancelados:
+            rr = evo.cancelar_sessao(id_member=int(id_member), status=0,
+                                     id_configuration=feito["aula"].get("idConfiguration"),
+                                     activity_date=feito["aula"].get("data"),
+                                     id_activity_session=feito["aula"].get("idActivitySession"))
+            restaurados.append({"aula": feito["aula"], "resultado": rr})
+        return {"ok": False, "etapa": "marcar", "motivo": "nao_foi_possivel_marcar",
+                "erro": str(e)[:300], "rollback": restaurados, "plano": plano}
 
     return {"ok": True, "simulacao": False, "marcada": plano["marcar"],
             "cancelados_mesmo_dia": cancelados,
