@@ -319,7 +319,9 @@ class EvoClient:
         hoje = _dt.now().date()
 
         dados = self._request("GET", "/api/v2/members", params={
-            "idsMembers": str(int(id_member)), "showMemberships": "true", "take": 1,
+            "idsMembers": str(int(id_member)), "showMemberships": "true",
+            # sem showActivityData o EVO omite o weeklyLimit (o "3x por semana")
+            "showActivityData": "true", "take": 1,
         }) or []
         m = (dados[0] if isinstance(dados, list) and dados else dados) or {}
         contratos = m.get("memberships") or []
