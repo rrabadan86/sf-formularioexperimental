@@ -851,14 +851,17 @@ def api_aluna_agenda():
         out = []
         for s in sessoes:
             out.append({
-                "idConfiguration": s.get("idConfiguration") or s.get("idConfigurationEnroll"),
+                "idConfiguration": s.get("idConfiguration"),
                 "idActivitySession": s.get("idActivitieSession") or s.get("idActivitySession"),
                 "atividade": s.get("activitieName") or s.get("name"),
                 "data": s.get("date"),
                 "inicio": s.get("startTime"),
                 "fim": s.get("endTime"),
+                "status": s.get("statusName"),
+                "reposicao": s.get("isReplacement"),
+                "faltaJustificada": s.get("faltaJustificada"),
             })
-        return jsonify({"ok": True, "sessoes": out}), 200
+        return jsonify({"ok": True, "qtd": len(out), "sessoes": out}), 200
     except Exception as e:
         app.logger.exception("Sofia: falha na agenda da aluna")
         return jsonify({"ok": False, "erro": f"{e}"}), 500

@@ -299,10 +299,17 @@ class EvoClient:
                 break
         return None
 
-    def member_sessions(self, id_member, branch_id=None, take=50):
-        """Agenda da ALUNA: sessões de atividade marcadas para ela.
-        Endpoint: GET /api/v2/activities/member/sessions. Só leitura."""
-        params = {"idMember": int(id_member), "take": take}
+    def member_sessions(self, id_member, date_start=None, date_end=None, days_ahead=60,
+                        branch_id=None, take=50):
+        """Agenda da ALUNA: sessões FUTURAS que ela marcou (SLIMFIT etc.). O endpoint
+        EXIGE um intervalo de datas — sem ele volta vazio. Padrão: de hoje até
+        +days_ahead. Endpoint: GET /api/v2/activities/member/sessions. Só leitura.
+        Campos úteis: activitieName, date, startTime/endTime, idConfiguration,
+        idActivitieSession, statusName, isReplacement, faltaJustificada."""
+        from datetime import datetime as _dt, timedelta as _td
+        d0 = date_start or _dt.now().strftime("%Y-%m-%d")
+        d1 = date_end or (_dt.now() + _td(days=days_ahead)).strftime("%Y-%m-%d")
+        params = {"idMember": int(id_member), "dateStart": d0, "dateEnd": d1, "take": take}
         bid = self._bid(branch_id)
         if bid:
             params["idBranch"] = bid
