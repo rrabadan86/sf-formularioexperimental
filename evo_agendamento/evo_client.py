@@ -63,11 +63,23 @@ class EvoClient:
         url = f"{self.base_url}{path}"
         for tentativa in range(1, 5):                 # 1 tentativa + 3 retries no 429
             _rate_gate()                              # respeita o limite de req/min
-            resp = self.session.request(
-                method, url,
-                params=_drop_empty(params), json=json, auth=self.auth,
-                timeout=self.timeout, headers={"Accept": "application/json"},
-            )
+            try:
+                resp = self.session.request(
+                    method, url,
+                    params=_drop_empty(params), json=json, auth=self.auth,
+                    timeout=self.timeout, headers={"Accept": "application/json"},
+                )
+            except requests.exceptions.RequestException as e:
+                # Timeout / queda de conexao = lentidao ou instabilidade TEMPORARIA
+                # do EVO (nao e erro da nossa requisicao — auth/params dariam 4xx).
+                # Espera e tenta de novo, como no 429/5xx; so propaga se persistir.
+                if tentativa < 4:
+                    espera = min(5 * tentativa, 20)
+                    log.warning("EVO sem resposta (%s). Aguardando %.0fs e tentando de novo (%d/3)...",
+                                type(e).__name__, espera, tentativa)
+                    time.sleep(espera)
+                    continue
+                raise
             # HTTP 429 = limite de 40/min do EVO. Espera e tenta de novo (pode ter
             # sido outro consumidor — ex.: o bot do PC — usando a cota ao mesmo tempo).
             if resp.status_code == 429 and tentativa < 4:
