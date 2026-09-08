@@ -734,6 +734,12 @@ def api_book_sofia():
     email = (dados.get("email") or "").strip().lower()
     telefone = only_digits(dados.get("telefone"))
     when = (dados.get("when") or "").strip()   # "quinta-feira às 16:30" ou "2026-07-30 16:30"
+    # origem: "express" (Cadastro Express) ganha texto de confirmação próprio no
+    # bot do Studio; vazio = fluxo SoFIA/formulário (texto padrão). Vai junto na
+    # OUTBOX para o enviador escolher o modelo certo.
+    origem = (dados.get("origem") or "").strip().lower()
+    if origem != "express":
+        origem = ""
 
     # 2) Validação mínima (sem CPF/nascimento — fluxo leve do WhatsApp).
     if len(nome.split()) < 2:
@@ -787,6 +793,7 @@ def api_book_sofia():
             "contactId": "sofia-" + (telefone or ""),
             "name": nome, "phone": br_phone_with_9(telefone),
             "when": res.when, "message": msg, "status": "pending",
+            "origem": origem,   # "express" → confirmação com texto próprio no bot do Studio
         })
     except Exception:
         app.logger.exception("Sofia: agendou mas falhou ao enfileirar a confirmação")
