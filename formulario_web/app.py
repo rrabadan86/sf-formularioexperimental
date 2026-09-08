@@ -738,11 +738,11 @@ def api_book_sofia():
     # 2) Validação mínima (sem CPF/nascimento — fluxo leve do WhatsApp).
     if len(nome.split()) < 2:
         return jsonify({"ok": False, "erro": "nome incompleto"}), 400
-    # E-mail é OPCIONAL no fluxo do WhatsApp / cadastro express (balcão/telefone
-    # pode não ter e-mail): o EVO identifica a aluna pelo telefone. Se vier, valida
-    # o formato; se vier vazio, segue sem e-mail.
-    if email and "@" not in email:
-        return jsonify({"ok": False, "erro": "email inválido"}), 400
+    # E-mail agora é OBRIGATÓRIO: o EVO passou a exigi-lo no cadastro do prospect
+    # (retorna "Required fields not filled in" sem e-mail). Sem ele o agendamento
+    # falha, então exigimos aqui — vale para a SoFIA e para o Cadastro Express.
+    if not email or "@" not in email:
+        return jsonify({"ok": False, "erro": "email obrigatório"}), 400
     if not when:
         return jsonify({"ok": False, "erro": "horário não informado"}), 400
 
