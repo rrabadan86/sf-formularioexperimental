@@ -153,6 +153,8 @@ class EvoClient:
             "cpf": only_digits(document) if document else None,
             "birthday": birthday or None,
             "notes": notes,
+            # Studio exclusivo para MULHERES: todo prospect entra como Feminino.
+            "gender": config.EVO_GENDER or None,
         }
         bid = self._bid(branch_id)
         if bid:
@@ -186,6 +188,8 @@ class EvoClient:
             "ddi": (ddi or config.EVO_DDI) if phone else None,
             "cpf": only_digits(document) if document else None,
             "birthday": birthday or None,
+            # Reforca Feminino ao completar/atualizar um cadastro (Studio so p/ mulheres).
+            "gender": config.EVO_GENDER or None,
         }
         bid = self._bid(branch_id)
         if bid:

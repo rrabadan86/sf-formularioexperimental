@@ -61,6 +61,10 @@ EVO_BRANCH_ID = _clean("EVO_BRANCH_ID")
 # CANCELAR uma matricula: "Enter IdEmployee to proceed").
 EVO_ID_EMPLOYEE = _clean("EVO_ID_EMPLOYEE")
 EVO_DDI = _clean("EVO_DDI", "55")
+# Sexo/genero fixado no cadastro do prospect. O SlimFit e um Studio exclusivo para
+# MULHERES, entao todo agendamento (formulario, SoFIA, Cadastro Express) registra a
+# pessoa como Feminino. Ajustavel por env caso o EVO espere outro formato/valor.
+EVO_GENDER = _clean("EVO_GENDER", "F")
 EVO_TIMEOUT = int(_clean("EVO_TIMEOUT", "30"))
 
 # Padrões da aula experimental (usados quando não informados na chamada).
