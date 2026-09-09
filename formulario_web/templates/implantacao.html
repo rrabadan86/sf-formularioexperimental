@@ -680,7 +680,7 @@ curl -sI https://<b>form-lagosul1</b>.onrender.com/api/book-sofia | head -1</pre
       <h3><span class="num">5.6</span> Sobre o plano grátis da Render</h3>
       <p>O plano <b>Free</b> "dorme" depois de <b>~15 min sem acesso</b> — a primeira aluna a abrir o link espera uns <b>30–50 s</b> o serviço acordar (as seguintes já são instantâneas). Isso não perde dado, mas atrapalha a primeira impressão. Duas saídas:</p>
       <ul class="chk">
-        <li><span class="box">✓</span><span><b>Manter acordado de graça:</b> o robô já bate no formulário a cada minuto (empurra a grade e puxa marcações), o que naturalmente reduz o "sono" enquanto o robô está no ar.</span></li>
+        <li><span class="box">✓</span><span><b>Manter acordado de graça:</b> o robô <b>puxa as confirmações a cada minuto</b> — esse "toque" constante é o que mantém a Render acordada enquanto o robô está no ar (não é o envio da grade). A <b>grade de horários</b> é enviada numa cadência mais leve (boa prática da API do EVO): <b>a cada 60 min das 07h–21h</b> e <b>a cada ~3h de madrugada</b>. Como a grade vale por <b>4h</b> no formulário (<code>FORM_PUSH_TTL</code>) e o <code>/api/book</code> <b>revalida a vaga ao vivo</b> na hora de marcar, a aluna nunca vê "sem horário" por causa disso nem agenda em turma cheia.</span></li>
         <li><span class="box">✓</span><span><b>Plano pago (Starter, ~US$ 7/mês):</b> não dorme nunca e é o recomendado para uma unidade que já está vendendo. Troque em <b>Settings → Instance Type</b>.</span></li>
       </ul>
     </div>

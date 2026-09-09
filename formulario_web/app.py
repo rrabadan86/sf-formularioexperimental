@@ -442,7 +442,12 @@ if os.getenv("FORM_WARMER", "1") not in ("0", "false", "False"):
 # NA HORA, sem tocar no EVO. Se a grade enviada envelhecer (o VPS parou de
 # enviar), caímos automaticamente no cálculo local (warming) como reserva.
 SLOTS_PUSH_TOKEN = os.getenv("FORM_SLOTS_TOKEN", "")
-SLOTS_PUSH_TTL = float(os.getenv("FORM_PUSH_TTL", "1800"))   # 30 min de validade
+# Validade da grade empurrada pelo VPS. Precisa ser MAIOR que o intervalo entre
+# os pushes, senão a grade "vence" entre um push e outro e o form cai no cálculo
+# local (lento). O VPS empurra a cada 60 min (dia) e a cada ~3h (madrugada), então
+# 4h cobre com folga (inclusive um push que falhe). A grade fica levemente "velha"
+# no display, mas o /api/book revalida a vaga ao vivo — nada é agendado errado.
+SLOTS_PUSH_TTL = float(os.getenv("FORM_PUSH_TTL", "14400"))   # 4h de validade
 _PUSH_FILE = os.getenv("FORM_PUSH_FILE", "slots_pushed.json")
 _pushed = {"ts": 0.0, "slots": None}
 
