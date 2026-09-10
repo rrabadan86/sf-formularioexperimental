@@ -287,7 +287,8 @@ cd SF-Chat_Experimental-Mensagens/Experimental</pre>
       <h3><span class="num">6</span> Subir tudo — com HTTPS automático — e ler os QRs</h3>
       <div class="term">
         <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">subir</span></div>
-<pre class="term-body">bash setup-novo-studio.sh --slug <b>lagosul</b> --start --domain <b>painel-lagosul.seu-dominio</b>
+<pre class="term-body">bash setup-novo-studio.sh --slug <b>lagosul</b> --evo-tenant slimfit --evo-branch <b>NN</b> \
+  --start --domain <b>painel-lagosul.duckdns.org</b> --install-deps
 pm2 startup            <span class="c"># sobe sozinho após reboot</span>
 
 <span class="c"># ler os QRs dos 2 WhatsApp da unidade</span>
@@ -298,6 +299,22 @@ pm2 logs <b>lagosul</b>-sofia  <span class="c"># WhatsApp da SoFIA</span></pre>
         <code>lagosul-sofia</code>) e o <code>--domain</code> gera o bloco do <b>Caddy</b>,
         liga o <b>HTTPS</b> e recarrega. Escaneie cada QR com o celular do número
         correspondente.</p>
+
+      <div class="call danger" style="margin-top:14px">
+        <div class="ic">!</div>
+        <div>
+          <h3>Armadilhas comuns (aprendidas numa instalação real)</h3>
+          <ul style="margin:6px 0 0;padding-left:18px;line-height:1.55">
+            <li><b>Painel não abre (<code>ERR_CONNECTION_TIMED_OUT</code>):</b> o HTTPS/Caddy só sobe com <code>--domain</code>, e o Caddy só é <b>instalado</b> com <code>--install-deps</code>. Se você rodou <code>--start</code> sozinho, os processos sobem mas <b>nada escuta em 80/443</b>. Rode com <code>--start --domain … --install-deps</code>. Confira: <code>ss -tlnp | grep -E ':80 |:443 '</code> (tem que aparecer o caddy).</li>
+            <li><b>DuckDNS apontando pro IP errado:</b> clicar em <b>“update ip”</b> pelo navegador grava o IP do <b>seu computador</b>, não o da VPS. Ponha o <b>IPv4 da VPS</b> no campo “current ip”. Atenção: <code>curl ifconfig.me</code> às vezes devolve <b>IPv6</b> — use <code>curl -s4 ifconfig.me</code> para pegar o IPv4. Confira com <code>getent hosts SEU-DOMINIO</code> (tem que dar o IP da VPS).</li>
+            <li><b>EVO: <code>--evo-ids</code> sem as flags</b> cai no padrão <code>slimfit/15</code> (Setor Bueno) e traz os ids/ caminhos da unidade <b>errada</b>. <b>Sempre</b> passe <code>--evo-tenant</code> e <code>--evo-branch</code> (da URL do EVO: <code>…/app/&lt;tenant&gt;/&lt;branch&gt;/…</code>).</li>
+            <li><b>Dois acessos ao EVO, não confunda:</b> <code>EVO_DNS</code>+<code>EVO_TOKEN</code> são a <b>API de integração</b> (DNS + Secret Key, Basic auth — <b>não</b> é o login do site); o <b>e-mail/senha do site</b> vão em <code>EVO_EMAIL</code>+<code>EVO_PASSWORD</code> (usados pelo navegador que lê grade/faltas).</li>
+            <li><b>Serviço da experimental:</b> o <b>id</b> vai em <code>EVO_SERVICE_ID</code> (o <b>nome</b> vai em <code>EVO_SERVICE</code>) — não misture. Na <b>Render</b>, o modelo vem com <code>EVO_SERVICE_ID=128</code> (Setor Bueno): <b>troque pelo id da sua unidade</b>.</li>
+            <li><b>Login do painel:</b> usuário <code>admin</code> + a senha gerada em <code>PAINEL_SENHA</code> (leia com <code>grep ^PAINEL_SENHA= Experimental/.env</code>; também apareceu no terminal ao rodar o <code>--start</code>).</li>
+            <li><b>Grade “Preparando os horários…” pra sempre:</b> a grade vem <b>do EVO</b> (você não monta à mão). Se não preenche: (1) confira o EVO na Render (<code>EVO_BRANCH_ID</code>/<code>EVO_SERVICE_ID</code>) ou (2) a unidade ainda <b>não tem a grade de experimental cadastrada no EVO</b>. Teste na VPS: <code>cd Experimental/src/agendamento_evo && python3 push_slots.py</code> — <code>0 horários</code> = falta grade no EVO.</li>
+          </ul>
+        </div>
+      </div>
     </div>
 
     <div class="phase" style="margin-top:26px"><span class="pn">No final</span><h2>O que continua manual</h2></div>
@@ -622,7 +639,7 @@ pm2 logs slimfit-exp --lines 50  <span class="c"># sem erros</span></pre>
           <tr><td>EVO_DNS</td><td>DNS do EVO da unidade (o <b>mesmo</b> valor do <code>.env</code> da VPS).</td></tr>
           <tr><td>EVO_TOKEN</td><td>Token da API do EVO da unidade.</td></tr>
           <tr><td>EVO_BRANCH_ID</td><td>Número da unidade no EVO.</td></tr>
-          <tr><td>EVO_ACTIVITY_ID / EVO_SERVICE_ID</td><td>Ids da aula experimental (da <b>Fase 3</b>, <code>--evo-ids</code>). Pode usar os nomes em <code>EVO_ACTIVITY</code> / <code>EVO_SERVICE</code>.</td></tr>
+          <tr><td>EVO_ACTIVITY_ID / EVO_SERVICE_ID</td><td>Ids da aula experimental (da <b>Fase 3</b>, <code>--evo-ids</code>). O <b>id</b> vai no campo <code>_ID</code>; o <b>nome</b> em <code>EVO_ACTIVITY</code>/<code>EVO_SERVICE</code> — <b>não misture</b> (id no campo de nome não casa). ⚠️ O modelo vem com <code>EVO_SERVICE_ID=128</code> (Setor Bueno): <b>troque pelo id da SUA unidade</b>.</td></tr>
         </table>
       </div>
       <div class="fieldnote">
@@ -636,6 +653,16 @@ pm2 logs slimfit-exp --lines 50  <span class="c"># sem erros</span></pre>
           <tr><td>PAINEL_URL</td><td>Endereço do <b>painel desta unidade</b> (o formulário redireciona para ele). <b>Sem definir</b>, aponta para o painel do <b>Setor Bueno</b>.</td></tr>
         </table>
       </div>
+      <div class="fieldnote">
+        <div class="fnh">Environment · Render — identidade da unidade na landing (opcional, mas recomendado)</div>
+        <table>
+          <tr><td>FORM_UNIDADE</td><td>Nome que aparece no título e no <b>“Unidade …”</b> da página (ex.: <code>Lago Sul</code>). <b>Sem definir</b>, mostra <b>Setor Bueno</b>.</td></tr>
+          <tr><td>FORM_ENDERECO</td><td>Endereço completo exibido na confirmação (ex.: <code>QI 5, Lago Sul, Brasília-DF</code>).</td></tr>
+          <tr><td>FORM_MAPS_URL</td><td>Link do <b>Google Maps</b> da unidade (o “📍 Ver no mapa”).</td></tr>
+          <tr><td>FORM_WHATSAPP</td><td>Número do botão flutuante <b>“Fale com a Sofia”</b> — só dígitos, com DDI (ex.: <code>5561999998888</code>).</td></tr>
+        </table>
+      </div>
+      <div class="tip">Essas quatro deixam o formulário com a <b>cara da unidade</b> sem tocar no código (o mesmo repo serve todas). Sem elas, a página cai no padrão <b>Setor Bueno</b> — então numa unidade nova, <b>preencha</b>.</div>
       <div class="call danger" style="margin-top:12px">
         <div class="ic">!</div>
         <div>
