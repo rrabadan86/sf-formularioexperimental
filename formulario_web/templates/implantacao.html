@@ -758,6 +758,23 @@ IG_MAX_DIA=5</pre>
       </div>
       <div class="tip">Reinicie com <code>pm2 restart slimfit-exp</code>. Os cookies expiram com o tempo — quando isso acontecer, o alerta no ntfy avisa e é só reexportar. Depois de ter o painel (Fase 7), dá para <b>reimportar os cookies pela aba Instagram</b> (cola o JSON), sem scp nem SSH — e testar com um DM.</div>
       <div class="tip">Depois de instalado o painel (Fase 7), o <b>liga/desliga</b> e o <b>limite/dia</b> passam a ser ajustáveis na aba <b>Instagram</b> — sem mexer no <code>.env</code> nem reiniciar (fica em <code>data/instagram-config.json</code>; o <code>.env</code> vira só o padrão inicial).</div>
+
+      <h3 style="margin-top:28px"><span class="num">6.5</span> Instagram OFICIAL (Graph API da Meta) — recomendado</h3>
+      <p>A via <b>oficial</b> substitui a automação por cookie: quando alguém <b>comenta uma palavra-chave</b> num post/reel, <b>toca num Ice Breaker</b> ou <b>manda DM</b>, o app responde por <b>DM com o link do formulário</b>. É <b>estável e sem risco de bloqueio</b> (não usa senha/cookie/proxy) porque usa a API oficial e webhooks. O painel (aba <b>Instagram</b>) tem o card “Instagram oficial” com liga/desliga, palavras-chave, a mensagem do DM e os Ice Breakers.</p>
+      <div class="tip"><b>Pré-requisitos na Meta</b> (uma vez por unidade): (1) app com os produtos <b>Graph API do Instagram</b> + <b>Messenger</b>; (2) conta <b>profissional</b> do Instagram ligada a uma <b>Página</b> do Facebook; (3) <b>Verificação do Negócio</b> (Central de Segurança); (4) <b>App Review</b> — pedir <b>acesso avançado</b> do <code>instagram_manage_messages</code> (com justificativa + um screencast do fluxo) e então virar o app para <b>Ao vivo</b>. Sem esse acesso avançado, o envio de DM fica travado com o erro <code>(#3) ...capability</code> (funciona só em teste/roles).</div>
+      <p>No <code>.env</code>, preencha o bloco <b>Instagram OFICIAL</b> (todas as chaves <code>IG_*</code> ali documentadas) e, na Meta, configure o <b>webhook</b>:</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">.env + Webhook</span></div>
+<pre class="term-body">IG_APP_ID=...        IG_APP_SECRET=...     IG_PAGE_ID=...
+IG_PAGE_TOKEN=...    IG_VERIFY_TOKEN=<b>senha_que_voce_define</b>
+IG_FORM_URL=https://SEU-FORM.onrender.com
+
+<span class="c"># Na Meta → Webhook (produto Instagram/Messenger):</span>
+<span class="c">#   URL de retorno = https://SEU-PAINEL/ig/webhook</span>
+<span class="c">#   Token de verificação = o MESMO IG_VERIFY_TOKEN</span>
+<span class="c">#   Campos: comments, messages, messaging_postbacks</span></pre>
+      </div>
+      <div class="tip"><b>Conferir se ficou de pé</b> (sem SSH): a aba <b>Instagram</b> mostra <span style="color:var(--ok,#1a7f37)">✅ Conectado: @suaconta · Página …</span>. No servidor, <code>pm2 logs slimfit-painel | grep ig-api</code> mostra <code>[ig-api] pronto ✅ ...</code> no boot. Teste do webhook: abrir <code>https://SEU-PAINEL/ig/webhook</code> deve responder <code>forbidden</code> (é o esperado sem parâmetros — prova que está público). Enquanto o app estiver em <b>Desenvolvimento</b>, a Meta só entrega eventos de quem tem papel no app; com o app <b>Ao vivo</b> passa a valer para qualquer pessoa.</div>
     </div>
   </section>
 
