@@ -263,9 +263,27 @@ def _valida(dados):
 
 
 # ================================= rotas =====================================
+# Identidade da unidade na landing do formulário — vem do .env/Render, então o
+# MESMO código serve qualquer unidade. Sem definir, cai no padrão Setor Bueno
+# (retrocompatível: a unidade original não muda). Placeholders %%...%% no index.html.
+def _index_html():
+    with open(os.path.join(BASE, "templates", "index.html"), encoding="utf-8") as f:
+        html = f.read()
+    subs = {
+        "%%UNIDADE%%": os.getenv("FORM_UNIDADE", "Setor Bueno"),
+        "%%ENDERECO%%": os.getenv("FORM_ENDERECO", "R. C-235, 846, Setor Bueno, Goiânia-GO, 74280-130."),
+        "%%MAPS%%": os.getenv("FORM_MAPS_URL", "https://goo.gl/maps/LFBZhkzbCZ5wJ99f6"),
+        "%%WA_FONE%%": (os.getenv("FORM_WHATSAPP", "") or "5562996847251").replace("+", "").replace(" ", ""),
+    }
+    for k, v in subs.items():
+        html = html.replace(k, v)
+    return html
+
+
 @app.get("/")
 def index():
-    resp = make_response(send_from_directory(os.path.join(BASE, "templates"), "index.html"))
+    resp = make_response(_index_html())
+    resp.headers["Content-Type"] = "text/html; charset=utf-8"
     if not _eh_bot(request.headers.get("User-Agent")):
         # Cookie por visitante (pessoa) — persiste 1 ano. Assim "pessoas" < "acessos"
         # (varios F5 da mesma pessoa contam como 1 pessoa).
