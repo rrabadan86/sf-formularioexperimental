@@ -72,6 +72,10 @@
         box-shadow:0 6px 18px rgba(255,91,87,.32);transition:.16s}
   button.enviar:hover:not(:disabled){background:var(--coral-esc);box-shadow:0 8px 22px rgba(255,91,87,.4)}
   button.enviar:disabled{background:#f6b6b4;cursor:not-allowed;box-shadow:none}
+  /* "trabalhando": pulsa suave enquanto agenda no EVO — sinaliza que não travou */
+  button.enviar.enviando{animation:pulsando 1.15s ease-in-out infinite}
+  @keyframes pulsando{0%,100%{opacity:1}50%{opacity:.6}}
+  @media (prefers-reduced-motion:reduce){button.enviar.enviando{animation:none}}
 
   .aviso{background:var(--coral-soft);border:1px solid #f6d3d1;color:#b33a37;border-radius:12px;
          padding:10px 12px;font-size:.85rem;margin-bottom:12px}
@@ -304,7 +308,13 @@ document.getElementById("btn").addEventListener("click", async ()=>{
     activityDate: escolha.activityDate,
   };
   const btn = document.getElementById("btn");
-  btn.disabled = true; btn.textContent = "Enviando…";
+  btn.disabled = true; btn.classList.add("enviando");
+  // Progresso "vivo": o agendamento faz vários passos no EVO (reservar, confirmar,
+  // matricular) e pode levar até ~1 min. Sem isso, o botão fica parado em "Enviando…"
+  // e parece travado. Rodar mensagens curtas mostra que está trabalhando.
+  const _passos = ["Enviando…", "Reservando sua vaga…", "Confirmando no Studio…", "Quase lá — não feche a página 💛", "Finalizando…"];
+  let _pi = 0; btn.textContent = _passos[0];
+  const _tick = setInterval(function(){ _pi = (_pi + 1) % _passos.length; btn.textContent = _passos[_pi]; }, 3500);
   try{
     const r = await fetch("/api/book", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload)});
     const data = await r.json();
@@ -322,7 +332,8 @@ document.getElementById("btn").addEventListener("click", async ()=>{
   }catch(e){
     msg.className="msg err"; msg.textContent = "Falha de conexão. Tente de novo."; msg.style.display="block";
   }finally{
-    btn.disabled=false; btn.textContent="Agendar a sua aula Experimental";
+    clearInterval(_tick);
+    btn.disabled=false; btn.classList.remove("enviando"); btn.textContent="Agendar a sua aula Experimental";
   }
 });
 
