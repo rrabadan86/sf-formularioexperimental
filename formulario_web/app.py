@@ -622,26 +622,16 @@ def api_book():
     except Exception:
         app.logger.exception("Falha ao checar experimental existente (libero o agendamento)")
 
-    # revalida a vaga no momento do envio (regra do formulário: ocupation <= 7)
-    try:
-        slots = available_slots(evo=evo, days=FORM_DAYS, max_ocupacao=FORM_MAX_OCUPACAO)
-    except Exception as e:
-        app.logger.exception("Falha ao revalidar grade")
-        return jsonify({"ok": False, "erro": f"Erro ao consultar a agenda: {e}"}), 502
-
-    escolha = next((s for s in slots
-                    if str(s["idConfiguration"]) == str(id_config)
-                    and s["activityDate"] == activity_date), None)
-    if not escolha:
-        return jsonify({"ok": False, "erro": "Esse horário não está mais na grade. Atualize e escolha outro."}), 409
-    if not escolha["disponivel"]:
-        return jsonify({"ok": False, "erro": "Esse horário acabou de lotar. Escolha outro, por favor."}), 409
-
-    # cadastro + venda + matrícula no EVO
+    # cadastro + venda + matrícula no EVO. A vaga do horário escolhido é revalidada
+    # DENTRO do book_experimental (ele já busca a turma daquele horário e aplica o
+    # teto de ocupação via max_ocupacao) — bem mais rápido que recalcular a grade
+    # inteira aqui, que deixava o envio ~1 min. Se lotou/passou do teto/não existe
+    # mais, ele levanta TurmaLotadaError (tratado abaixo).
     try:
         res = book_experimental(
             name=limpo["nome"], when=activity_date, email=limpo["email"],
             phone=limpo["telefone"], document=limpo["cpf"], birthday=limpo["nascimento"],
+            max_ocupacao=FORM_MAX_OCUPACAO,
             evo=evo,
         )
     except TurmaLotadaError:

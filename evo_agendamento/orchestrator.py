@@ -187,6 +187,7 @@ def book_experimental(
     id_service=None,            # ou por id (default: EVO_SERVICE_ID)
     branch_id=None,
     check_capacity: bool = True,   # checa vaga (ocupation < capacity) e sugere alternativas
+    max_ocupacao: int = None,      # teto "leve" (form: ocupation <= 7). None = só capacidade real
     sell_service: bool = True,     # vende o serviço "Aula Experimental" antes de matricular
     document: str = None,          # CPF (opcional, usado pelo formulário web)
     birthday: str = None,          # data de nascimento yyyy-MM-dd (opcional)
@@ -263,6 +264,15 @@ def book_experimental(
         raise TurmaLotadaError(
             fmt_datetime_evo(when),
             alternatives=list_alternatives(evo, when, activity, id_activity, branch_id),
+        )
+    # Teto "leve" do formulário (ex.: ocupation <= 7): mesmo com vaga de capacidade
+    # real, não deixa marcar acima desse limite. Substitui a antiga revalidação da
+    # grade inteira no /api/book (que recalculava tudo e deixava o envio ~1 min).
+    if check_capacity and max_ocupacao is not None and (session.get("ocupation") or 0) > max_ocupacao:
+        raise TurmaLotadaError(
+            fmt_datetime_evo(when),
+            alternatives=list_alternatives(evo, when, activity, id_activity, branch_id),
+            reason=f"turma acima do limite do formulário ({session.get('ocupation')} > {max_ocupacao})",
         )
 
     id_configuration = session.get("idConfiguration")
