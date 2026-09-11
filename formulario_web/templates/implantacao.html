@@ -317,6 +317,33 @@ pm2 logs <b>lagosul</b>-sofia  <span class="c"># WhatsApp da SoFIA</span></pre>
       </div>
     </div>
 
+    <div class="phase" style="margin-top:26px"><span class="pn">Testar</span><h2>Validar os jobs sem enviar (unidade recém-migrada)</h2></div>
+    <div class="stepblock">
+      <p>Antes de divulgar, rode <b>cada job em modo seguro</b>: ele faz tudo — lê o EVO, escolhe quem receberia, monta o texto — mas <b>NÃO envia</b>. Todos aceitam <code>--dry</code> (ou já vêm em "simulação" por padrão).</p>
+      <div class="tip">⚠️ Antes, abra uma <b>janela de teste limpa</b>: <code>pm2 stop SEU-SLUG-exp</code> — assim os jobs manuais não disputam o <b>Chromium do EVO</b> com o agendador (a SoFIA e o painel seguem no ar). Rode <b>um job de cada vez</b>. Ao terminar, <code>pm2 start SEU-SLUG-exp</code>.</div>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">testar os jobs (não envia)</span></div>
+<pre class="term-body">cd ~/SF-Chat_Experimental-Mensagens/Experimental
+pm2 stop <b>SEU-SLUG</b>-exp        <span class="c"># janela de teste (SoFIA/painel seguem no ar)</span>
+
+node src/enviar_confirmacoes.js --dry                    <span class="c"># confirmação experimental</span>
+xvfb-run -a node src/followup-experimental.js --dry      <span class="c"># follow-up</span>
+xvfb-run -a node src/follow-up-no-show.js --dry          <span class="c"># faltas (no-show)</span>
+xvfb-run -a node src/aniversariantes.js                  <span class="c"># aniversário aluna (simulação)</span>
+xvfb-run -a node src/aniversario-ex.js                   <span class="c"># aniversário ex-alunas (simulação)</span>
+xvfb-run -a node src/aniversariantes-mes-grupo.js --dry  <span class="c"># equipe: aniversários do mês</span>
+xvfb-run -a node src/renovacoes-mes-grupo.js --dry       <span class="c"># equipe: renovações do mês</span>
+xvfb-run -a node src/renovar-contratos.js                <span class="c"># renovação (simulação)</span>
+xvfb-run -a node src/comparecimento.js --dry             <span class="c"># presença / troca de tags</span>
+xvfb-run -a node src/enviar-circuito.js --convocacao --dry <span class="c"># circuito</span>
+xvfb-run -a node src/ausentes-10-dias.js --dry           <span class="c"># ausentes 10 dias</span>
+xvfb-run -a node src/planilha-aniversarios.js --dry      <span class="c"># planilha de aniversários</span>
+
+pm2 start <b>SEU-SLUG</b>-exp       <span class="c"># volta ao normal</span></pre>
+      </div>
+      <div class="tip">Cada job imprime o que <b>faria</b> (quantos, para quem, prévia do texto) e termina com <code>🧪 Modo --dry: NADA foi enviado</code> (ou "simulação"). Erro de login do EVO num job → confira <code>EVO_EMAIL</code>/<code>EVO_PASSWORD</code> no <code>.env</code>. Para enviar de verdade, troque <code>--dry</code> por <code>--enviar</code>/<code>--run</code> conforme o job — ou deixe o agendador disparar no horário. Obs.: <code>suspensoes.js</code> mexe em contratos no EVO (não manda mensagem à aluna) — trate à parte.</div>
+    </div>
+
     <div class="phase" style="margin-top:26px"><span class="pn">No final</span><h2>O que continua manual</h2></div>
     <p>O script não consegue fazer estas 4 coisas (são externas ou de credencial):</p>
     <ul class="chk">
