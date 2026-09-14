@@ -229,6 +229,7 @@ cd SF-Chat_Experimental-Mensagens/Experimental</pre>
 <pre class="term-body">bash setup-novo-studio.sh --slug <b>lagosul</b> --studio <b>"Studio SlimFit Lago Sul"</b> \
   --evo-tenant <b>slimfitlagosul</b> --evo-branch <b>22</b> --install-deps</pre>
       </div>
+      <div class="tip">🔄 <b>Já instala com o código mais recente:</b> ao rodar, o script faz um <code>git pull --ff-only</code> sozinho (na branch que você clonou) para pegar as últimas correções — e, se o próprio script mudou, se <b>reexecuta</b> na versão nova. Se estiver offline ou a árvore estiver "suja", ele avisa e segue com o que já está clonado. Para instalar exatamente o que foi clonado, sem atualizar, use <code>--no-git-pull</code>. <b>Importante:</b> ele atualiza a <b>branch atual</b> — então clone/faça checkout da branch de deploy (ver passo 1) antes.</div>
       <p>O <code>--install-deps</code> instala <b>Node 20, git, Chromium, python3-venv,
         pm2 e tsx</b>; depois o script instala as dependências do projeto (Node +
         Python num venv), cria a pasta de dados (<code>SOFIA_DIR</code>) e gera
@@ -312,6 +313,8 @@ pm2 logs <b>lagosul</b>-sofia  <span class="c"># WhatsApp da SoFIA</span></pre>
             <li><b>Serviço da experimental:</b> o <b>id</b> vai em <code>EVO_SERVICE_ID</code> (o <b>nome</b> vai em <code>EVO_SERVICE</code>) — não misture. Na <b>Render</b>, o modelo vem com <code>EVO_SERVICE_ID=128</code> (Setor Bueno): <b>troque pelo id da sua unidade</b>.</li>
             <li><b>Login do painel:</b> usuário <code>admin</code> + a senha gerada em <code>PAINEL_SENHA</code> (leia com <code>grep ^PAINEL_SENHA= Experimental/.env</code>; também apareceu no terminal ao rodar o <code>--start</code>).</li>
             <li><b>Grade “Preparando os horários…” pra sempre:</b> a grade vem <b>do EVO</b> (você não monta à mão). Se não preenche: (1) confira o EVO na Render (<code>EVO_BRANCH_ID</code>/<code>EVO_SERVICE_ID</code>) ou (2) a unidade ainda <b>não tem a grade de experimental cadastrada no EVO</b>. Teste na VPS: <code>cd Experimental/src/agendamento_evo && python3 push_slots.py</code> — <code>0 horários</code> = falta grade no EVO.</li>
+            <li><b>Painel manda reiniciar “<code>slimfit-exp</code>” (o do Bueno):</b> os nomes dos processos no PM2 são <b>por unidade</b> (<code>&lt;slug&gt;-exp</code>/<code>&lt;slug&gt;-painel</code>/<code>&lt;slug&gt;-sofia</code>). Ponha <code>PM2_SLUG=&lt;slug&gt;</code> no <code>Experimental/.env</code> (o <code>--start</code> já grava isso nas instalações novas) e reinicie o painel: <code>pm2 restart &lt;slug&gt;-painel --update-env</code>. Sem isso, o botão “Reiniciar robô” e o restart pós-salvar apontam para o processo do <b>Setor Bueno</b> e falham.</li>
+            <li><b>WhatsApp cai a cada <code>pm2 restart</code>:</b> um restart <b>não</b> deveria pedir QR de novo — a sessão fica salva em <code>WA_AUTH_DIR</code>. Se cair, é porque o caminho era <b>relativo</b> e o pm2 subiu o processo de outro diretório (a sessão “sumia”). O código agora <b>ancora</b> caminhos relativos na pasta do Experimental; se ainda quiser blindar, use um caminho <b>absoluto</b> em <code>WA_AUTH_DIR</code>. Depois de escanear <b>uma vez</b>, os próximos restarts mantêm a conexão.</li>
           </ul>
         </div>
       </div>
@@ -370,8 +373,43 @@ pm2 start <b>SEU-SLUG</b>-exp       <span class="c"># volta ao normal</span></pr
       (2 lojas = 4 WhatsApps). Em regime normal cabe em 8&nbsp;GB; para os picos, faça os
       2 ajustes abaixo.</p>
 
+    <div class="tip">💡 <b>Regra de ouro:</b> a loja 2 é uma instalação <b>completa e nova</b>, igual à
+      loja 1 — só que num <b>clone separado</b> e com <code>--slug</code>, <code>--port</code>,
+      <code>--domain</code>, branch do EVO, tokens e QRs <b>próprios</b>. <b>Nada</b> é reaproveitado
+      da loja 1. Siga os mesmos comandos abaixo (é o mesmo fluxo do topo da página, só trocando os valores).</div>
+
     <div class="stepblock">
-      <h3><span class="num">A</span> Adicionar swap (rede de segurança de memória)</h3>
+      <h3><span class="num">A</span> Comandos da 2ª loja (na mesma VPS)</h3>
+      <p>Sequência completa. Troque <code>lagosul2</code> pelo apelido, <code>NN</code> pelo
+        <b>branch do EVO da loja 2</b> (veja na URL do EVO: <code>…/app/slimfit/<b>NN</b>/…</code>)
+        e o subdomínio pelo seu.</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS · root</span></div>
+<pre class="term-body"><span class="c"># 1) Clone SEPARADO — repare no nome da pasta diferente ao final</span>
+git clone https://github.com/rrabadan86/SF-Chat_Experimental-Mensagens.git <b>slimfit-lagosul2</b>
+cd <b>slimfit-lagosul2</b>/Experimental
+
+<span class="c"># 2) Monta os .env com segredos aleatórios (slug + porta PRÓPRIOS; branch do EVO da loja 2)</span>
+<span class="c">#    NÃO precisa --install-deps de novo (Node/Chromium/pm2 já estão no servidor da loja 1)</span>
+bash setup-novo-studio.sh --slug <b>lagosul2</b> --studio <b>"Studio SlimFit Lago Sul 2"</b> \
+  --evo-tenant slimfit --evo-branch <b>NN</b> --port <b>8081</b>
+
+<span class="c"># 3) Preencha os segredos DA LOJA 2 direto no arquivo (tokens ÚNICOS, NTFY_TOPIC próprio,</span>
+<span class="c">#    e JOBS_OFF / EVO_TOTP_SECRET se for o caso). Nunca reaproveite os da loja 1.</span>
+nano .env
+
+<span class="c"># 4) Sobe os processos + HTTPS no subdomínio PRÓPRIO (cria lagosul2-exp/-painel/-sofia)</span>
+bash setup-novo-studio.sh --slug <b>lagosul2</b> --start --domain <b>painel-lagosul2.SEU-DOMINIO</b>
+
+<span class="c"># 5) Escaneie os 2 QRs da loja 2 (robô e SoFIA), cada um no número certo</span>
+pm2 logs <b>lagosul2</b>-exp</pre>
+      </div>
+      <div class="tip">A porta padrão é <b>8080</b> (loja 1). A loja 2 <b>precisa</b> de outra
+        (<code>--port 8081</code>), senão os dois painéis brigam pela mesma porta.</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">B</span> Adicionar swap (rede de segurança de memória)</h3>
       <p><b>Uma vez só, no servidor</b> (não é por loja). Cria 4&nbsp;GB de swap para segurar picos de memória:</p>
       <div class="term">
         <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS · root · uma vez</span></div>
@@ -385,7 +423,7 @@ free -h                                                       <span class="c"># 
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">B</span> Escalonar os horários da 2ª loja</h3>
+      <h3><span class="num">C</span> Escalonar os horários da 2ª loja</h3>
       <p>Para as duas lojas não rasparem o EVO nem dispararem ao mesmo tempo, dê um
         <b>desencontro de alguns minutos</b> nos horários da loja 2 (no painel dela: aba
         <b>WhatsApp → Configuração</b>, e a hora do comparecimento em <b>SoFIA → Configuração</b>).
@@ -394,7 +432,7 @@ free -h                                                       <span class="c"># 
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">C</span> Checklist da 2ª loja (o que muda em relação à 1ª)</h3>
+      <h3><span class="num">D</span> Checklist da 2ª loja (o que muda em relação à 1ª)</h3>
       <ul class="chk">
         <li><span class="box">✓</span><span><b>Clone separado</b> (ex.: <code>~/slimfit-lagosul2</code>) — não reaproveite o da loja 1.</span></li>
         <li><span class="box">✓</span><span><b><code>--slug</code> diferente</b> (ex.: <code>lagosul2</code>) → processos <code>lagosul2-painel/-exp/-sofia</code>.</span></li>
@@ -479,10 +517,17 @@ node -v   <span class="c"># deve mostrar v20.x</span></pre>
 <pre class="term-body">cd ~
 git clone https://github.com/rrabadan86/SF-Chat_Experimental-Mensagens.git
 cd SF-Chat_Experimental-Mensagens
-git checkout main            <span class="c"># versao estavel (tudo mesclado)</span>
+git checkout main            <span class="c"># branch de deploy de loja NOVA (estavel, tudo mesclado)</span>
 cd Experimental
 npm install                  <span class="c"># baixa o Chromium do Puppeteer (uns minutos)</span></pre>
       </div>
+      <div class="tip">🔄 <b>O <code>setup-novo-studio.sh</code> já atualiza a branch sozinho</b> (<code>git pull --ff-only</code>) ao rodar — então a loja nova instala sempre com as últimas correções. Se preferir travar numa versão, use <code>--no-git-pull</code>.</div>
+      <div class="tip">🌿 <b>Qual branch usar (fluxo do projeto):</b>
+        <ul style="margin:6px 0 0">
+          <li><b>Loja nova →</b> use o <code>main</code> (acima). Ele recebe, de tempos em tempos, tudo o que foi validado em produção — então uma instalação do zero já nasce completa.</li>
+          <li><b>Unidades já no ar (ex.: Setor Bueno, Lago Sul) →</b> rodam a branch de trabalho <code>claude/slimfit-official-repo-q71zdd</code> e se atualizam com <code>git pull</code> nela. Mesmo código do <code>main</code>; não precisa migrar.</li>
+        </ul>
+        Em resumo: o desenvolvimento acontece na branch de trabalho e, quando amadurece, é mesclado no <code>main</code> (via Pull Request) para as lojas novas. As unidades existentes seguem na branch de trabalho normalmente.</div>
     </div>
 
     <div class="stepblock">
@@ -535,6 +580,31 @@ scp *.ogg root@<b>IP-DO-CLIENTE</b>:~/SF-Chat_Experimental-Mensagens/Experimenta
 scp google-sa.json root@<b>IP-DO-CLIENTE</b>:~/SF-Chat_Experimental-Mensagens/Experimental/</pre>
       </div>
       <div class="tip">Abra a planilha do cliente → <b>Compartilhar</b> → cole o <b>e-mail da conta de serviço</b> (está dentro do <code>google-sa.json</code>, campo <code>client_email</code>) como <b>Editor</b>. Sem isso, o robô lê mas não escreve.</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">2.5</span> 2FA do EVO (autenticação em duas etapas)</h3>
+      <p>A partir de <b>30/10/2026</b> o EVO passa a <b>exigir 2FA no login</b>. Como o robô loga sozinho (e-mail + senha), ele precisa saber resolver esse segundo passo. Há duas frentes, nesta ordem — e <b>enquanto você não configurar nada, tudo continua igual</b> (o robô não tenta preencher 2FA).</p>
+      <div class="tip">💡 <b>Use um usuário do EVO exclusivo do robô</b> (de preferência com um <b>e-mail só dele</b>). Assim o 2FA do robô fica separado do seu acesso pessoal e ninguém precisa compartilhar caixa de e-mail.</div>
+
+      <p style="margin-top:12px"><b>Plano A (principal, automático) — AUTENTICADOR/TOTP.</b> É o que resolve tudo sozinho, inclusive os jobs de madrugada. No cadastro do MFA do usuário do robô, o EVO mostra um QR e, atrás dele, uma <b>chave secreta</b> (base32). Em vez de escanear com o celular, capture essa chave num app autenticador (<b>2FAS</b> ou <b>Aegis</b>) e cole no <code>.env</code>:</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">Experimental/.env</span></div>
+<pre class="term-body"><span class="c"># a "chave secreta" (base32) que aparece atras do QR do MFA</span>
+EVO_TOTP_SECRET=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</pre>
+      </div>
+      <p>Reinicie o robô para valer: <code>pm2 restart SEU-SLUG-exp --update-env</code>. Pronto — o robô gera o código de 6 dígitos <b>offline</b> (o mesmo que o app mostraria) e digita sozinho quando o EVO pedir.</p>
+      <div class="tip">⚠️ A chave é um <b>segredo</b>: vai <b>direto no <code>.env</code></b> do servidor, <b>nunca</b> no chat, em e-mail ou no Git. Capture-a pelo app 2FAS/Aegis (ou <code>zbarimg</code> local) — <b>não</b> use sites aleatórios de "ler QR".</div>
+
+      <p style="margin-top:12px"><b>Plano B (rede de segurança, humano) — CÓDIGO PELO PAINEL.</b> Às vezes o EVO manda o código por <b>e-mail</b> em vez do autenticador (ex.: "dispositivo novo/suspeito"). Nesse caso o robô <b>não chuta</b> um código errado: ele <b>avisa no seu celular</b> (ntfy) e mostra um campo no painel, em <b>WhatsApp → Configuração</b> (logo abaixo do "Número para testes"): <b>🔐 Código do EVO (2FA)</b>. A recepção abre o e-mail do usuário do robô, copia o código e digita ali — o robô recebe e conclui o login.</p>
+      <div class="fieldnote">
+        <div class="fnh">Ajustes do plano B no <code>.env</code> (opcionais)</div>
+        <table>
+          <tr><td>EVO_2FA_PAINEL</td><td><code>true</code> liga o campo do painel <b>mesmo sem TOTP</b>. Com <code>EVO_TOTP_SECRET</code> preenchido, o plano B já vem ligado junto — não precisa desta linha.</td></tr>
+          <tr><td>EVO_2FA_ESPERA_MS</td><td>Quanto o robô espera alguém digitar no painel antes de desistir. Padrão <code>240000</code> (4 min).</td></tr>
+        </table>
+      </div>
+      <div class="tip">🌙 O campo do painel só ajuda quando <b>tem gente por perto</b> para digitar. Por isso o <b>autenticador (Plano A) é o principal</b>: os jobs automáticos de madrugada não têm quem digite o código — só o TOTP os resolve sozinho. Deixe o Plano A configurado e trate o Plano B como socorro.</div>
     </div>
   </section>
 
@@ -1091,6 +1161,15 @@ pm2 logs sofia-listener        <span class="c"># espere aparecer "PRONTA"</span>
           <li>🐢 <b>Grade de horários mais leve no EVO</b> (só <code>git pull</code> no VPS): o cálculo/envio da grade ao formulário passou de “a cada 10 min, 24h” para <b>a cada 60 min (07h–21h)</b> e <b>a cada ~3h de madrugada</b> — boa prática da API do EVO. A grade vale <b>4h</b> no formulário e a vaga é revalidada ao vivo no agendamento, então a aluna não vê “sem horário” por isso.</li>
           <li>🩹 <b>Auto-recuperação da grade após deploy</b> (só <code>git pull</code> + reiniciar <code>slimfit-exp</code>): o disco da Render é efêmero e apaga a grade enviada a cada deploy — antes o formulário podia ficar <b>até 60 min</b> mostrando “sem horário” / “está demorando mais que o normal”. Agora o VPS <b>confere a grade a cada 2 min</b> e a <b>reenvia na hora</b> se ela sumiu, derrubando essa janela para <b>~2 min</b> sem ninguém precisar rodar nada.</li>
           <li>🏷️ <b>Renomear o servidor sem travar</b> (só <code>git pull</code> + reiniciar): dá para trocar o <b>nome do host</b> da VPS (ex.: <code>sf.gyn.bueno</code>, <code>sf.bsb.asa-sul</code>) para identificar cada unidade. O Chromium guarda uma trava (<code>SingletonLock</code>) com o nome antigo da máquina e, ao renomear, recusava abrir (robô/SoFIA presos em “Iniciando…”). Agora <b>SoFIA, robô, EVO e Instagram limpam essa trava sozinhos no boot</b> — renomear virou seguro, sem reescanear QR. Útil ao provisionar cada unidade nova.</li>
+          <li>🔗 <b>Fim dos contatos duplicados pelo 9º dígito</b> (só <code>git pull</code> + reiniciar a SoFIA): o mesmo número aparecia como <b>dois contatos</b> nas Conversas — um <b>com</b> o 9 (ex.: 61 <b>9</b>9222-0710) e outro <b>sem</b> (61 9222-0710), porque o WhatsApp às vezes usa a forma antiga e o cadastro/EVO a nova. Agora a SoFIA <b>reconhece as duas formas como a mesma pessoa</b>: <b>funde os cards já duplicados</b> (no boot e a cada 3h) e faz toda mensagem nova <b>cair no card certo</b>, sem criar outro. Junta as mensagens em ordem e mantém as tags. (O CRM de Contatos já tratava isso.)</li>
+          <li>🔐 <b>2FA do EVO em TODOS os logins</b> (só <code>git pull</code> + reiniciar): quando o MFA do EVO está ligado, <b>todos</b> os jobs que leem o EVO (confirmações, aniversariantes, ausentes, renovações, planilha, suspensões, circuito…) preenchem o código do autenticador sozinhos. Antes só o login das confirmações tratava o 2FA — os jobs de Segmentação travavam com <code>Waiting failed: 30000ms</code>. Sem <code>EVO_TOTP_SECRET</code> é no-op (unidade sem MFA segue igual). Ver <b>Fase 2.5</b>.</li>
+          <li>📌 <b>WhatsApp não cai mais no <code>pm2 restart</code></b> (instalação): o <code>--kill-timeout 15000</code> nos processos dá tempo do Chromium fechar e <b>gravar a sessão</b> antes do pm2 encerrar (o padrão de 1,6s cortava no meio e pedia QR a cada restart). Loja nova já nasce com isso; em unidade antiga, recrie o processo com <code>--kill-timeout 15000</code>.</li>
+          <li>🚫 <b>Desligar envios por unidade</b> (<code>.env</code>): <code>JOBS_OFF=presentes,circuito_convocacao,circuito_lembrete</code> faz o robô <b>não agendar</b> esses jobs e o painel (WhatsApp → Configuração) mostrar uma caixa "Envios desativados nesta unidade". Chaves: <code>presentes</code> · <code>circuito_convocacao</code> · <code>circuito_lembrete</code> (ou <code>circuito</code> = os dois).</li>
+          <li>📅 <b>Antecedência da renovação configurável</b> (<code>.env</code>): o aviso de renovação sai por padrão <b>7 dias</b> antes do vencimento; para mudar por unidade, defina <code>RENOVACAO_DIAS_ANTES=30</code> (ex.: o Lago Sul avisa <b>30 dias</b> antes). Usa o <b>mesmo segmento</b> do EVO (que busca pelo mês), só troca o "+7" pelo número do <code>.env</code>. Reiniciar <code>exp</code>.</li>
+          <li>🏷️ <b>Novas variáveis nas mensagens</b> (reiniciar <code>exp</code> + <code>painel</code> e recarregar o navegador): a mensagem de <b>renovação</b> aceita <code>{contrato}</code> (nome do plano da aluna, ex.: <i>COPA SLIM 2026 - C.C. - GRUPO 1</i>) e os <b>follow-ups</b> aceitam <code>{nome}</code> (primeiro nome da aluna). As tags aparecem em <b>WhatsApp → Mensagens</b> ao editar cada texto.</li>
+          <li>▶️ <b>Re-rodar um job sob demanda</b> (sem SSH complicado): grave <code>data/rodar-job.json</code> com <code>{"job":"CHAVE"}</code> e o robô já conectado roda na hora (sem abrir 2º WhatsApp). Chaves: <code>aniversariantes, aniversarioEx, ausentes, renovacao, renovacoesMesGrupo, planilha, resumoDia, confirmacaoHoje, confirmacaoAmanha, followupMorning, followupAfternoon, noShowMorning, noShowAfternoon</code>. Ex.: <code>echo '{"job":"aniversariantes"}' &gt; data/rodar-job.json</code>.</li>
+          <li>🏢 <b>Multiunidade sem herdar nada do "Bueno"</b> (só <code>git pull</code>): os processos PM2 vêm de <code>PM2_SLUG</code> (<code>&lt;slug&gt;-exp/painel/sofia</code>), o branch do EVO é derivado do <code>.env</code> de cada unidade (nada de <code>slimfit/15</code> fixo), o <code>SHEETS_ID</code> não tem mais padrão (sem ID → planilha desligada) e o watchdog vigia os processos da própria unidade. O Setor Bueno segue idêntico (mantém os padrões legados quando não há <code>PM2_SLUG</code>).</li>
+          <li>🤖 <b>SoFIA usa o Chromium do sistema</b> (instalação): o <code>ChatBot/.env</code> agora define <code>CHROMIUM_PATH</code> — sem isso a SoFIA caía no Chromium empacotado do puppeteer, que quebra por falta de libs (<code>libnspr4.so</code> → <code>Code: 127</code>) e entrava em loop de reconexão.</li>
         </ul>
       </div>
     </div>
