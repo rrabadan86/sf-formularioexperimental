@@ -265,15 +265,10 @@ def book_experimental(
             fmt_datetime_evo(when),
             alternatives=list_alternatives(evo, when, activity, id_activity, branch_id),
         )
-    # Teto "leve" do formulário (ex.: ocupation <= 7): mesmo com vaga de capacidade
-    # real, não deixa marcar acima desse limite. Substitui a antiga revalidação da
-    # grade inteira no /api/book (que recalculava tudo e deixava o envio ~1 min).
-    if check_capacity and max_ocupacao is not None and (session.get("ocupation") or 0) > max_ocupacao:
-        raise TurmaLotadaError(
-            fmt_datetime_evo(when),
-            alternatives=list_alternatives(evo, when, activity, id_activity, branch_id),
-            reason=f"turma acima do limite do formulário ({session.get('ocupation')} > {max_ocupacao})",
-        )
+    # (Regra removida) O antigo "teto de ocupação" (FORM_MAX_OCUPACAO) reservava as
+    # últimas vagas e barrava a experimental mesmo com vaga real na turma. Agora
+    # vale só a CAPACIDADE REAL, já checada acima (session_has_room_normal): se há
+    # vaga de verdade, pode marcar — não importa se a capacidade é 8, 9 ou 10.
 
     id_configuration = session.get("idConfiguration")
 
@@ -415,7 +410,10 @@ def available_slots(evo=None, days=10, activity=None, id_activity=None, branch_i
             vistos.add(key)
             cap = s.get("capacity")
             ocup = s.get("ocupation") or 0
-            disponivel = (ocup <= max_ocupacao)
+            # Só precisa ter VAGA REAL (ocupation < capacity). O antigo teto
+            # FORM_MAX_OCUPACAO, que reservava as últimas vagas, foi removido: se
+            # sobra vaga de verdade, a experimental pode marcar (8/9/10 tanto faz).
+            disponivel = (cap is None or ocup < cap)
             # Turma FECHADA (cadeado) → indisponível, mesmo com 0 matriculadas. O EVO
             # marca isso no status da sessão: status 6 / "Finalized" = fechada. As
             # turmas ABERTAS normais vêm com status 4 / "Restrict". (Também barramos
