@@ -17,7 +17,7 @@ import re
 import threading
 import time
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from flask import Flask, jsonify, make_response, redirect, request, send_from_directory
 
@@ -124,7 +124,7 @@ def _ind_append(tipo, origem="", extra=None):
         ev = {
             "id": uuid.uuid4().hex[:12],
             "tipo": tipo,
-            "ts": datetime.now().isoformat(timespec="seconds"),
+            "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "origem": (origem or "")[:40],
         }
         if extra:
@@ -167,7 +167,7 @@ def _ind_remove(ids):
 def _booking_append(row):
     try:
         row = {"id": uuid.uuid4().hex[:12],
-               "ts": datetime.now().isoformat(timespec="seconds"), **row}
+               "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"), **row}
         with _lock:
             with open(BOOKINGS_FILE, "a", encoding="utf-8") as f:
                 f.write(json.dumps(row, ensure_ascii=False) + "\n")
@@ -665,7 +665,7 @@ def api_book():
     try:
         msg = _confirm_message(limpo["nome"], res.when)
         _outbox_append({
-            "ts": datetime.now().isoformat(timespec="seconds"),
+            "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "contactId": "form-" + limpo["cpf"],
             "name": limpo["nome"], "phone": br_phone_with_9(limpo["telefone"]),
             "when": res.when, "message": msg, "status": "pending",
@@ -802,7 +802,7 @@ def api_book_sofia():
     try:
         msg = _confirm_message(nome, res.when)
         _outbox_append({
-            "ts": datetime.now().isoformat(timespec="seconds"),
+            "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "contactId": "sofia-" + (telefone or ""),
             "name": nome, "phone": br_phone_with_9(telefone),
             "when": res.when, "message": msg, "status": "pending",
