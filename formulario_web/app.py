@@ -350,6 +350,15 @@ FORM_SLOTS_TTL = float(os.getenv("FORM_SLOTS_TTL", "120"))  # segundos de "fresc
 # estourava o timeout de 120s do gunicorn ("Falha de conexão"). Em partes, cada
 # pedido fica bem abaixo do limite e responde em segundos.
 FORM_FIRST_DAYS = int(os.getenv("FORM_FIRST_DAYS", "4"))
+# MODO "SÓ-PUSH": quando ligado, o formulário NUNCA calcula a grade ao vivo —
+# serve só a grade que o VPS empurra (POST /api/slots/push). Sem grade fresca,
+# devolve "warming" na hora (rápido) e espera o VPS reenviar (auto-recuperação
+# a cada 2 min). Por que isto existe: no free tier da Render, quando DUAS lojas
+# dividem a MESMA conta EVO, o cálculo local do form disputa a cota de 40/min com
+# o push do VPS → HTTP 429 e a grade "aparece e some". Ligando isto, só o VPS
+# toca o EVO (escalonado por FORM_SLOTS_MINUTO) e o form nunca briga pela cota.
+# Deixe DESLIGADO (padrão) em loja única, onde o cálculo local é a reserva útil.
+FORM_PUSH_ONLY = os.getenv("FORM_PUSH_ONLY", "0") not in ("0", "false", "False", "")
 # Um cache por tamanho de janela: {days: {"exp":..., "data":..., ...}}
 _slots_cache_por_dias = {}
 _slots_cache = {"exp": 0.0, "data": None, "refreshing": False, "error": None}
@@ -429,7 +438,10 @@ def _get_slots_cached(days):
 
 
 # Aquece a 1ª janela já no boot (em segundo plano; não bloqueia o 1º request).
-_refresh_slots_bg(min(FORM_FIRST_DAYS, FORM_DAYS))
+# Em modo só-push, NÃO aquece: quem alimenta a grade é o VPS (evita disputar a
+# cota do EVO com o push logo no boot, quando duas lojas sobem juntas).
+if not FORM_PUSH_ONLY:
+    _refresh_slots_bg(min(FORM_FIRST_DAYS, FORM_DAYS))
 
 
 def _warmer_loop():
@@ -491,7 +503,7 @@ def _pushed_fresh():
 
 # Aquecedor da grade: iniciado AQUI, já com _pushed_fresh definida (evita o
 # NameError de corrida quando o thread rodava antes de o módulo terminar o import).
-if os.getenv("FORM_WARMER", "1") not in ("0", "false", "False"):
+if not FORM_PUSH_ONLY and os.getenv("FORM_WARMER", "1") not in ("0", "false", "False"):
     threading.Thread(target=_warmer_loop, name="slots-warmer", daemon=True).start()
 
 
@@ -588,6 +600,15 @@ def api_slots():
         return jsonify({"ok": True, "dias": dias, "maxOcupacao": FORM_MAX_OCUPACAO,
                         "days": days, "maxDays": FORM_DAYS,
                         "temMais": days < FORM_DAYS, "fonte": "vps"})
+
+    # 1b) Modo só-push: NÃO calcula ao vivo. Sem grade fresca do VPS, devolve
+    # "warming" na hora (rápido, sem tocar no EVO) e deixa o VPS reenviar
+    # (auto-recuperação a cada 2 min). Assim o form nunca disputa a cota de
+    # 40/min do EVO com o push — fim do 429 e do "aparece e some".
+    if FORM_PUSH_ONLY:
+        return jsonify({"ok": True, "dias": {}, "warming": True,
+                        "days": days, "maxDays": FORM_DAYS,
+                        "temMais": days < FORM_DAYS, "fonte": "push-only"})
 
     # 2) Reserva: cálculo local (com "warming") se o VPS não estiver enviando.
     try:
