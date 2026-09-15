@@ -449,8 +449,9 @@ def _warmer_loop():
         time.sleep(intervalo)
 
 
-if os.getenv("FORM_WARMER", "1") not in ("0", "false", "False"):
-    threading.Thread(target=_warmer_loop, name="slots-warmer", daemon=True).start()
+# (O start do aquecedor da grade foi movido para DEPOIS da definição de
+#  _pushed_fresh — logo abaixo — para evitar um NameError de corrida no boot,
+#  quando o thread rodava antes de o módulo terminar de carregar.)
 
 
 # ============ grade enviada pelo VPS (VPS-push) — via instantânea ============
@@ -486,6 +487,12 @@ _pushed_load()
 def _pushed_fresh():
     return (_pushed["slots"] is not None and SLOTS_PUSH_TTL > 0
             and (time.time() - _pushed["ts"]) < SLOTS_PUSH_TTL)
+
+
+# Aquecedor da grade: iniciado AQUI, já com _pushed_fresh definida (evita o
+# NameError de corrida quando o thread rodava antes de o módulo terminar o import).
+if os.getenv("FORM_WARMER", "1") not in ("0", "false", "False"):
+    threading.Thread(target=_warmer_loop, name="slots-warmer", daemon=True).start()
 
 
 def _agora_brasilia():
