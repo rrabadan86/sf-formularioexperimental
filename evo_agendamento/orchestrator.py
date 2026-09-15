@@ -11,12 +11,13 @@ import logging
 import os
 import time
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from . import config
 from .evo_client import EvoClient, EvoError
 from .util import (
+    agora_brasilia,
     br_phone_with_9,
     fmt_datetime_evo, friendly_when_ptbr, only_digits, parse_when, same_slot,
     session_free_general, session_has_room_normal, session_start_datetime, split_name,
@@ -382,7 +383,7 @@ def available_slots(evo=None, days=10, activity=None, id_activity=None, branch_i
     evo = evo or EvoClient()
     activity = activity or config.EVO_ACTIVITY or None
     id_activity = id_activity or (config.EVO_ACTIVITY_ID or None)
-    now = now or datetime.now()
+    now = now or agora_brasilia()
     inicio = now.replace(hour=0, minute=0, second=0, microsecond=0)
     fim = inicio + timedelta(days=days)          # exclusivo
 
@@ -616,7 +617,7 @@ def _confirm_message(name, when):
 def _write_outbox(cid, name, phone, when, message):
     """Grava a confirmação na fila (JSONL) que o bot do Studio (8550-8065) vai enviar."""
     row = {
-        "ts": datetime.now().isoformat(timespec="seconds"),
+        "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "contactId": cid, "name": name, "phone": br_phone_with_9(phone),
         "when": when, "message": message, "status": "pending",
     }

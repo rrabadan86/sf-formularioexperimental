@@ -551,7 +551,7 @@ def api_diag_evo():
     from datetime import datetime as _dt
     t0 = time.monotonic()
     try:
-        raw = EvoClient().list_schedule(_dt.now(), show_full_week=True) or []
+        raw = EvoClient().list_schedule(_agora_brasilia().replace(tzinfo=None), show_full_week=True) or []
         dt_ms = int((time.monotonic() - t0) * 1000)
         ids = {}
         for s in raw[:400]:

@@ -2,7 +2,19 @@
 import json
 import re
 import unicodedata
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+
+def agora_brasilia():
+    """Horário de Brasília como datetime NAIVE (wall-clock) — drop-in para
+    datetime.now(). Necessário porque o formulário roda em UTC na Render: usar
+    now() puro comparava com horários locais do Studio e errava 3h. Brasil sem
+    horário de verão desde 2019 → UTC-3 fixo (usa zoneinfo quando disponível)."""
+    try:
+        from zoneinfo import ZoneInfo
+        return datetime.now(ZoneInfo("America/Sao_Paulo")).replace(tzinfo=None)
+    except Exception:
+        return (datetime.now(timezone.utc) - timedelta(hours=3)).replace(tzinfo=None)
 
 import requests
 
@@ -151,7 +163,7 @@ def _next_weekday(now, weekday, hh, mm):
 def parse_when_ptbr(text, now=None) -> datetime:
     """Converte 'segunda às 8h15', 'amanhã 07:00', 'dia 17 às 8h' em datetime real.
     Levanta ValueError se não conseguir identificar data + hora."""
-    now = now or datetime.now()
+    now = now or agora_brasilia()
     t = _strip_accents(str(text)).lower()
     hh, mm = _extract_time(t)
     if hh is None:
