@@ -488,12 +488,25 @@ def _pushed_fresh():
             and (time.time() - _pushed["ts"]) < SLOTS_PUSH_TTL)
 
 
+def _agora_brasilia():
+    """Horário de Brasília — robusto para o formulário, que roda em UTC na Render.
+    A grade vem em horário LOCAL do Studio (Brasília); comparar com um "agora" em
+    UTC escondia ~3h de horários ainda válidos. Brasil não tem horário de verão
+    desde 2019 → UTC-3 fixo (usa zoneinfo quando disponível)."""
+    try:
+        from zoneinfo import ZoneInfo
+        return datetime.now(ZoneInfo("America/Sao_Paulo"))
+    except Exception:
+        return datetime.now(timezone.utc) - timedelta(hours=3)
+
+
 def _pushed_slice(days):
     """Fatia a grade enviada (janela cheia) para os próximos `days` dias e tira
     horários que já passaram."""
-    corte = (datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    now_br = _agora_brasilia()
+    corte = (now_br.replace(hour=0, minute=0, second=0, microsecond=0)
              + timedelta(days=days)).strftime("%Y-%m-%d")
-    agora = datetime.now().strftime("%Y-%m-%d %H:%M")
+    agora = now_br.strftime("%Y-%m-%d %H:%M")
     return [s for s in (_pushed["slots"] or [])
             if s.get("activityDate", "") >= agora and s.get("date", "") < corte]
 
