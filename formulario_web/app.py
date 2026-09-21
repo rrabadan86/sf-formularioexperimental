@@ -874,6 +874,97 @@ def api_book_sofia():
         "activity": res.activity,
     })
 
+
+# ─────────────────────────────────────────────────────────────────────────
+#  DESMARCAR aula experimental de LEAD (idProspect) — usado pela SoFIA quando
+#  a lead avisa que não pode comparecer. VALIDAÇÃO: com "simular": true (padrão)
+#  só ACHA a matrícula e mostra o que faria, sem cancelar. Cancela via
+#  change-status (status=2 = falta justificada, reversível), sem EVO_ID_EMPLOYEE.
+# ─────────────────────────────────────────────────────────────────────────
+@app.post("/api/desmarcar-experimental")
+def api_desmarcar_experimental():
+    if not SOFIA_TOKEN or request.headers.get("X-Sofia-Token") != SOFIA_TOKEN:
+        return jsonify({"ok": False, "erro": "não autorizado"}), 401
+    d = request.get_json(silent=True) or {}
+    telefone = only_digits(d.get("telefone"))
+    data = (d.get("data") or "").strip()[:10]      # yyyy-MM-dd
+    horario = (d.get("horario") or "").strip()     # HH:MM (opcional, filtra a turma)
+    simular = d.get("simular", True)
+    if not isinstance(simular, bool):
+        simular = str(simular).lower() not in ("false", "0", "nao", "não")
+    if not telefone or not data:
+        return jsonify({"ok": False, "erro": "telefone e data (yyyy-MM-dd) obrigatórios"}), 400
+
+    evo = EvoClient()
+    # 1) prospect pelo telefone
+    try:
+        id_prospect = evo.find_prospect_id(phone=telefone)
+    except Exception as e:
+        return jsonify({"ok": False, "erro": f"falha ao buscar prospect: {e}"}), 200
+    if not id_prospect:
+        return jsonify({"ok": False, "motivo": "prospect_nao_encontrado"}), 200
+
+    # 2) achar a matrícula EXPERIMENTAL ATIVA do prospect nesse dia (varre as turmas
+    #    do dia; se veio horário, tenta as turmas daquele horário primeiro).
+    try:
+        turmas = evo.list_schedule(data, show_full_week=False, only_availables=False) or []
+    except Exception as e:
+        return jsonify({"ok": False, "erro": f"falha ao listar turmas: {e}"}), 200
+
+    def _hora(t):
+        s = str(t.get("startTime") or t.get("time") or t.get("hour") or "")
+        m = re.search(r"(\d{1,2}:\d{2})", s)
+        return m.group(1) if m else ""
+    if horario:
+        turmas = sorted(turmas, key=lambda t: 0 if _hora(t) == horario else 1)
+
+    achado = None
+    checadas = 0
+    for t in turmas:
+        idc = t.get("idConfiguration")
+        if not idc:
+            continue
+        checadas += 1
+        try:
+            det = evo.schedule_detail(id_configuration=idc, activity_date=data) or {}
+        except Exception:
+            continue
+        for en in (det.get("enrollments") or []):
+            mesmo = str(en.get("idProspect") or "") == str(id_prospect)
+            ativa = en.get("status") != 2 and not en.get("removed") and not en.get("suspended")
+            if mesmo and not en.get("idMember") and ativa:
+                achado = {
+                    "idConfiguration": idc,
+                    "activityDate": data,
+                    "horario": _hora(t),
+                    "idActivitySession": en.get("idActivitySession") or det.get("idActivitySession"),
+                    "status": en.get("status"),
+                    "idConfigurationParticipation": en.get("idConfigurationParticipation"),
+                }
+                break
+        if achado:
+            break
+
+    if not achado:
+        return jsonify({"ok": False, "motivo": "sem_experimental_ativa_nesse_dia",
+                        "idProspect": id_prospect, "turmas_checadas": checadas}), 200
+
+    if simular:
+        return jsonify({"ok": True, "simulado": True, "idProspect": id_prospect,
+                        "achado": achado}), 200
+
+    # 3) cancelar de verdade — status=2 (falta justificada, reversível) por idProspect
+    try:
+        r = evo.change_session_status(status=2, id_prospect=id_prospect,
+                                      id_configuration=achado["idConfiguration"],
+                                      activity_date=data)
+        return jsonify({"ok": True, "cancelado": True, "idProspect": id_prospect,
+                        "achado": achado, "evo": r}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "erro": f"falha ao cancelar no EVO: {e}",
+                        "idProspect": id_prospect, "achado": achado}), 200
+
+
 # ─────────────────────────────────────────────────────────────────────────
 #  ALUNAS (members) — remarcação/reposição. FASE 1: só LEITURA (não altera
 #  nada no EVO). A Sofia usa isto para achar a aluna e ver a agenda dela.
