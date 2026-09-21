@@ -111,6 +111,66 @@ def _row_key(row):
     return f"{row.get('contactId')}|{row.get('when')}|{row.get('ts')}"
 
 
+def _phones_match(a, b):
+    """Compara dois telefones de forma tolerante (com/sem 9, com/sem DDI)."""
+    da, db = only_digits(a), only_digits(b)
+    if not da or not db:
+        return False
+    return da == db or da[-8:] == db[-8:]
+
+
+def _outbox_remarcado(phone, new_when):
+    """REMARCAÇÃO: sobrescreve na fila (outbox) as confirmações PENDENTES desse
+    telefone com o NOVO horário/mensagem — para o bot do Studio não enviar a
+    confirmação do horário ANTIGO. Se não houver nenhuma pendente (já foi enviada),
+    enfileira uma NOVA confirmação com o novo horário, para a lead ser avisada da
+    mudança. Retorna (sobrescritas, nova_enfileirada)."""
+    with _lock:
+        rows = _outbox_read_all()
+        nome = None
+        sobrescritas = 0
+        for r in rows:
+            if _phones_match(r.get("phone"), phone):
+                if r.get("name"):
+                    nome = r["name"]           # guarda o nome mais recente conhecido
+                if r.get("status") == "pending":
+                    r["when"] = new_when
+                    r["message"] = _confirm_message(r.get("name"), new_when)
+                    r["ts"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+                    sobrescritas += 1
+        nova = False
+        if sobrescritas == 0 and nome:
+            rows.append({
+                "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                "contactId": "remarca-" + only_digits(phone),
+                "name": nome, "phone": br_phone_with_9(phone),
+                "when": new_when, "message": _confirm_message(nome, new_when),
+                "status": "pending", "origem": "remarcacao",
+            })
+            nova = True
+        with open(OUTBOX_FILE, "w", encoding="utf-8") as f:
+            for r in rows:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    return sobrescritas, nova
+
+
+def _outbox_cancelar_pending(phone):
+    """DESMARCAÇÃO (cancelamento puro): tira da fila as confirmações PENDENTES desse
+    telefone (status -> 'canceled'), para o bot não enviar a confirmação de uma aula
+    que foi cancelada. Retorna quantas foram canceladas."""
+    n = 0
+    with _lock:
+        rows = _outbox_read_all()
+        for r in rows:
+            if r.get("status") == "pending" and _phones_match(r.get("phone"), phone):
+                r["status"] = "canceled"
+                n += 1
+        with open(OUTBOX_FILE, "w", encoding="utf-8") as f:
+            for r in rows:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    return n
+
+
 # =================== indicadores (acessos / agendamentos) ====================
 # Buffer leve que o VPS puxa (GET /api/ind/pending) e confirma (POST /api/ind/ack).
 # Cada evento: {id, tipo: 'acesso'|'agendou', ts, origem}. Disco efemero da Render
@@ -980,11 +1040,21 @@ def api_desmarcar_experimental():
         r = evo.change_session_status(status=2, id_prospect=id_prospect,
                                       id_configuration=achado["idConfiguration"],
                                       activity_date=data)
-        return jsonify({"ok": True, "cancelado": True, "idProspect": id_prospect,
-                        "achado": achado, "evo": r}), 200
     except Exception as e:
         return jsonify({"ok": False, "erro": f"falha ao cancelar no EVO: {e}",
                         "idProspect": id_prospect, "achado": achado}), 200
+
+    # 4) tira da fila (outbox) qualquer confirmação PENDENTE dessa lead — a aula foi
+    #    cancelada, então o bot do Studio não deve enviar a confirmação dela.
+    outbox_canceladas = 0
+    try:
+        outbox_canceladas = _outbox_cancelar_pending(telefone)
+    except Exception:
+        app.logger.exception("desmarcar: falha ao cancelar a confirmação na fila")
+
+    return jsonify({"ok": True, "cancelado": True, "idProspect": id_prospect,
+                    "achado": achado, "outbox_canceladas": outbox_canceladas,
+                    "evo": r}), 200
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -1082,9 +1152,20 @@ def api_remarcar_experimental():
                         "idProspect": id_prospect, "de": achado, "para": nova,
                         "antiga_revertida": antiga_revertida}), 200
 
+    # 6) SOBRESCREVE a confirmação na fila (outbox) com o novo horário — senão o
+    #    bot do Studio enviaria a confirmação do horário ANTIGO que ainda está pendente.
+    outbox_sobrescritas = 0
+    outbox_nova = False
+    try:
+        outbox_sobrescritas, outbox_nova = _outbox_remarcado(telefone,
+                                                             f"{data_nova} {horario_novo}")
+    except Exception:
+        app.logger.exception("remarcar: falha ao ajustar a confirmação na fila")
+
     return jsonify({"ok": True, "remarcado": True, "desmarcado": True,
                     "idProspect": id_prospect, "de": achado, "para": nova,
-                    "evo_enroll": r_enroll}), 200
+                    "outbox_sobrescritas": outbox_sobrescritas,
+                    "outbox_nova": outbox_nova, "evo_enroll": r_enroll}), 200
 
 
 # ─────────────────────────────────────────────────────────────────────────
