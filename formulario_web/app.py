@@ -876,6 +876,65 @@ def api_book_sofia():
 
 
 # ─────────────────────────────────────────────────────────────────────────
+#  Helpers compartilhados por desmarcar/remarcar experimental
+# ─────────────────────────────────────────────────────────────────────────
+def _hora_turma(t):
+    """Extrai 'HH:MM' de uma turma da grade (startTime/time/hour)."""
+    s = str(t.get("startTime") or t.get("time") or t.get("hour") or "")
+    m = re.search(r"(\d{1,2}:\d{2})", s)
+    return m.group(1) if m else ""
+
+
+def _achar_exp_ativa(evo, id_prospect, data, horario=""):
+    """Varre as turmas do dia e acha a matrícula EXPERIMENTAL ATIVA do prospect
+    (idProspect preenchido, sem idMember, não cancelada). Se veio horário, tenta
+    as turmas daquele horário primeiro. Retorna (achado|None, turmas_checadas)."""
+    try:
+        turmas = evo.list_schedule(data, show_full_week=False, only_availables=False) or []
+    except Exception:
+        turmas = []
+    if horario:
+        turmas = sorted(turmas, key=lambda t: 0 if _hora_turma(t) == horario else 1)
+
+    checadas = 0
+    for t in turmas:
+        idc = t.get("idConfiguration")
+        if not idc:
+            continue
+        checadas += 1
+        try:
+            det = evo.schedule_detail(id_configuration=idc, activity_date=data) or {}
+        except Exception:
+            continue
+        for en in (det.get("enrollments") or []):
+            mesmo = str(en.get("idProspect") or "") == str(id_prospect)
+            ativa = (en.get("status") != 2 and not en.get("justifiedAbsence")
+                     and not en.get("removed") and not en.get("suspended"))
+            if mesmo and not en.get("idMember") and ativa:
+                return {
+                    "idConfiguration": idc,
+                    "activityDate": data,
+                    "horario": _hora_turma(t),
+                    "idActivitySession": en.get("idActivitySession") or det.get("idActivitySession"),
+                    "status": en.get("status"),
+                }, checadas
+    return None, checadas
+
+
+def _achar_turma_do_horario(evo, data, horario):
+    """Acha o idConfiguration da turma que roda naquele dia+horário (HH:MM).
+    Retorna (turma|None). Usa a grade completa (não só as com vaga)."""
+    try:
+        turmas = evo.list_schedule(data, show_full_week=False, only_availables=False) or []
+    except Exception:
+        turmas = []
+    for t in turmas:
+        if _hora_turma(t) == horario and t.get("idConfiguration"):
+            return t
+    return None
+
+
+# ─────────────────────────────────────────────────────────────────────────
 #  DESMARCAR aula experimental de LEAD (idProspect) — usado pela SoFIA quando
 #  a lead avisa que não pode comparecer. VALIDAÇÃO: com "simular": true (padrão)
 #  só ACHA a matrícula e mostra o que faria, sem cancelar. Cancela via
@@ -904,46 +963,8 @@ def api_desmarcar_experimental():
     if not id_prospect:
         return jsonify({"ok": False, "motivo": "prospect_nao_encontrado"}), 200
 
-    # 2) achar a matrícula EXPERIMENTAL ATIVA do prospect nesse dia (varre as turmas
-    #    do dia; se veio horário, tenta as turmas daquele horário primeiro).
-    try:
-        turmas = evo.list_schedule(data, show_full_week=False, only_availables=False) or []
-    except Exception as e:
-        return jsonify({"ok": False, "erro": f"falha ao listar turmas: {e}"}), 200
-
-    def _hora(t):
-        s = str(t.get("startTime") or t.get("time") or t.get("hour") or "")
-        m = re.search(r"(\d{1,2}:\d{2})", s)
-        return m.group(1) if m else ""
-    if horario:
-        turmas = sorted(turmas, key=lambda t: 0 if _hora(t) == horario else 1)
-
-    achado = None
-    checadas = 0
-    for t in turmas:
-        idc = t.get("idConfiguration")
-        if not idc:
-            continue
-        checadas += 1
-        try:
-            det = evo.schedule_detail(id_configuration=idc, activity_date=data) or {}
-        except Exception:
-            continue
-        for en in (det.get("enrollments") or []):
-            mesmo = str(en.get("idProspect") or "") == str(id_prospect)
-            ativa = (en.get("status") != 2 and not en.get("justifiedAbsence")
-                     and not en.get("removed") and not en.get("suspended"))
-            if mesmo and not en.get("idMember") and ativa:
-                achado = {
-                    "idConfiguration": idc,
-                    "activityDate": data,
-                    "horario": _hora(t),
-                    "idActivitySession": en.get("idActivitySession") or det.get("idActivitySession"),
-                    "status": en.get("status"),
-                }
-                break
-        if achado:
-            break
+    # 2) achar a matrícula EXPERIMENTAL ATIVA do prospect nesse dia
+    achado, checadas = _achar_exp_ativa(evo, id_prospect, data, horario)
 
     if not achado:
         return jsonify({"ok": False, "motivo": "sem_experimental_ativa_nesse_dia",
@@ -963,6 +984,89 @@ def api_desmarcar_experimental():
     except Exception as e:
         return jsonify({"ok": False, "erro": f"falha ao cancelar no EVO: {e}",
                         "idProspect": id_prospect, "achado": achado}), 200
+
+
+# ─────────────────────────────────────────────────────────────────────────
+#  REMARCAR aula experimental de LEAD (ATÔMICO) — desmarca a antiga E matricula
+#  na nova turma numa ÚNICA chamada. Evita que a SoFIA "esqueça" de agendar
+#  depois de desmarcar (ela só precisa de UMA ferramenta). O prospect já existe
+#  no EVO (idProspect), então NÃO pede nome/e-mail de novo.
+#
+#  Ordem SEGURA: matricula a NOVA primeiro; só se der certo, cancela a ANTIGA.
+#  Assim, se a nova turma estiver lotada/indisponível, a antiga permanece.
+#
+#  Body: {telefone, data_antiga (yyyy-MM-dd), horario_antigo? (HH:MM),
+#         data_nova (yyyy-MM-dd), horario_novo (HH:MM), simular (padrão true)}
+# ─────────────────────────────────────────────────────────────────────────
+@app.post("/api/remarcar-experimental")
+def api_remarcar_experimental():
+    if not SOFIA_TOKEN or request.headers.get("X-Sofia-Token") != SOFIA_TOKEN:
+        return jsonify({"ok": False, "erro": "não autorizado"}), 401
+    d = request.get_json(silent=True) or {}
+    telefone = only_digits(d.get("telefone"))
+    data_antiga = (d.get("data_antiga") or d.get("data") or "").strip()[:10]
+    horario_antigo = (d.get("horario_antigo") or d.get("horario") or "").strip()
+    data_nova = (d.get("data_nova") or "").strip()[:10]
+    horario_novo = (d.get("horario_novo") or d.get("horario_nova") or "").strip()
+    simular = d.get("simular", True)
+    if not isinstance(simular, bool):
+        simular = str(simular).lower() not in ("false", "0", "nao", "não")
+    if not telefone or not data_antiga or not data_nova or not horario_novo:
+        return jsonify({"ok": False, "erro": "telefone, data_antiga, data_nova e "
+                                             "horario_novo (HH:MM) obrigatórios"}), 400
+
+    evo = EvoClient()
+    # 1) prospect pelo telefone
+    try:
+        id_prospect = evo.find_prospect_id(phone=telefone)
+    except Exception as e:
+        return jsonify({"ok": False, "erro": f"falha ao buscar prospect: {e}"}), 200
+    if not id_prospect:
+        return jsonify({"ok": False, "motivo": "prospect_nao_encontrado"}), 200
+
+    # 2) achar a matrícula EXPERIMENTAL ATIVA do prospect no dia ANTIGO
+    achado, checadas = _achar_exp_ativa(evo, id_prospect, data_antiga, horario_antigo)
+    if not achado:
+        return jsonify({"ok": False, "motivo": "sem_experimental_ativa_no_dia_antigo",
+                        "idProspect": id_prospect, "turmas_checadas": checadas}), 200
+
+    # 3) achar a turma NOVA (idConfiguration) do dia+horário novo
+    turma_nova = _achar_turma_do_horario(evo, data_nova, horario_novo)
+    if not turma_nova:
+        return jsonify({"ok": False, "motivo": "turma_nova_nao_encontrada",
+                        "idProspect": id_prospect, "achado": achado,
+                        "data_nova": data_nova, "horario_novo": horario_novo}), 200
+    idc_nova = turma_nova.get("idConfiguration")
+    nova = {"idConfiguration": idc_nova, "activityDate": data_nova,
+            "horario": _hora_turma(turma_nova)}
+
+    if simular:
+        return jsonify({"ok": True, "simulado": True, "idProspect": id_prospect,
+                        "desmarcar": achado, "marcar": nova}), 200
+
+    # 4) MATRICULAR na turma nova PRIMEIRO (se falhar, a antiga fica intacta)
+    try:
+        r_enroll = evo.enroll_schedule(idc_nova, data_nova, id_prospect=id_prospect,
+                                       origin="sofia-remarcacao")
+    except Exception as e:
+        return jsonify({"ok": False, "motivo": "falha_ao_marcar_nova",
+                        "erro": f"{e}", "idProspect": id_prospect,
+                        "desmarcar": achado, "marcar": nova}), 200
+
+    # 5) só agora CANCELAR a antiga (best-effort — se falhar, avisa mas a nova já foi feita)
+    cancelado = False
+    erro_cancelar = None
+    try:
+        evo.change_session_status(status=2, id_prospect=id_prospect,
+                                  id_configuration=achado["idConfiguration"],
+                                  activity_date=data_antiga)
+        cancelado = True
+    except Exception as e:
+        erro_cancelar = f"{e}"
+
+    return jsonify({"ok": True, "remarcado": True, "idProspect": id_prospect,
+                    "desmarcado": cancelado, "erro_cancelar": erro_cancelar,
+                    "de": achado, "para": nova, "evo_enroll": r_enroll}), 200
 
 
 # ─────────────────────────────────────────────────────────────────────────
