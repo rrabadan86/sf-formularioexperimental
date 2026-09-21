@@ -24,7 +24,8 @@ from flask import Flask, jsonify, make_response, redirect, request, send_from_di
 from evo_agendamento import EvoClient, TurmaLotadaError, available_slots, book_experimental
 from evo_agendamento import config
 from evo_agendamento.orchestrator import _confirm_message
-from evo_agendamento.util import br_phone_with_9, only_digits
+from evo_agendamento.util import br_phone_with_9, only_digits, session_has_room_normal
+from evo_agendamento.orchestrator import turma_fechada
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, static_folder=os.path.join(BASE, "static"), static_url_path="/static")
@@ -1030,7 +1031,8 @@ def api_remarcar_experimental():
         return jsonify({"ok": False, "motivo": "sem_experimental_ativa_no_dia_antigo",
                         "idProspect": id_prospect, "turmas_checadas": checadas}), 200
 
-    # 3) achar a turma NOVA (idConfiguration) do dia+horário novo
+    # 3) achar a turma NOVA (idConfiguration) do dia+horário novo e checar vaga
+    #    ANTES de desmarcar — para não cancelar a antiga se a nova não der.
     turma_nova = _achar_turma_do_horario(evo, data_nova, horario_novo)
     if not turma_nova:
         return jsonify({"ok": False, "motivo": "turma_nova_nao_encontrada",
@@ -1040,33 +1042,49 @@ def api_remarcar_experimental():
     nova = {"idConfiguration": idc_nova, "activityDate": data_nova,
             "horario": _hora_turma(turma_nova)}
 
+    if turma_fechada(turma_nova):
+        return jsonify({"ok": False, "motivo": "turma_nova_fechada",
+                        "idProspect": id_prospect, "de": achado, "para": nova}), 200
+    if not session_has_room_normal(turma_nova):
+        return jsonify({"ok": False, "motivo": "turma_nova_lotada",
+                        "idProspect": id_prospect, "de": achado, "para": nova}), 200
+
     if simular:
         return jsonify({"ok": True, "simulado": True, "idProspect": id_prospect,
                         "desmarcar": achado, "marcar": nova}), 200
 
-    # 4) MATRICULAR na turma nova PRIMEIRO (se falhar, a antiga fica intacta)
-    try:
-        r_enroll = evo.enroll_schedule(idc_nova, data_nova, id_prospect=id_prospect,
-                                       origin="sofia-remarcacao")
-    except Exception as e:
-        return jsonify({"ok": False, "motivo": "falha_ao_marcar_nova",
-                        "erro": f"{e}", "idProspect": id_prospect,
-                        "desmarcar": achado, "marcar": nova}), 200
-
-    # 5) só agora CANCELAR a antiga (best-effort — se falhar, avisa mas a nova já foi feita)
-    cancelado = False
-    erro_cancelar = None
+    # 4) DESMARCAR a antiga PRIMEIRO — status=2 (falta justificada) GERA A REPOSIÇÃO,
+    #    que é o que habilita a matrícula na turma nova. (No EVO, a experimental só
+    #    tem 1 sessão; sem liberar a antiga, o enroll da nova dá "no sessions".)
     try:
         evo.change_session_status(status=2, id_prospect=id_prospect,
                                   id_configuration=achado["idConfiguration"],
                                   activity_date=data_antiga)
-        cancelado = True
     except Exception as e:
-        erro_cancelar = f"{e}"
+        return jsonify({"ok": False, "motivo": "falha_ao_desmarcar", "erro": f"{e}",
+                        "idProspect": id_prospect, "de": achado, "para": nova}), 200
 
-    return jsonify({"ok": True, "remarcado": True, "idProspect": id_prospect,
-                    "desmarcado": cancelado, "erro_cancelar": erro_cancelar,
-                    "de": achado, "para": nova, "evo_enroll": r_enroll}), 200
+    # 5) MATRICULAR na turma nova (consome a reposição gerada acima). Se falhar,
+    #    tenta REVERTER o cancelamento (status=0) para a lead não ficar sem aula.
+    try:
+        r_enroll = evo.enroll_schedule(idc_nova, data_nova, id_prospect=id_prospect,
+                                       origin="sofia-remarcacao")
+    except Exception as e:
+        antiga_revertida = False
+        try:
+            evo.change_session_status(status=0, id_prospect=id_prospect,
+                                      id_configuration=achado["idConfiguration"],
+                                      activity_date=data_antiga)
+            antiga_revertida = True
+        except Exception:
+            pass
+        return jsonify({"ok": False, "motivo": "falha_ao_marcar_nova", "erro": f"{e}",
+                        "idProspect": id_prospect, "de": achado, "para": nova,
+                        "antiga_revertida": antiga_revertida}), 200
+
+    return jsonify({"ok": True, "remarcado": True, "desmarcado": True,
+                    "idProspect": id_prospect, "de": achado, "para": nova,
+                    "evo_enroll": r_enroll}), 200
 
 
 # ─────────────────────────────────────────────────────────────────────────
