@@ -940,7 +940,7 @@ def api_desmarcar_experimental():
                     "idActivitySession": en.get("idActivitySession") or det.get("idActivitySession"),
                     "status": en.get("status"),
                     "idConfigurationParticipation": en.get("idConfigurationParticipation"),
-                    "_enrollment": en,   # dump cru p/ diagnóstico (achar o id de cancelamento)
+                    "_enrollment": {k: str(v) for k, v in en.items()},   # dump (texto) p/ diagnóstico
                 }
                 break
         if achado:
