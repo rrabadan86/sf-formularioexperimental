@@ -231,7 +231,7 @@ async function carregarGrade(qtdDias, tentativa){
   const caixaMais = document.getElementById("mais-dias");
   const btnMais = document.getElementById("btn-mais");
   try{
-    const url = qtdDias ? ("/api/slots?days=" + qtdDias) : "/api/slots";
+    const url = qtdDias ? ("%%BASE%%/api/slots?days=" + qtdDias) : "%%BASE%%/api/slots";
     const r = await fetch(url);
     const data = await r.json();
     if(!data.ok){ grade.innerHTML = '<div class="msg err" style="display:block">'+(data.erro||"Erro ao carregar")+'</div>'; return; }
@@ -316,7 +316,7 @@ document.getElementById("btn").addEventListener("click", async ()=>{
   let _pi = 0; btn.textContent = _passos[0];
   const _tick = setInterval(function(){ _pi = (_pi + 1) % _passos.length; btn.textContent = _passos[_pi]; }, 3500);
   try{
-    const r = await fetch("/api/book", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload)});
+    const r = await fetch("%%BASE%%/api/book", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload)});
     const data = await r.json();
     if(data.ok){
       document.getElementById("app").style.display="none";

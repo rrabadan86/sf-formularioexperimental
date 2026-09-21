@@ -24,7 +24,8 @@ from flask import Flask, jsonify, make_response, redirect, request, send_from_di
 from evo_agendamento import EvoClient, TurmaLotadaError, available_slots, book_experimental
 from evo_agendamento import config
 from evo_agendamento.orchestrator import _confirm_message
-from evo_agendamento.util import br_phone_with_9, only_digits
+from evo_agendamento.util import br_phone_with_9, only_digits, session_has_room_normal
+from evo_agendamento.orchestrator import turma_fechada
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, static_folder=os.path.join(BASE, "static"), static_url_path="/static")
@@ -128,6 +129,66 @@ def _outbox_ack(keys):
 
 def _row_key(row):
     return f"{row.get('contactId')}|{row.get('when')}|{row.get('ts')}"
+
+
+def _phones_match(a, b):
+    """Compara dois telefones de forma tolerante (com/sem 9, com/sem DDI)."""
+    da, db = only_digits(a), only_digits(b)
+    if not da or not db:
+        return False
+    return da == db or da[-8:] == db[-8:]
+
+
+def _outbox_remarcado(phone, new_when):
+    """REMARCAÇÃO: sobrescreve na fila (outbox) as confirmações PENDENTES desse
+    telefone com o NOVO horário/mensagem — para o bot do Studio não enviar a
+    confirmação do horário ANTIGO. Se não houver nenhuma pendente (já foi enviada),
+    enfileira uma NOVA confirmação com o novo horário, para a lead ser avisada da
+    mudança. Retorna (sobrescritas, nova_enfileirada)."""
+    with _lock:
+        rows = _outbox_read_all()
+        nome = None
+        sobrescritas = 0
+        for r in rows:
+            if _phones_match(r.get("phone"), phone):
+                if r.get("name"):
+                    nome = r["name"]           # guarda o nome mais recente conhecido
+                if r.get("status") == "pending":
+                    r["when"] = new_when
+                    r["message"] = _confirm_message(r.get("name"), new_when)
+                    r["ts"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+                    sobrescritas += 1
+        nova = False
+        if sobrescritas == 0 and nome:
+            rows.append({
+                "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                "contactId": "remarca-" + only_digits(phone),
+                "name": nome, "phone": br_phone_with_9(phone),
+                "when": new_when, "message": _confirm_message(nome, new_when),
+                "status": "pending", "origem": "remarcacao",
+            })
+            nova = True
+        with open(OUTBOX_FILE, "w", encoding="utf-8") as f:
+            for r in rows:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    return sobrescritas, nova
+
+
+def _outbox_cancelar_pending(phone):
+    """DESMARCAÇÃO (cancelamento puro): tira da fila as confirmações PENDENTES desse
+    telefone (status -> 'canceled'), para o bot não enviar a confirmação de uma aula
+    que foi cancelada. Retorna quantas foram canceladas."""
+    n = 0
+    with _lock:
+        rows = _outbox_read_all()
+        for r in rows:
+            if r.get("status") == "pending" and _phones_match(r.get("phone"), phone):
+                r["status"] = "canceled"
+                n += 1
+        with open(OUTBOX_FILE, "w", encoding="utf-8") as f:
+            for r in rows:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    return n
 
 
 # =================== indicadores (acessos / agendamentos) ====================
@@ -286,10 +347,24 @@ def _valida(dados):
 # Identidade da unidade na landing do formulário — vem do .env/Render, então o
 # MESMO código serve qualquer unidade. Sem definir, cai no padrão Setor Bueno
 # (retrocompatível: a unidade original não muda). Placeholders %%...%% no index.html.
+def _url_prefix():
+    """Prefixo de URL quando o form é servido sob uma subpasta (ex.: atrás do
+    Caddy em /agendamentoexperimental). Vem do header X-Forwarded-Prefix (setado
+    pelo proxy) ou do env FORM_URL_PREFIX. Vazio = servido na raiz. Sem barra final."""
+    try:
+        p = request.headers.get("X-Forwarded-Prefix", "")
+    except Exception:
+        p = ""
+    if not p:
+        p = os.getenv("FORM_URL_PREFIX", "")
+    return "/" + p.strip("/") if p.strip("/") else ""
+
+
 def _index_html():
     with open(os.path.join(BASE, "templates", "index.html"), encoding="utf-8") as f:
         html = f.read()
     subs = {
+        "%%BASE%%": _url_prefix(),
         "%%UNIDADE%%": os.getenv("FORM_UNIDADE", "Setor Bueno"),
         "%%ENDERECO%%": os.getenv("FORM_ENDERECO", "R. C-235, 846, Setor Bueno, Goiânia-GO, 74280-130."),
         "%%MAPS%%": os.getenv("FORM_MAPS_URL", "https://goo.gl/maps/LFBZhkzbCZ5wJ99f6"),
@@ -879,6 +954,239 @@ def api_book_sofia():
         "idProspect": res.id_prospect,
         "activity": res.activity,
     })
+
+
+# ─────────────────────────────────────────────────────────────────────────
+#  Helpers compartilhados por desmarcar/remarcar experimental
+# ─────────────────────────────────────────────────────────────────────────
+def _hora_turma(t):
+    """Extrai 'HH:MM' de uma turma da grade (startTime/time/hour)."""
+    s = str(t.get("startTime") or t.get("time") or t.get("hour") or "")
+    m = re.search(r"(\d{1,2}:\d{2})", s)
+    return m.group(1) if m else ""
+
+
+def _achar_exp_ativa(evo, id_prospect, data, horario=""):
+    """Varre as turmas do dia e acha a matrícula EXPERIMENTAL ATIVA do prospect
+    (idProspect preenchido, sem idMember, não cancelada). Se veio horário, tenta
+    as turmas daquele horário primeiro. Retorna (achado|None, turmas_checadas)."""
+    try:
+        turmas = evo.list_schedule(data, show_full_week=False, only_availables=False) or []
+    except Exception:
+        turmas = []
+    if horario:
+        turmas = sorted(turmas, key=lambda t: 0 if _hora_turma(t) == horario else 1)
+
+    checadas = 0
+    for t in turmas:
+        idc = t.get("idConfiguration")
+        if not idc:
+            continue
+        checadas += 1
+        try:
+            det = evo.schedule_detail(id_configuration=idc, activity_date=data) or {}
+        except Exception:
+            continue
+        for en in (det.get("enrollments") or []):
+            mesmo = str(en.get("idProspect") or "") == str(id_prospect)
+            ativa = (en.get("status") != 2 and not en.get("justifiedAbsence")
+                     and not en.get("removed") and not en.get("suspended"))
+            if mesmo and not en.get("idMember") and ativa:
+                return {
+                    "idConfiguration": idc,
+                    "activityDate": data,
+                    "horario": _hora_turma(t),
+                    "idActivitySession": en.get("idActivitySession") or det.get("idActivitySession"),
+                    "status": en.get("status"),
+                }, checadas
+    return None, checadas
+
+
+def _achar_turma_do_horario(evo, data, horario):
+    """Acha o idConfiguration da turma que roda naquele dia+horário (HH:MM).
+    Retorna (turma|None). Usa a grade completa (não só as com vaga)."""
+    try:
+        turmas = evo.list_schedule(data, show_full_week=False, only_availables=False) or []
+    except Exception:
+        turmas = []
+    for t in turmas:
+        if _hora_turma(t) == horario and t.get("idConfiguration"):
+            return t
+    return None
+
+
+# ─────────────────────────────────────────────────────────────────────────
+#  DESMARCAR aula experimental de LEAD (idProspect) — usado pela SoFIA quando
+#  a lead avisa que não pode comparecer. VALIDAÇÃO: com "simular": true (padrão)
+#  só ACHA a matrícula e mostra o que faria, sem cancelar. Cancela via
+#  change-status (status=2 = falta justificada, reversível), sem EVO_ID_EMPLOYEE.
+# ─────────────────────────────────────────────────────────────────────────
+@app.post("/api/desmarcar-experimental")
+def api_desmarcar_experimental():
+    if not SOFIA_TOKEN or request.headers.get("X-Sofia-Token") != SOFIA_TOKEN:
+        return jsonify({"ok": False, "erro": "não autorizado"}), 401
+    d = request.get_json(silent=True) or {}
+    telefone = only_digits(d.get("telefone"))
+    data = (d.get("data") or "").strip()[:10]      # yyyy-MM-dd
+    horario = (d.get("horario") or "").strip()     # HH:MM (opcional, filtra a turma)
+    simular = d.get("simular", True)
+    if not isinstance(simular, bool):
+        simular = str(simular).lower() not in ("false", "0", "nao", "não")
+    if not telefone or not data:
+        return jsonify({"ok": False, "erro": "telefone e data (yyyy-MM-dd) obrigatórios"}), 400
+
+    evo = EvoClient()
+    # 1) prospect pelo telefone
+    try:
+        id_prospect = evo.find_prospect_id(phone=telefone)
+    except Exception as e:
+        return jsonify({"ok": False, "erro": f"falha ao buscar prospect: {e}"}), 200
+    if not id_prospect:
+        return jsonify({"ok": False, "motivo": "prospect_nao_encontrado"}), 200
+
+    # 2) achar a matrícula EXPERIMENTAL ATIVA do prospect nesse dia
+    achado, checadas = _achar_exp_ativa(evo, id_prospect, data, horario)
+
+    if not achado:
+        return jsonify({"ok": False, "motivo": "sem_experimental_ativa_nesse_dia",
+                        "idProspect": id_prospect, "turmas_checadas": checadas}), 200
+
+    if simular:
+        return jsonify({"ok": True, "simulado": True, "idProspect": id_prospect,
+                        "achado": achado}), 200
+
+    # 3) cancelar de verdade — status=2 (falta justificada, reversível) por idProspect
+    try:
+        r = evo.change_session_status(status=2, id_prospect=id_prospect,
+                                      id_configuration=achado["idConfiguration"],
+                                      activity_date=data)
+    except Exception as e:
+        return jsonify({"ok": False, "erro": f"falha ao cancelar no EVO: {e}",
+                        "idProspect": id_prospect, "achado": achado}), 200
+
+    # 4) tira da fila (outbox) qualquer confirmação PENDENTE dessa lead — a aula foi
+    #    cancelada, então o bot do Studio não deve enviar a confirmação dela.
+    outbox_canceladas = 0
+    try:
+        outbox_canceladas = _outbox_cancelar_pending(telefone)
+    except Exception:
+        app.logger.exception("desmarcar: falha ao cancelar a confirmação na fila")
+
+    return jsonify({"ok": True, "cancelado": True, "idProspect": id_prospect,
+                    "achado": achado, "outbox_canceladas": outbox_canceladas,
+                    "evo": r}), 200
+
+
+# ─────────────────────────────────────────────────────────────────────────
+#  REMARCAR aula experimental de LEAD (ATÔMICO) — desmarca a antiga E matricula
+#  na nova turma numa ÚNICA chamada. Evita que a SoFIA "esqueça" de agendar
+#  depois de desmarcar (ela só precisa de UMA ferramenta). O prospect já existe
+#  no EVO (idProspect), então NÃO pede nome/e-mail de novo.
+#
+#  Ordem SEGURA: matricula a NOVA primeiro; só se der certo, cancela a ANTIGA.
+#  Assim, se a nova turma estiver lotada/indisponível, a antiga permanece.
+#
+#  Body: {telefone, data_antiga (yyyy-MM-dd), horario_antigo? (HH:MM),
+#         data_nova (yyyy-MM-dd), horario_novo (HH:MM), simular (padrão true)}
+# ─────────────────────────────────────────────────────────────────────────
+@app.post("/api/remarcar-experimental")
+def api_remarcar_experimental():
+    if not SOFIA_TOKEN or request.headers.get("X-Sofia-Token") != SOFIA_TOKEN:
+        return jsonify({"ok": False, "erro": "não autorizado"}), 401
+    d = request.get_json(silent=True) or {}
+    telefone = only_digits(d.get("telefone"))
+    data_antiga = (d.get("data_antiga") or d.get("data") or "").strip()[:10]
+    horario_antigo = (d.get("horario_antigo") or d.get("horario") or "").strip()
+    data_nova = (d.get("data_nova") or "").strip()[:10]
+    horario_novo = (d.get("horario_novo") or d.get("horario_nova") or "").strip()
+    simular = d.get("simular", True)
+    if not isinstance(simular, bool):
+        simular = str(simular).lower() not in ("false", "0", "nao", "não")
+    if not telefone or not data_antiga or not data_nova or not horario_novo:
+        return jsonify({"ok": False, "erro": "telefone, data_antiga, data_nova e "
+                                             "horario_novo (HH:MM) obrigatórios"}), 400
+
+    evo = EvoClient()
+    # 1) prospect pelo telefone
+    try:
+        id_prospect = evo.find_prospect_id(phone=telefone)
+    except Exception as e:
+        return jsonify({"ok": False, "erro": f"falha ao buscar prospect: {e}"}), 200
+    if not id_prospect:
+        return jsonify({"ok": False, "motivo": "prospect_nao_encontrado"}), 200
+
+    # 2) achar a matrícula EXPERIMENTAL ATIVA do prospect no dia ANTIGO
+    achado, checadas = _achar_exp_ativa(evo, id_prospect, data_antiga, horario_antigo)
+    if not achado:
+        return jsonify({"ok": False, "motivo": "sem_experimental_ativa_no_dia_antigo",
+                        "idProspect": id_prospect, "turmas_checadas": checadas}), 200
+
+    # 3) achar a turma NOVA (idConfiguration) do dia+horário novo e checar vaga
+    #    ANTES de desmarcar — para não cancelar a antiga se a nova não der.
+    turma_nova = _achar_turma_do_horario(evo, data_nova, horario_novo)
+    if not turma_nova:
+        return jsonify({"ok": False, "motivo": "turma_nova_nao_encontrada",
+                        "idProspect": id_prospect, "achado": achado,
+                        "data_nova": data_nova, "horario_novo": horario_novo}), 200
+    idc_nova = turma_nova.get("idConfiguration")
+    nova = {"idConfiguration": idc_nova, "activityDate": data_nova,
+            "horario": _hora_turma(turma_nova)}
+
+    if turma_fechada(turma_nova):
+        return jsonify({"ok": False, "motivo": "turma_nova_fechada",
+                        "idProspect": id_prospect, "de": achado, "para": nova}), 200
+    if not session_has_room_normal(turma_nova):
+        return jsonify({"ok": False, "motivo": "turma_nova_lotada",
+                        "idProspect": id_prospect, "de": achado, "para": nova}), 200
+
+    if simular:
+        return jsonify({"ok": True, "simulado": True, "idProspect": id_prospect,
+                        "desmarcar": achado, "marcar": nova}), 200
+
+    # 4) DESMARCAR a antiga PRIMEIRO — status=2 (falta justificada) GERA A REPOSIÇÃO,
+    #    que é o que habilita a matrícula na turma nova. (No EVO, a experimental só
+    #    tem 1 sessão; sem liberar a antiga, o enroll da nova dá "no sessions".)
+    try:
+        evo.change_session_status(status=2, id_prospect=id_prospect,
+                                  id_configuration=achado["idConfiguration"],
+                                  activity_date=data_antiga)
+    except Exception as e:
+        return jsonify({"ok": False, "motivo": "falha_ao_desmarcar", "erro": f"{e}",
+                        "idProspect": id_prospect, "de": achado, "para": nova}), 200
+
+    # 5) MATRICULAR na turma nova (consome a reposição gerada acima). Se falhar,
+    #    tenta REVERTER o cancelamento (status=0) para a lead não ficar sem aula.
+    try:
+        r_enroll = evo.enroll_schedule(idc_nova, data_nova, id_prospect=id_prospect,
+                                       origin="sofia-remarcacao")
+    except Exception as e:
+        antiga_revertida = False
+        try:
+            evo.change_session_status(status=0, id_prospect=id_prospect,
+                                      id_configuration=achado["idConfiguration"],
+                                      activity_date=data_antiga)
+            antiga_revertida = True
+        except Exception:
+            pass
+        return jsonify({"ok": False, "motivo": "falha_ao_marcar_nova", "erro": f"{e}",
+                        "idProspect": id_prospect, "de": achado, "para": nova,
+                        "antiga_revertida": antiga_revertida}), 200
+
+    # 6) SOBRESCREVE a confirmação na fila (outbox) com o novo horário — senão o
+    #    bot do Studio enviaria a confirmação do horário ANTIGO que ainda está pendente.
+    outbox_sobrescritas = 0
+    outbox_nova = False
+    try:
+        outbox_sobrescritas, outbox_nova = _outbox_remarcado(telefone,
+                                                             f"{data_nova} {horario_novo}")
+    except Exception:
+        app.logger.exception("remarcar: falha ao ajustar a confirmação na fila")
+
+    return jsonify({"ok": True, "remarcado": True, "desmarcado": True,
+                    "idProspect": id_prospect, "de": achado, "para": nova,
+                    "outbox_sobrescritas": outbox_sobrescritas,
+                    "outbox_nova": outbox_nova, "evo_enroll": r_enroll}), 200
+
 
 # ─────────────────────────────────────────────────────────────────────────
 #  ALUNAS (members) — remarcação/reposição. FASE 1: só LEITURA (não altera

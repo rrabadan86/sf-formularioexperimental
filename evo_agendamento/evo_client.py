@@ -508,12 +508,18 @@ class EvoClient:
                  id_configuration, params["activityDate"], id_prospect)
         return data
 
-    def change_session_status(self, status, id_member, id_configuration=None,
-                              activity_date=None, id_activity_session=None, branch_id=None):
-        """Muda o status da aluna numa sessão: 0=Presente, 1=Falta, 2=Falta JUSTIFICADA.
+    def change_session_status(self, status, id_member=None, id_configuration=None,
+                              activity_date=None, id_activity_session=None, branch_id=None,
+                              id_prospect=None):
+        """Muda o status numa sessão: 0=Presente, 1=Falta, 2=Falta JUSTIFICADA.
         A falta justificada é o que gera reposição (conforme as regras do EVO).
+        Aceita idMember (aluna contratada) OU idProspect (aula experimental de lead).
         Endpoint: POST /api/v1/activities/schedule/enroll/change-status."""
-        params = {"status": int(status), "idMember": int(id_member)}
+        params = {"status": int(status)}
+        if id_prospect:
+            params["idProspect"] = int(id_prospect)
+        if id_member:
+            params["idMember"] = int(id_member)
         if id_activity_session:
             params["idActivitySession"] = int(id_activity_session)
         else:
