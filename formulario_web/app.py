@@ -931,7 +931,8 @@ def api_desmarcar_experimental():
             continue
         for en in (det.get("enrollments") or []):
             mesmo = str(en.get("idProspect") or "") == str(id_prospect)
-            ativa = en.get("status") != 2 and not en.get("removed") and not en.get("suspended")
+            ativa = (en.get("status") != 2 and not en.get("justifiedAbsence")
+                     and not en.get("removed") and not en.get("suspended"))
             if mesmo and not en.get("idMember") and ativa:
                 achado = {
                     "idConfiguration": idc,
@@ -939,8 +940,6 @@ def api_desmarcar_experimental():
                     "horario": _hora(t),
                     "idActivitySession": en.get("idActivitySession") or det.get("idActivitySession"),
                     "status": en.get("status"),
-                    "idConfigurationParticipation": en.get("idConfigurationParticipation"),
-                    "_enrollment": {k: str(v) for k, v in en.items()},   # dump (texto) p/ diagnóstico
                 }
                 break
         if achado:
