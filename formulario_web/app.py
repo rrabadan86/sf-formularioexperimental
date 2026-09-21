@@ -266,10 +266,24 @@ def _valida(dados):
 # Identidade da unidade na landing do formulário — vem do .env/Render, então o
 # MESMO código serve qualquer unidade. Sem definir, cai no padrão Setor Bueno
 # (retrocompatível: a unidade original não muda). Placeholders %%...%% no index.html.
+def _url_prefix():
+    """Prefixo de URL quando o form é servido sob uma subpasta (ex.: atrás do
+    Caddy em /agendamentoexperimental). Vem do header X-Forwarded-Prefix (setado
+    pelo proxy) ou do env FORM_URL_PREFIX. Vazio = servido na raiz. Sem barra final."""
+    try:
+        p = request.headers.get("X-Forwarded-Prefix", "")
+    except Exception:
+        p = ""
+    if not p:
+        p = os.getenv("FORM_URL_PREFIX", "")
+    return "/" + p.strip("/") if p.strip("/") else ""
+
+
 def _index_html():
     with open(os.path.join(BASE, "templates", "index.html"), encoding="utf-8") as f:
         html = f.read()
     subs = {
+        "%%BASE%%": _url_prefix(),
         "%%UNIDADE%%": os.getenv("FORM_UNIDADE", "Setor Bueno"),
         "%%ENDERECO%%": os.getenv("FORM_ENDERECO", "R. C-235, 846, Setor Bueno, Goiânia-GO, 74280-130."),
         "%%MAPS%%": os.getenv("FORM_MAPS_URL", "https://goo.gl/maps/LFBZhkzbCZ5wJ99f6"),
