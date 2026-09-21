@@ -280,7 +280,7 @@ cd SF-Chat_Experimental-Mensagens/Experimental</pre>
       <p>Uma <b>validação de pré-voo</b>: confere que os dois <code>.env</code> existem e
         estão completos — tokens do EVO (API e navegador), os <b>três tokens</b> do
         formulário, <code>SOFIA_DIR</code> <b>igual</b> nos dois arquivos, nada com o
-        exemplo <code>SEU-FORM</code>, e avisa se o EVO ficou no padrão original
+        exemplo <code>SEU-PAINEL</code>, e avisa se o EVO ficou no padrão original
         (<code>slimfit/15</code>) ou se falta Xvfb. Só suba quando ele imprimir <b>✅</b>.</p>
     </div>
 
@@ -310,9 +310,9 @@ pm2 logs <b>lagosul</b>-sofia  <span class="c"># WhatsApp da SoFIA</span></pre>
             <li><b>DuckDNS apontando pro IP errado:</b> clicar em <b>“update ip”</b> pelo navegador grava o IP do <b>seu computador</b>, não o da VPS. Ponha o <b>IPv4 da VPS</b> no campo “current ip”. Atenção: <code>curl ifconfig.me</code> às vezes devolve <b>IPv6</b> — use <code>curl -s4 ifconfig.me</code> para pegar o IPv4. Confira com <code>getent hosts SEU-DOMINIO</code> (tem que dar o IP da VPS).</li>
             <li><b>EVO: <code>--evo-ids</code> sem as flags</b> cai no padrão <code>slimfit/15</code> (Setor Bueno) e traz os ids/ caminhos da unidade <b>errada</b>. <b>Sempre</b> passe <code>--evo-tenant</code> e <code>--evo-branch</code> (da URL do EVO: <code>…/app/&lt;tenant&gt;/&lt;branch&gt;/…</code>).</li>
             <li><b>Dois acessos ao EVO, não confunda:</b> <code>EVO_DNS</code>+<code>EVO_TOKEN</code> são a <b>API de integração</b> (DNS + Secret Key, Basic auth — <b>não</b> é o login do site); o <b>e-mail/senha do site</b> vão em <code>EVO_EMAIL</code>+<code>EVO_PASSWORD</code> (usados pelo navegador que lê grade/faltas).</li>
-            <li><b>Serviço da experimental:</b> o <b>id</b> vai em <code>EVO_SERVICE_ID</code> (o <b>nome</b> vai em <code>EVO_SERVICE</code>) — não misture. Na <b>Render</b>, o modelo vem com <code>EVO_SERVICE_ID=128</code> (Setor Bueno): <b>troque pelo id da sua unidade</b>.</li>
+            <li><b>Serviço da experimental:</b> o <b>id</b> vai em <code>EVO_SERVICE_ID</code> (o <b>nome</b> vai em <code>EVO_SERVICE</code>) — não misture. No <b>.env do formulário</b>, o modelo vem com <code>EVO_SERVICE_ID=128</code> (Setor Bueno): <b>troque pelo id da sua unidade</b>.</li>
             <li><b>Login do painel:</b> usuário <code>admin</code> + a senha gerada em <code>PAINEL_SENHA</code> (leia com <code>grep ^PAINEL_SENHA= Experimental/.env</code>; também apareceu no terminal ao rodar o <code>--start</code>).</li>
-            <li><b>Grade “Preparando os horários…” pra sempre:</b> a grade vem <b>do EVO</b> (você não monta à mão). Se não preenche: (1) confira o EVO na Render (<code>EVO_BRANCH_ID</code>/<code>EVO_SERVICE_ID</code>) ou (2) a unidade ainda <b>não tem a grade de experimental cadastrada no EVO</b>. Teste na VPS: <code>cd Experimental/src/agendamento_evo && python3 push_slots.py</code> — <code>0 horários</code> = falta grade no EVO.</li>
+            <li><b>Grade “Preparando os horários…” pra sempre:</b> a grade vem <b>do EVO</b> (você não monta à mão). Se não preenche: (1) confira o EVO no <code>.env</code> do formulário (<code>EVO_BRANCH_ID</code>/<code>EVO_SERVICE_ID</code>) ou (2) a unidade ainda <b>não tem a grade de experimental cadastrada no EVO</b>. Teste na VPS: <code>cd Experimental/src/agendamento_evo && python3 push_slots.py</code> — <code>0 horários</code> = falta grade no EVO.</li>
             <li><b>Painel manda reiniciar “<code>slimfit-exp</code>” (o do Bueno):</b> os nomes dos processos no PM2 são <b>por unidade</b> (<code>&lt;slug&gt;-exp</code>/<code>&lt;slug&gt;-painel</code>/<code>&lt;slug&gt;-sofia</code>). Ponha <code>PM2_SLUG=&lt;slug&gt;</code> no <code>Experimental/.env</code> (o <code>--start</code> já grava isso nas instalações novas) e reinicie o painel: <code>pm2 restart &lt;slug&gt;-painel --update-env</code>. Sem isso, o botão “Reiniciar robô” e o restart pós-salvar apontam para o processo do <b>Setor Bueno</b> e falham.</li>
             <li><b>WhatsApp cai a cada <code>pm2 restart</code>:</b> um restart <b>não</b> deveria pedir QR de novo — a sessão fica salva em <code>WA_AUTH_DIR</code>. Se cair, é porque o caminho era <b>relativo</b> e o pm2 subiu o processo de outro diretório (a sessão “sumia”). O código agora <b>ancora</b> caminhos relativos na pasta do Experimental; se ainda quiser blindar, use um caminho <b>absoluto</b> em <code>WA_AUTH_DIR</code>. Depois de escanear <b>uma vez</b>, os próximos restarts mantêm a conexão.</li>
           </ul>
@@ -351,9 +351,9 @@ pm2 start <b>SEU-SLUG</b>-exp       <span class="c"># volta ao normal</span></pr
     <p>O script não consegue fazer estas 4 coisas (são externas ou de credencial):</p>
     <ul class="chk">
       <li><span class="box">✓</span><span><b>Credenciais</b> — EVO e Anthropic você cola no <code>.env</code> (passo 3).</span></li>
-      <li><span class="box">✓</span><span><b>Formulário na Render</b> — um <b>deploy separado</b> por unidade, com os <b>três tokens</b> <b>iguais</b> aos do <code>.env</code> do VPS (<code>FORM_SLOTS_TOKEN</code>, <code>FORM_OUTBOX_TOKEN</code> e <code>SOFIA_TOKEN</code>) e o EVO da unidade. Veja a <b>Fase 5</b> abaixo.</span></li>
+      <li><span class="box">✓</span><span><b>Formulário no próprio VPS</b> (sob <code>/agendamentoexperimental</code>) — um <b>deploy por unidade</b>, com os <b>três tokens</b> <b>iguais</b> aos do <code>.env</code> do VPS (<code>FORM_SLOTS_TOKEN</code>, <code>FORM_OUTBOX_TOKEN</code> e <code>SOFIA_TOKEN</code>) e o EVO da unidade. Veja a <b>Fase 5</b> abaixo.</span></li>
       <li><span class="box">✓</span><span><b>Apontar o DNS</b> do subdomínio (o do <code>--domain</code>) para o IP da VPS — no seu provedor de DNS. O Caddy emite o certificado sozinho.</span></li>
-      <li><span class="box">✓</span><span><b>Preencher o conteúdo — os textos-modelo vêm com marcadores <code>[ENTRE COLCHETES]</code> para você completar.</b> Antes de divulgar, preencha em <b>dois lugares no painel</b>: (1) o <b>roteiro da SoFIA</b> e as <b>imagens de grade/preços</b> (🤖 SoFIA → Configuração); (2) as <b>mensagens do robô</b> no WhatsApp — confirmação, follow-up etc. (💬 WhatsApp → Configuração). E, no <b>formulário (Render)</b>, defina o <b>telefone da recepção</b> (<code>ZEE_STUDIO_PHONE</code>) e o <b>link do painel</b> (<code>PAINEL_URL</code>) da unidade (Fase 5). Sem isso, os textos saem com os colchetes no lugar do endereço/contatos. Também: usuários (Perfis) e os grupos do WhatsApp.</span></li>
+      <li><span class="box">✓</span><span><b>Preencher o conteúdo — os textos-modelo vêm com marcadores <code>[ENTRE COLCHETES]</code> para você completar.</b> Antes de divulgar, preencha em <b>dois lugares no painel</b>: (1) o <b>roteiro da SoFIA</b> e as <b>imagens de grade/preços</b> (🤖 SoFIA → Configuração); (2) as <b>mensagens do robô</b> no WhatsApp — confirmação, follow-up etc. (💬 WhatsApp → Configuração). E, no <b>.env do formulário (no VPS)</b>, defina o <b>telefone da recepção</b> (<code>ZEE_STUDIO_PHONE</code>) e o <b>link do painel</b> (<code>PAINEL_URL</code>) da unidade (Fase 5). Sem isso, os textos saem com os colchetes no lugar do endereço/contatos. Também: usuários (Perfis) e os grupos do WhatsApp.</span></li>
       <li><span class="box">✓</span><span><b>Login com Google (opcional)</b> — para entrar no painel com a conta Google em vez de senha. Crie um cliente OAuth no Google Cloud, libere o domínio do painel e preencha <code>GOOGLE_CLIENT_ID</code>, <code>GOOGLE_CLIENT_SECRET</code> e <code>PAINEL_ADMIN_EMAIL</code> no <code>Experimental/.env</code> (estão comentados lá). Só entram e-mails cadastrados em <b>Perfis</b>.</span></li>
     </ul>
     <div class="tip"><b>Não</b> copie a pasta <code>.wwebjs_auth</code> entre unidades
@@ -440,7 +440,7 @@ free -h                                                       <span class="c"># 
         <li><span class="box">✓</span><span><b><code>--domain</code> próprio</b> (ex.: <code>painel-lagosul2.SEU-DOMINIO</code>) — subdomínio e HTTPS separados.</span></li>
         <li><span class="box">✓</span><span><b>EVO da loja 2</b> no <code>.env</code> (DNS/token/ids da unidade 2) e <code>ZEE_STUDIO_PHONE</code> da loja 2.</span></li>
         <li><span class="box">✓</span><span><b><code>FORM_SLOTS_MINUTO</code> diferente</b> no <code>.env</code> (ex.: loja 1 = <code>0</code>, loja 2 = <code>30</code>) — <b>escalona o envio da grade</b> para as duas lojas não estourarem juntas o <b>limite de 40 req/min do EVO</b> (senão a grade some das duas). Reiniciar <code>exp</code>.</span></li>
-        <li><span class="box">✓</span><span><b>Formulário próprio na Render</b> (deploy separado, com o EVO e os tokens da loja 2).</span></li>
+        <li><span class="box">✓</span><span><b>Formulário próprio no VPS</b> (clone/porta/subpasta próprios, com o EVO e os tokens da loja 2 — ex.: porta <code>8091</code> sob o domínio do painel da loja 2).</span></li>
         <li><span class="box">✓</span><span><b>2 WhatsApps novos</b> (robô + SoFIA da loja 2) — QRs próprios; <b>nunca</b> copie o <code>.wwebjs_auth</code>.</span></li>
         <li><span class="box">✓</span><span><b>Não</b> precisa de <code>--install-deps</code> de novo (Node/Chromium/pm2 já estão no servidor).</span></li>
       </ul>
@@ -458,7 +458,7 @@ free -h                                                       <span class="c"># 
     </div>
     <p>As <b>Fases</b> abaixo são a via <b>manual e granular</b>, e cobrem os recursos
       <b>opcionais</b> (Instagram, planilha, cron). Se você usou o script acima, pule
-      direto para o que precisar — ex.: <b>Fase 5</b> (formulário na Render),
+      direto para o que precisar — ex.: <b>Fase 5</b> (formulário no VPS),
       <b>Fase 6</b> (Instagram) ou <b>Fase 9.5</b> (ajustes no painel).</p>
   </section>
 
@@ -552,7 +552,7 @@ nano .env                    <span class="c"># preencha; salve com Ctrl+O, Enter
           <tr><td>SHEETS_ID / SHEETS_ABA / GOOGLE_SA_KEY</td><td>Planilha de aniversários (ver passo 2.4).</td></tr>
           <tr><td>NTFY_TOPIC</td><td>Tópico exclusivo de alertas da unidade (nome secreto).</td></tr>
           <tr><td>AUDIO_MAP</td><td>JSON professora→arquivo de áudio (ver passo 2.3).</td></tr>
-          <tr><td>FORM_OUTBOX_TOKEN</td><td>Token secreto — o <b>mesmo</b> valor aqui e no formulário na Render.</td></tr>
+          <tr><td>FORM_OUTBOX_TOKEN</td><td>Token secreto — o <b>mesmo</b> valor aqui e no <code>.env</code> do formulário (no VPS).</td></tr>
         </table>
       </div>
       <div class="tip">O <code>.env</code> nunca vai para o GitHub (está no <code>.gitignore</code>). Ele fica só no servidor.</div>
@@ -691,123 +691,138 @@ pm2 logs slimfit-exp --lines 50  <span class="c"># sem erros</span></pre>
 
   <!-- FASE 5 -->
   <section>
-    <div class="phase"><span class="pn">Fase 5</span><h2>Formulário de agendamento na nuvem (Render)</h2></div>
-    <p class="sec-head" style="color:var(--text-soft);max-width:72ch">O formulário roda <b>fora da VPS</b>, na <b>Render</b> (grátis para começar), e é ele quem fala com a API do EVO para marcar a aula. Ele é o <b>coração do agendamento</b> em duas frentes: o <b>link público</b> que a aluna preenche sozinha <b>e</b> o endereço que a <b>SoFIA</b> usa para agendar pela conversa (<code>/api/book-sofia</code>). Ou seja: se você vende o link online <b>ou</b> a SoFIA, esta fase é <b>obrigatória</b>. É um <b>deploy separado por unidade</b> (cada loja tem o seu, com o EVO e os tokens dela).</p>
+    <div class="phase"><span class="pn">Fase 5</span><h2>Formulário de agendamento no próprio VPS (subpasta)</h2></div>
+    <p class="sec-head" style="color:var(--text-soft);max-width:72ch">O formulário roda <b>no mesmo VPS</b> do robô, como um processo à parte, e é servido <b>sob a subpasta</b> <code>/agendamentoexperimental</code> do <b>mesmo domínio do painel</b> (ex.: <code>https://painel-lagosul1.duckdns.org/agendamentoexperimental</code>). Ele é o <b>coração do agendamento</b> em duas frentes: o <b>link público</b> que a aluna preenche sozinha <b>e</b> o endereço que a <b>SoFIA</b> usa para agendar pela conversa (<code>/api/book-sofia</code>). Se você vende o link online <b>ou</b> a SoFIA, esta fase é <b>obrigatória</b>. É um <b>deploy por unidade</b> (cada loja tem o seu, com o EVO e os tokens dela).</p>
 
-    <div class="tip">📋 <b>Antes de começar</b>, tenha em mãos: o <b>EVO da unidade</b> (<code>EVO_DNS</code>, <code>EVO_TOKEN</code> e os ids da aula da <b>Fase 3</b>) e os <b>três tokens</b> que o <code>setup</code> gerou no <code>Experimental/.env</code> da VPS — <code>FORM_SLOTS_TOKEN</code>, <code>FORM_OUTBOX_TOKEN</code> e <code>SOFIA_TOKEN</code>. Você vai colar os <b>mesmos valores</b> aqui na Render.</div>
+    <div class="tip">🔁 <b>Mudou em relação ao modelo antigo (Render).</b> Antes o formulário rodava fora, na Render (plano grátis que "dormia" e cujo disco era efêmero). Agora ele roda <b>no próprio VPS</b>, atrás do <b>Caddy</b>, na mesma máquina — <b>não dorme</b>, não depende de serviço externo e não custa nada a mais. Se você tinha um serviço na Render, pode desativá-lo depois que esta fase estiver no ar.</div>
+
+    <div class="tip">📋 <b>Antes de começar</b>, tenha em mãos: o <b>EVO da unidade</b> (<code>EVO_DNS</code>, <code>EVO_TOKEN</code> e os ids da aula da <b>Fase 3</b>); os <b>três tokens</b> que o <code>setup</code> gerou no <code>Experimental/.env</code>/<code>ChatBot/.env</code> da VPS — <code>FORM_SLOTS_TOKEN</code>, <code>FORM_OUTBOX_TOKEN</code> e <code>SOFIA_TOKEN</code> (você vai colar os <b>mesmos valores</b> no <code>.env</code> do formulário); e o <b>domínio do painel</b> desta unidade (Fase 7), já que o formulário fica sob a subpasta dele.</div>
 
     <div class="stepblock">
-      <h3><span class="num">5.1</span> Ter o repositório do formulário no seu GitHub</h3>
-      <ul class="chk">
-        <li><span class="box">✓</span><span>O formulário é um projeto <b>separado</b> do robô (repositório próprio, ex.: <code>sf-formularioexperimental</code>). Ele já vem com <b>Procfile</b> e <b>requirements.txt</b> prontos — a Render lê os dois sozinha.</span></li>
-        <li><span class="box">✓</span><span>Garanta que esse repositório está na <b>sua conta do GitHub</b> (faça um <b>fork</b> ou receba o convite). A Render vai puxar direto de lá.</span></li>
-      </ul>
+      <h3><span class="num">5.1</span> Clonar o formulário no VPS</h3>
+      <p>O formulário é um projeto <b>separado</b> do robô (repositório próprio: <code>sf-formularioexperimental</code>). Clone-o numa pasta própria no VPS e crie um <b>venv</b> com as dependências. Use uma pasta por unidade (ex.: <code>~/sf-form-lagosul1</code>).</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS — clonar + venv</span></div>
+<pre class="term-body">cd ~
+git clone https://github.com/rrabadan86/sf-formularioexperimental.git sf-form-lagosul1
+cd sf-form-lagosul1
+git checkout <b>main</b>                      <span class="c"># branch de produção do formulário</span>
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt</pre>
+      </div>
+      <div class="tip">Duas lojas no mesmo VPS? Um clone por loja (<code>sf-form-lagosul1</code>, <code>sf-form-lagosul2</code>), cada um com o seu <code>.env</code> e a sua porta.</div>
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">5.2</span> Criar o Web Service na Render (passo a passo)</h3>
-      <ul class="chk">
-        <li><span class="box">✓</span><span>Entre em <b>render.com</b> → <b>Sign up</b> (dá para entrar <b>com o GitHub</b>, já autoriza de uma vez).</span></li>
-        <li><span class="box">✓</span><span>No painel, clique em <b>New +</b> → <b>Web Service</b>.</span></li>
-        <li><span class="box">✓</span><span>Em <b>Connect a repository</b>, autorize a Render a ver seus repositórios e escolha o repositório do <b>formulário</b>. (Se não aparecer, clique em <b>Configure account</b> e libere o acesso a esse repo.)</span></li>
-        <li><span class="box">✓</span><span>Preencha a configuração exatamente assim:</span></li>
-      </ul>
-      <div class="fieldnote">
-        <div class="fnh">New Web Service · Render</div>
-        <table>
-          <tr><td>Name</td><td>Um nome por unidade, ex.: <code>form-lagosul1</code> (vira o endereço <code>form-lagosul1.onrender.com</code>).</td></tr>
-          <tr><td>Region</td><td><b>Oregon</b> ou <b>Ohio</b> (EUA) servem bem; escolha a mais próxima que estiver disponível no plano.</td></tr>
-          <tr><td>Branch</td><td><code>main</code> (a Render redeploya sozinha a cada push nessa branch).</td></tr>
-          <tr><td>Root Directory</td><td><b>Deixe em branco</b> — o <code>Procfile</code> na raiz já aponta para <code>formulario_web.app:app</code>.</td></tr>
-          <tr><td>Runtime</td><td><b>Python 3</b> (a Render detecta pelo <code>requirements.txt</code>).</td></tr>
-          <tr><td>Build Command</td><td><code>pip install -r requirements.txt</code></td></tr>
-          <tr><td>Start Command</td><td><code>gunicorn formulario_web.app:app --workers 1 --threads 8 --timeout 120 --bind 0.0.0.0:$PORT</code><br><span style="color:var(--text-soft);font-size:.9em">(já é o do <code>Procfile</code> — a Render costuma preencher sozinha; se preencher, não precisa mexer.)</span></td></tr>
-          <tr><td>Instance Type</td><td><b>Free</b> para testar. (Veja o aviso do plano grátis no passo 5.6.)</td></tr>
-        </table>
-      </div>
-      <div class="tip">Ainda <b>não clique em Create</b> — primeiro role até <b>Environment Variables</b> e preencha o passo 5.3. Assim o primeiro deploy já sobe configurado.</div>
-    </div>
+      <h3><span class="num">5.2</span> Criar o <code>.env</code> do formulário</h3>
+      <p>Na pasta do formulário, crie um arquivo <code>.env</code>. Ele leva o <b>EVO da unidade</b> (a API que marca a aula), os <b>três tokens</b> (idênticos aos da VPS — é o que liga o formulário ao robô e à SoFIA), o <b>prefixo da subpasta</b> e a <b>identidade da unidade</b>. Os campos de EVO e tokens são os <b>mesmos valores</b> que já estão no <code>Experimental/.env</code>/<code>ChatBot/.env</code>.</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">~/sf-form-lagosul1/.env</span></div>
+<pre class="term-body"><span class="c"># ---- EVO da unidade (API — marcar a aula) — MESMOS valores do Experimental/.env ----</span>
+EVO_BASE_URL=https://evo-integracao-api.w12app.com.br
+EVO_DNS=<b>...</b>
+EVO_TOKEN=<b>...</b>
+EVO_BRANCH_ID=<b>...</b>
+EVO_ACTIVITY_ID=<b>...</b>          <span class="c"># id da aula (Fase 3, --evo-ids)</span>
+EVO_SERVICE_ID=<b>...</b>           <span class="c"># ⚠️ troque pelo id da SUA unidade (o modelo é do Bueno)</span>
 
-    <div class="stepblock">
-      <h3><span class="num">5.3</span> Variáveis de ambiente do formulário (na Render)</h3>
-      <p>Ainda na tela de criação (ou depois em <b>Environment</b>), adicione uma a uma. As de <b>token</b> têm que ser <b>idênticas</b> às do <code>Experimental/.env</code> da VPS — é o que liga o formulário ao robô e à SoFIA.</p>
-      <div class="fieldnote">
-        <div class="fnh">Environment · Render — EVO da unidade (API de agendamento)</div>
-        <table>
-          <tr><td>EVO_DNS</td><td>DNS do EVO da unidade (o <b>mesmo</b> valor do <code>.env</code> da VPS).</td></tr>
-          <tr><td>EVO_TOKEN</td><td>Token da API do EVO da unidade.</td></tr>
-          <tr><td>EVO_BRANCH_ID</td><td>Número da unidade no EVO.</td></tr>
-          <tr><td>EVO_ACTIVITY_ID / EVO_SERVICE_ID</td><td>Ids da aula experimental (da <b>Fase 3</b>, <code>--evo-ids</code>). O <b>id</b> vai no campo <code>_ID</code>; o <b>nome</b> em <code>EVO_ACTIVITY</code>/<code>EVO_SERVICE</code> — <b>não misture</b> (id no campo de nome não casa). ⚠️ O modelo vem com <code>EVO_SERVICE_ID=128</code> (Setor Bueno): <b>troque pelo id da SUA unidade</b>.</td></tr>
-        </table>
+<span class="c"># ---- Tokens (IDÊNTICOS aos da VPS) ----</span>
+FORM_SLOTS_TOKEN=<b>...</b>         <span class="c"># = Experimental/.env</span>
+FORM_OUTBOX_TOKEN=<b>...</b>        <span class="c"># = Experimental/.env</span>
+SOFIA_TOKEN=<b>...</b>              <span class="c"># = ChatBot/.env (autoriza /api/book-sofia)</span>
+
+<span class="c"># ---- Servir sob a subpasta /agendamentoexperimental ----</span>
+FORM_URL_PREFIX=/agendamentoexperimental
+
+<span class="c"># ---- Identidade da unidade (a cara da página + contatos certos) ----</span>
+FORM_UNIDADE=<b>Lago Sul</b>
+FORM_ENDERECO=<b>QI 5, Lago Sul, Brasília-DF</b>
+FORM_MAPS_URL=<b>https://maps.app.goo.gl/...</b>
+FORM_WHATSAPP=<b>5561999998888</b>          <span class="c"># só dígitos, com DDI</span>
+ZEE_STUDIO_PHONE=<b>5561999998888</b>        <span class="c"># recepção: alerta de turma lotada</span>
+PAINEL_URL=<b>https://painel-lagosul1.duckdns.org</b></pre>
       </div>
-      <div class="fieldnote">
-        <div class="fnh">Environment · Render — tokens (iguais aos da VPS) + mensagem</div>
-        <table>
-          <tr><td>FORM_SLOTS_TOKEN</td><td>O robô <b>envia a grade</b> de horários ao formulário com este token. <b>Mesmo</b> valor do <code>.env</code>.</td></tr>
-          <tr><td>FORM_OUTBOX_TOKEN</td><td>O robô <b>puxa</b> agendamentos/confirmações/indicadores do formulário com este token. <b>Mesmo</b> valor do <code>.env</code>.</td></tr>
-          <tr><td>SOFIA_TOKEN</td><td>Autoriza a <b>SoFIA</b> a agendar pelo <code>/api/book-sofia</code>. <b>Mesmo</b> valor do <code>ChatBot/.env</code>.</td></tr>
-          <tr><td>ZEE_CONFIRM_TEMPLATE</td><td><b>Opcional (texto reserva).</b> A confirmação que a aluna realmente recebe é a do <b>painel</b> (💬 WhatsApp → Configuração → confirmação da experimental); esta variável só é usada se o painel não tiver essa mensagem. O padrão já vem <b>genérico</b> (<code>[ENDEREÇO DA UNIDADE]</code>), então personalize a confirmação <b>no painel</b>. Marcadores da mensagem: <code>{name}</code> e <code>{quando}</code>.</td></tr>
-          <tr><td>ZEE_STUDIO_PHONE</td><td>Número da recepção que recebe o alerta de <b>turma lotada</b>. <b>Sem definir</b>, o alerta vai para a recepção da <b>unidade original</b>.</td></tr>
-          <tr><td>PAINEL_URL</td><td>Endereço do <b>painel desta unidade</b> (o formulário redireciona para ele). <b>Sem definir</b>, aponta para o painel do <b>Setor Bueno</b>.</td></tr>
-        </table>
-      </div>
-      <div class="fieldnote">
-        <div class="fnh">Environment · Render — identidade da unidade na landing (opcional, mas recomendado)</div>
-        <table>
-          <tr><td>FORM_UNIDADE</td><td>Nome que aparece no título e no <b>“Unidade …”</b> da página (ex.: <code>Lago Sul</code>). <b>Sem definir</b>, mostra <b>Setor Bueno</b>.</td></tr>
-          <tr><td>FORM_ENDERECO</td><td>Endereço completo exibido na confirmação (ex.: <code>QI 5, Lago Sul, Brasília-DF</code>).</td></tr>
-          <tr><td>FORM_MAPS_URL</td><td>Link do <b>Google Maps</b> da unidade (o “📍 Ver no mapa”).</td></tr>
-          <tr><td>FORM_WHATSAPP</td><td>Número do botão flutuante <b>“Fale com a Sofia”</b> — só dígitos, com DDI (ex.: <code>5561999998888</code>).</td></tr>
-        </table>
-      </div>
-      <div class="tip">Essas quatro deixam o formulário com a <b>cara da unidade</b> sem tocar no código (o mesmo repo serve todas). Sem elas, a página cai no padrão <b>Setor Bueno</b> — então numa unidade nova, <b>preencha</b>.</div>
       <div class="call danger" style="margin-top:12px">
         <div class="ic">!</div>
         <div>
-          <h3>Confira os textos padrão antes de publicar</h3>
-          <p>A <b>mensagem de confirmação</b> você personaliza no <b>painel</b> (💬 WhatsApp → Configuração) — o texto reserva do formulário (<code>ZEE_CONFIRM_TEMPLATE</code>) já vem genérico. Mas o <b>telefone da recepção</b> (<code>ZEE_STUDIO_PHONE</code>) e o <b>link do painel</b> (<code>PAINEL_URL</code>) ainda apontam para a unidade <b>original</b> quando não definidos: preencha os dois no Render com os desta unidade.</p>
+          <h3>Sem preencher a identidade, cai no Setor Bueno</h3>
+          <p><code>FORM_UNIDADE</code>, <code>FORM_ENDERECO</code>, <code>ZEE_STUDIO_PHONE</code> e <code>PAINEL_URL</code> sem valor apontam para a unidade <b>original</b> — a aluna recebe o endereço e os contatos do Setor Bueno. Preencha os quatro. A <b>mensagem de confirmação</b> quem manda é o <b>painel</b> (💬 WhatsApp → Configuração); o <code>ZEE_CONFIRM_TEMPLATE</code> é só reserva.</p>
         </div>
       </div>
-      <div class="tip">Depois clique em <b>Create Web Service</b>. A Render roda o build e sobe; acompanhe em <b>Logs</b> até ver <code>Booting worker</code> / <code>Listening at</code>.</div>
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">5.4</span> Pegar o endereço e testar</h3>
-      <p>No topo do serviço aparece a URL pública, ex.: <code>https://form-lagosul1.onrender.com</code>. Abra no navegador — deve carregar o formulário. Teste também o endpoint da SoFIA (tem que existir):</p>
+      <h3><span class="num">5.3</span> Subir o formulário no PM2 (gunicorn)</h3>
+      <p>O formulário sobe como um processo PM2 próprio, escutando <b>só no localhost</b> numa porta dedicada (o Caddy faz o HTTPS por cima, no passo 5.4). Use uma <b>porta por unidade</b>, diferente da porta do painel — ex.: painel <code>8080</code> → formulário <code>8090</code> (2ª loja: painel <code>8081</code> → formulário <code>8091</code>).</p>
       <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">seu PC / servidor</span></div>
-<pre class="term-body"><span class="c"># a home do formulário responde?</span>
-curl -sI https://<b>form-lagosul1</b>.onrender.com | head -1        <span class="c"># HTTP/2 200</span>
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS — subir o formulário</span></div>
+<pre class="term-body">cd ~/sf-form-lagosul1
+pm2 start .venv/bin/gunicorn --name <b>lagosul1-form</b> --time -- \
+    formulario_web.app:app --workers 1 --threads 8 --timeout 120 \
+    --bind 127.0.0.1:<b>8090</b>
+pm2 save
 
-<span class="c"># o endpoint da SoFIA existe? (sem token deve recusar, e tudo bem)</span>
-curl -sI https://<b>form-lagosul1</b>.onrender.com/api/book-sofia | head -1</pre>
+<span class="c"># responde no localhost?</span>
+curl -sI http://127.0.0.1:8090/health | head -1        <span class="c"># HTTP/1.1 200</span></pre>
       </div>
+      <div class="tip">O nome do processo segue o <b>slug</b> da unidade (<code>&lt;slug&gt;-form</code>), igual aos outros (<code>&lt;slug&gt;-exp</code>, <code>&lt;slug&gt;-painel</code>, <code>&lt;slug&gt;-sofia</code>). Para atualizar o formulário depois: <code>cd ~/sf-form-lagosul1 &amp;&amp; git pull &amp;&amp; pm2 restart lagosul1-form</code>.</div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">5.4</span> Servir sob <code>/agendamentoexperimental</code> no Caddy</h3>
+      <p>No bloco do painel desta unidade (Fase 7.3), acrescente um <code>handle_path</code> que manda a subpasta para o formulário e um <code>handle</code> que joga o resto para o painel. O <code>header_up X-Forwarded-Prefix</code> é o que faz os links absolutos do formulário funcionarem debaixo da subpasta.</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">/etc/caddy/Caddyfile — bloco desta unidade</span></div>
+<pre class="term-body">painel-lagosul1.duckdns.org {
+    <span class="c"># formulário sob a subpasta (porta do passo 5.3)</span>
+    handle_path /agendamentoexperimental* {
+        reverse_proxy 127.0.0.1:<b>8090</b> {
+            header_up X-Forwarded-Prefix /agendamentoexperimental
+        }
+    }
+    <span class="c"># todo o resto vai para o painel (porta do Experimental/.env)</span>
+    handle {
+        reverse_proxy 127.0.0.1:<b>8080</b>
+    }
+}</pre>
+      </div>
+      <p>Recarregue o Caddy e teste pela URL pública (subpasta):</p>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS</span></div>
+<pre class="term-body">sudo systemctl reload caddy
+
+<span class="c"># a home do formulário responde sob a subpasta?</span>
+curl -sI https://painel-lagosul1.duckdns.org/agendamentoexperimental/ | head -1   <span class="c"># 200</span>
+
+<span class="c"># o endpoint da SoFIA existe? (sem token deve recusar 401, e tudo bem)</span>
+curl -sI https://painel-lagosul1.duckdns.org/agendamentoexperimental/api/book-sofia | head -1</pre>
+      </div>
+      <div class="tip">💡 Já tinha um bloco simples <code>painel-… { reverse_proxy 127.0.0.1:8080 }</code> (do <code>--domain</code> da Fase 7)? Substitua-o por este, com o <code>handle_path</code> + <code>handle</code> — o catch-all <code>handle</code> mantém o painel funcionando igual.</div>
     </div>
 
     <div class="stepblock">
       <h3><span class="num">5.5</span> Ligar as pontes no VPS (formulário ↔ robô ↔ SoFIA)</h3>
-      <p>Com a URL da Render em mãos, aponte os <code>.env</code> da VPS para ela. São <b>duas linhas</b>, em <b>dois arquivos</b>:</p>
+      <p>Aponte os <code>.env</code> do robô e da SoFIA para a URL da <b>subpasta</b>. São <b>duas linhas</b>, em <b>dois arquivos</b>:</p>
       <div class="term">
         <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">Experimental/.env</span></div>
-<pre class="term-body">FORM_CLOUD_URL=https://<b>form-lagosul1</b>.onrender.com
-<span class="c"># FORM_SLOTS_TOKEN e FORM_OUTBOX_TOKEN já estão aqui (iguais aos da Render)</span></pre>
+<pre class="term-body">FORM_CLOUD_URL=https://<b>painel-lagosul1.duckdns.org/agendamentoexperimental</b>
+<span class="c"># FORM_SLOTS_TOKEN e FORM_OUTBOX_TOKEN já estão aqui (iguais aos do .env do formulário)</span></pre>
       </div>
       <div class="term">
         <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">ChatBot/.env</span></div>
-<pre class="term-body">SOFIA_BOOK_URL=https://<b>form-lagosul1</b>.onrender.com/api/book-sofia
-<span class="c"># SOFIA_TOKEN já está aqui (igual ao da Render)</span></pre>
+<pre class="term-body">SOFIA_BOOK_URL=https://<b>painel-lagosul1.duckdns.org/agendamentoexperimental</b>/api/book-sofia
+<span class="c"># SOFIA_TOKEN já está aqui (igual ao do .env do formulário)</span></pre>
       </div>
-      <p>Reinicie o robô e a SoFIA para pegarem os endereços: <code>pm2 restart slimfit-exp slimfit-sofia --update-env</code>. A ponte roda a cada minuto e puxa as marcações para a fila de envio; a SoFIA passa a agendar direto pelo formulário.</p>
-      <div class="tip">💡 O <code>--check</code> (passo 5 do guia rápido, no topo) confere justamente isto: que <code>FORM_CLOUD_URL</code> e <code>SOFIA_BOOK_URL</code> apontam para o <b>mesmo</b> formulário e que os três tokens não ficaram no exemplo <code>SEU-FORM</code>. Rode-o antes do <code>--start</code>.</div>
+      <p>Reinicie o robô e a SoFIA para pegarem os endereços: <code>pm2 restart lagosul1-exp lagosul1-sofia --update-env</code>. A ponte roda a cada minuto e puxa as marcações para a fila de envio; a SoFIA passa a agendar direto pelo formulário.</p>
+      <div class="tip">💡 O <code>--check</code> (passo 5 do guia rápido, no topo) confere justamente isto: que <code>FORM_CLOUD_URL</code> e <code>SOFIA_BOOK_URL</code> apontam para o <b>mesmo</b> formulário e que os três tokens não ficaram no exemplo <code>SEU-PAINEL</code>. Rode-o antes do <code>--start</code>.</div>
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">5.6</span> Sobre o plano grátis da Render</h3>
-      <p>O plano <b>Free</b> "dorme" depois de <b>~15 min sem acesso</b> — a primeira aluna a abrir o link espera uns <b>30–50 s</b> o serviço acordar (as seguintes já são instantâneas). Isso não perde dado, mas atrapalha a primeira impressão. Duas saídas:</p>
+      <h3><span class="num">5.6</span> Manutenção — e saindo da Render</h3>
       <ul class="chk">
-        <li><span class="box">✓</span><span><b>Manter acordado de graça:</b> o robô <b>puxa as confirmações a cada minuto</b> — esse "toque" constante é o que mantém a Render acordada enquanto o robô está no ar (não é o envio da grade). A <b>grade de horários</b> é enviada numa cadência mais leve (boa prática da API do EVO): <b>a cada 60 min das 07h–21h</b> e <b>a cada ~3h de madrugada</b>. Como a grade vale por <b>4h</b> no formulário (<code>FORM_PUSH_TTL</code>) e o <code>/api/book</code> <b>revalida a vaga ao vivo</b> na hora de marcar, a aluna nunca vê "sem horário" por causa disso nem agenda em turma cheia.</span></li>
-        <li><span class="box">✓</span><span><b>Auto-recuperação após um deploy:</b> o disco da Render é <b>efêmero</b> — a cada deploy/reinício a grade enviada some, e sem isso o formulário ficaria <b>até 60 min</b> mostrando "sem horário" (ou "está demorando mais que o normal") até o próximo envio. O robô agora <b>confere a grade no formulário a cada 2 min</b> e, se ela sumiu, <b>reenvia na hora</b> — a janela vazia após um deploy cai para <b>~2 min</b>, sem ninguém precisar rodar nada. No log do <code>slimfit-exp</code> aparece <code>🩹 Grade do formulário sem a versão do VPS … reenviando na hora</code>.</span></li>
-        <li><span class="box">✓</span><span><b>Plano pago (Starter, ~US$ 7/mês):</b> não dorme nunca e é o recomendado para uma unidade que já está vendendo. Troque em <b>Settings → Instance Type</b>.</span></li>
+        <li><span class="box">✓</span><span><b>Não dorme e não perde a grade.</b> Rodando no próprio VPS, o formulário fica sempre no ar (sem os <b>30–50 s</b> de "acordar" do plano grátis da Render) e o disco é <b>persistente</b> — a grade enviada não some a cada reinício. O robô continua reenviando a grade automaticamente se precisar.</span></li>
+        <li><span class="box">✓</span><span><b>Atualizar o formulário:</b> <code>cd ~/sf-form-lagosul1 &amp;&amp; git pull &amp;&amp; pm2 restart lagosul1-form</code>. Se mexeu no <code>.env</code>, o restart já relê (o formulário usa <code>python-dotenv</code>).</span></li>
+        <li><span class="box">✓</span><span><b>Se você vinha da Render:</b> depois que a subpasta estiver no ar e os <code>.env</code> apontando para ela (passo 5.5), pode <b>desativar/apagar</b> o Web Service antigo na Render — ele não é mais usado. Confira antes que a SoFIA e o link público estão agendando pela URL nova.</span></li>
       </ul>
     </div>
   </section>
@@ -892,7 +907,7 @@ IG_MAX_DIA=5</pre>
         <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">.env + Webhook</span></div>
 <pre class="term-body">IG_APP_ID=...        IG_APP_SECRET=...     IG_PAGE_ID=...
 IG_PAGE_TOKEN=...    IG_VERIFY_TOKEN=<b>senha_que_voce_define</b>
-IG_FORM_URL=https://SEU-FORM.onrender.com
+IG_FORM_URL=https://SEU-PAINEL/agendamentoexperimental
 
 <span class="c"># Na Meta → Webhook (produto Instagram/Messenger):</span>
 <span class="c">#   URL de retorno = https://SEU-PAINEL/ig/webhook</span>
@@ -1039,7 +1054,7 @@ curl -sI https://painel-unidade.duckdns.org | head -3   <span class="c"># HTTP/2
 
     <div class="stepblock">
       <h3><span class="num">7.7</span> Indicadores do formulário (aba "Indicadores")</h3>
-      <p>Funil do formulário sem SSH: <b>pessoas</b> (visitantes únicos, por cookie — vários F5 da mesma pessoa contam como 1), <b>aberturas</b> (acessos), <b>agendamentos</b> e a <b>conversão por pessoa</b>, por período, com horários/dias de pico e horários de aula mais escolhidos. <b>Robôs de pré-visualização de link</b> (facebookexternalhit, WhatsApp, etc.) são filtrados por User-Agent e não contam. O formulário (Render) registra os eventos; o robô <b>puxa a cada 2 min</b> (reusa <code>FORM_CLOUD_URL</code> + <code>FORM_OUTBOX_TOKEN</code>, os mesmos da ponte de confirmações) e grava em <code>data/indicadores.json</code> — dia/hora carimbados no fuso de São Paulo no VPS.</p>
+      <p>Funil do formulário sem SSH: <b>pessoas</b> (visitantes únicos, por cookie — vários F5 da mesma pessoa contam como 1), <b>aberturas</b> (acessos), <b>agendamentos</b> e a <b>conversão por pessoa</b>, por período, com horários/dias de pico e horários de aula mais escolhidos. <b>Robôs de pré-visualização de link</b> (facebookexternalhit, WhatsApp, etc.) são filtrados por User-Agent e não contam. O formulário (no VPS) registra os eventos; o robô <b>puxa a cada 2 min</b> (reusa <code>FORM_CLOUD_URL</code> + <code>FORM_OUTBOX_TOKEN</code>, os mesmos da ponte de confirmações) e grava em <code>data/indicadores.json</code> — dia/hora carimbados no fuso de São Paulo no VPS.</p>
       <div class="tip">Para saber a <b>origem</b> dos acessos, use um link etiquetado por canal: <code>…/?origem=instagram</code>, <code>…/?origem=whatsapp</code>, <code>…/?origem=ads</code>. Sem etiqueta, o acesso entra como “(sem etiqueta)”. Os números começam a contar a partir da instalação (não há histórico retroativo).</div>
     </div>
   </section>
@@ -1099,8 +1114,8 @@ npm install</pre>
         <div class="fnh">ChatBot/.env</div>
         <table>
           <tr><td>ANTHROPIC_API_KEY</td><td>Chave da IA (Claude). É o que <b>tem custo por conversa</b> — separado do servidor.</td></tr>
-          <tr><td>SOFIA_TOKEN</td><td>Senha compartilhada com o formulário (Render). Precisa ser <b>idêntica</b> ao <code>SOFIA_TOKEN</code> do formulário — é o que autoriza a Sofia a agendar no EVO.</td></tr>
-          <tr><td>SOFIA_BOOK_URL</td><td>Endpoint do formulário que agenda (padrão: o form no Render, <code>…/api/book-sofia</code>). Normalmente não precisa mexer.</td></tr>
+          <tr><td>SOFIA_TOKEN</td><td>Senha compartilhada com o formulário (no VPS). Precisa ser <b>idêntica</b> ao <code>SOFIA_TOKEN</code> do <code>.env</code> do formulário — é o que autoriza a Sofia a agendar no EVO.</td></tr>
+          <tr><td>SOFIA_BOOK_URL</td><td>Endpoint do formulário que agenda — o form no VPS, sob a subpasta: <code>https://SEU-PAINEL/agendamentoexperimental/api/book-sofia</code>.</td></tr>
           <tr><td>NTFY_TOPIC</td><td>Opcional — <b>mesmo tópico</b> dos alertas do robô. Com ele, a SoFIA avisa no celular quando a sessão dela <b>cair (precisa de QR)</b>, quando <b>travar</b> (a verificação de conexão reinicia sozinha) e quando uma <b>campanha auto-pausa</b> por falhas.</td></tr>
           <tr><td>CHROMIUM_PATH</td><td>Opcional — caminho do Chromium, se o padrão não for encontrado (mesmo do robô).</td></tr>
           <tr><td>SOFIA_DIR</td><td>Opcional (recomendado) — pasta <b>fora do repositório</b> onde ficam o prompt e o estado da Sofia (ex.: <code>/root/sofia-data</code>). Assim o <code>git pull</code> nunca sobrescreve o prompt editado no painel. Defina o <b>mesmo</b> valor no <code>.env</code> do painel (<code>Experimental/.env</code>) e no da Sofia; mova os arquivos <code>sofia-*</code> e a <code>.wwebjs_auth</code> para lá.</td></tr>
@@ -1161,7 +1176,7 @@ pm2 logs sofia-listener        <span class="c"># espere aparecer "PRONTA"</span>
           <li>🎂 <b>Aniversário nos grupos mais resistente</b> (só <code>git pull</code>): os jobs que leem o EVO por dentro (aniversariantes, ausentes, renovações, planilha) agora <b>dispensam sozinhos</b> o popup “Nova funcionalidade” que o EVO passou a mostrar por cima das telas antigas — que antes travava a leitura.</li>
           <li>🏷️ <b>Tags certas nas Conversas</b> (reiniciar <code>sofia-listener</code> + <code>painel</code>): algumas conversas apareciam com um <b>número interno do WhatsApp (@lid)</b> e <b>“sem tags”</b>, mesmo com a tag certa em Contatos. A SoFIA agora <b>reconcilia</b> essas conversas com o telefone real (ao conectar e a cada 3h) e o painel <b>casa o contato tolerando o 9º dígito</b> (número com/sem o 9). Resultado: a tag aparece na conversa e no filtro, sem contato duplicado. A grade cheia é <b>consequência da metodologia</b> — nada foi perdido.</li>
           <li>🐢 <b>Grade de horários mais leve no EVO</b> (só <code>git pull</code> no VPS): o cálculo/envio da grade ao formulário passou de “a cada 10 min, 24h” para <b>a cada 60 min (07h–21h)</b> e <b>a cada ~3h de madrugada</b> — boa prática da API do EVO. A grade vale <b>4h</b> no formulário e a vaga é revalidada ao vivo no agendamento, então a aluna não vê “sem horário” por isso.</li>
-          <li>🩹 <b>Auto-recuperação da grade após deploy</b> (só <code>git pull</code> + reiniciar <code>slimfit-exp</code>): o disco da Render é efêmero e apaga a grade enviada a cada deploy — antes o formulário podia ficar <b>até 60 min</b> mostrando “sem horário” / “está demorando mais que o normal”. Agora o VPS <b>confere a grade a cada 2 min</b> e a <b>reenvia na hora</b> se ela sumiu, derrubando essa janela para <b>~2 min</b> sem ninguém precisar rodar nada.</li>
+          <li>🩹 <b>Auto-recuperação da grade após reinício</b> (só <code>git pull</code> + reiniciar <code>&lt;slug&gt;-exp</code>): se o formulário reinicia (deploy/queda) a grade enviada pode sumir — antes o formulário podia ficar <b>até 60 min</b> mostrando “sem horário” / “está demorando mais que o normal”. Agora o VPS <b>confere a grade a cada 2 min</b> e a <b>reenvia na hora</b> se ela sumiu, derrubando essa janela para <b>~2 min</b> sem ninguém precisar rodar nada.</li>
           <li>🏷️ <b>Renomear o servidor sem travar</b> (só <code>git pull</code> + reiniciar): dá para trocar o <b>nome do host</b> da VPS (ex.: <code>sf.gyn.bueno</code>, <code>sf.bsb.asa-sul</code>) para identificar cada unidade. O Chromium guarda uma trava (<code>SingletonLock</code>) com o nome antigo da máquina e, ao renomear, recusava abrir (robô/SoFIA presos em “Iniciando…”). Agora <b>SoFIA, robô, EVO e Instagram limpam essa trava sozinhos no boot</b> — renomear virou seguro, sem reescanear QR. Útil ao provisionar cada unidade nova.</li>
           <li>🔗 <b>Fim dos contatos duplicados pelo 9º dígito</b> (só <code>git pull</code> + reiniciar a SoFIA): o mesmo número aparecia como <b>dois contatos</b> nas Conversas — um <b>com</b> o 9 (ex.: 61 <b>9</b>9222-0710) e outro <b>sem</b> (61 9222-0710), porque o WhatsApp às vezes usa a forma antiga e o cadastro/EVO a nova. Agora a SoFIA <b>reconhece as duas formas como a mesma pessoa</b>: <b>funde os cards já duplicados</b> (no boot e a cada 3h) e faz toda mensagem nova <b>cair no card certo</b>, sem criar outro. Junta as mensagens em ordem e mantém as tags. (O CRM de Contatos já tratava isso.)</li>
           <li>🔐 <b>2FA do EVO em TODOS os logins</b> (só <code>git pull</code> + reiniciar): quando o MFA do EVO está ligado, <b>todos</b> os jobs que leem o EVO (confirmações, aniversariantes, ausentes, renovações, planilha, suspensões, circuito…) preenchem o código do autenticador sozinhos. Antes só o login das confirmações tratava o 2FA — os jobs de Segmentação travavam com <code>Waiting failed: 30000ms</code>. Sem <code>EVO_TOTP_SECRET</code> é no-op (unidade sem MFA segue igual). Ver <b>Fase 2.5</b>.</li>
@@ -1169,7 +1184,7 @@ pm2 logs sofia-listener        <span class="c"># espere aparecer "PRONTA"</span>
           <li>🚫 <b>Desligar envios por unidade</b> (<code>.env</code>): <code>JOBS_OFF=presentes,circuito_convocacao,circuito_lembrete</code> faz o robô <b>não agendar</b> esses jobs e o painel (WhatsApp → Configuração) mostrar uma caixa "Envios desativados nesta unidade". Chaves: <code>presentes</code> · <code>circuito_convocacao</code> · <code>circuito_lembrete</code> (ou <code>circuito</code> = os dois).</li>
           <li>📅 <b>Antecedência da renovação configurável</b> (<code>.env</code>): o aviso de renovação sai por padrão <b>7 dias</b> antes do vencimento; para mudar por unidade, defina <code>RENOVACAO_DIAS_ANTES=30</code> (ex.: o Lago Sul avisa <b>30 dias</b> antes). Usa o <b>mesmo segmento</b> do EVO (que busca pelo mês), só troca o "+7" pelo número do <code>.env</code>. Reiniciar <code>exp</code>.</li>
           <li>🏷️ <b>Novas variáveis nas mensagens</b> (reiniciar <code>exp</code> + <code>painel</code> e recarregar o navegador): a mensagem de <b>renovação</b> aceita <code>{contrato}</code> (nome do plano da aluna, ex.: <i>COPA SLIM 2026 - C.C. - GRUPO 1</i>) e os <b>follow-ups</b> aceitam <code>{nome}</code> (primeiro nome da aluna). O <b>aniversário nos grupos</b> também aceita <code>{nome}</code> (primeiro nome em <b>texto normal</b>) além do <code>{aluna}</code> (a <b>@menção</b> que marca a pessoa) — ex.: <i>"Hoje é aniversário da {nome} {aluna}!"</i>; no preview/teste o <code>{aluna}</code> aparece como <code>@Maria</code> para representar a marcação. As tags aparecem em <b>WhatsApp → Mensagens</b> ao editar cada texto.</li>
-          <li>🎟️ <b>Aula experimental vai até a última vaga real</b> (só <code>git pull</code> + reiniciar <code>exp</code>; formulário: deploy na Render): foi <b>removida</b> a regra que <b>reservava as últimas vagas</b> da turma (o antigo teto <code>FORM_MAX_OCUPACAO</code>). Agora, se a turma tem <b>vaga de verdade</b> (matriculadas &lt; capacidade), a experimental pode marcar — não importa se a capacidade é 8, 9 ou 10. Vale para <b>SoFIA, Cadastro Express e formulário</b>. Turma <b>cheia</b> continua sem aparecer. O limite de <b>nº de experimentais por turma</b> (<code>EVO_MAX_EXPERIMENTAIS</code>, painel: <i>Máx. experimentais por turma</i>) <b>segue valendo</b>.</li>
+          <li>🎟️ <b>Aula experimental vai até a última vaga real</b> (só <code>git pull</code> + reiniciar <code>exp</code>; formulário: <code>git pull</code> + reiniciar <code>&lt;slug&gt;-form</code> no VPS): foi <b>removida</b> a regra que <b>reservava as últimas vagas</b> da turma (o antigo teto <code>FORM_MAX_OCUPACAO</code>). Agora, se a turma tem <b>vaga de verdade</b> (matriculadas &lt; capacidade), a experimental pode marcar — não importa se a capacidade é 8, 9 ou 10. Vale para <b>SoFIA, Cadastro Express e formulário</b>. Turma <b>cheia</b> continua sem aparecer. O limite de <b>nº de experimentais por turma</b> (<code>EVO_MAX_EXPERIMENTAIS</code>, painel: <i>Máx. experimentais por turma</i>) <b>segue valendo</b>.</li>
           <li>🧾 <b>Log com a mensagem inteira</b> (reiniciar <code>painel</code>): no <b>WhatsApp → Log</b> ("Envios de hoje"), cada linha ganhou um <b>"＋ ver tudo"</b> que abre o <b>texto completo</b> enviado (antes mostrava só os primeiros ~80 caracteres). Usa <code>&lt;details&gt;</code> nativo (sem JS). Vale para os <b>novos envios</b> a partir da atualização.</li>
           <li>🩺 <b>Saúde do sistema mais completa</b> (reiniciar <code>painel</code>): a página <b>Saúde</b> agora também mostra o <b>EVO / 2FA</b> (se o autenticador está configurado ou se há <b>código pendente</b> para você digitar), a <b>grade no formulário</b> (se a versão do VPS está publicada), e um card <b>Servidor</b> com <b>disco livre</b> e <b>último backup</b> — tudo com semáforo 🟢🟡🔴.</li>
           <li>⏱️ <b>Escalonar o envio da grade (2 lojas no mesmo VPS)</b> (<code>.env</code>, reiniciar <code>exp</code>): <code>FORM_SLOTS_MINUTO</code> define o <b>minuto</b> em que a unidade empurra a grade ao formulário. Com duas lojas na mesma conta EVO, use minutos <b>diferentes</b> (ex.: loja 1 = <code>0</code>, loja 2 = <code>30</code>) para não estourarem juntas o <b>limite de 40 req/min do EVO</b> — que fazia a grade sumir das duas. Também escalona o push do boot e a verificação inicial. Além disso, o POST da grade agora espera <b>60s</b> (aguenta o cold start do formulário free).</li>
@@ -1222,7 +1237,7 @@ pm2 start sofia-listener</pre></div>
       <li><span class="box">✓</span><span>Testes <code>scrape</code> e <code>morning</code> ok; mensagem de teste recebida.</span></li>
       <li><span class="box">✓</span><span>Alertas ntfy no celular do dono, com teste recebido.</span></li>
       <li><span class="box">✓</span><span>PM2 <b>online</b> + autostart configurado.</span></li>
-      <li><span class="box">✓</span><span>(Se vendeu) formulário na Render no ar e ponte ligada.</span></li>
+      <li><span class="box">✓</span><span>(Se vendeu) formulário no VPS no ar (sob <code>/agendamentoexperimental</code>) e ponte ligada.</span></li>
       <li><span class="box">✓</span><span>(Opcional) painel de mensagens no ar com <b>senha forte</b> e HTTPS (Fase 7).</span></li>
       <li><span class="box">✓</span><span><b>SoFIA</b> no ar: <code>sofia-listener</code> online, WhatsApp <b>próprio</b> dela conectado e um agendamento de teste concluído (Fase 9).</span></li>
       <li><span class="box">✓</span><span>Manual entregue e recepção treinada. Acompanhe os primeiros dias.</span></li>
