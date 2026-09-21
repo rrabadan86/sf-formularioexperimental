@@ -29,6 +29,26 @@ from evo_agendamento.util import br_phone_with_9, only_digits
 BASE = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, static_folder=os.path.join(BASE, "static"), static_url_path="/static")
 
+# ─────────────────────────────────────────────────────────────────────────
+#  MODO REDIRECIONADOR (pós-migração da Render p/ o VPS)
+#  Se FORM_REDIRECT_BASE estiver definido, este serviço NÃO atende o formulário —
+#  ele só REDIRECIONA (301) TUDO para a página nova (ex.: a do VPS, sob
+#  /agendamentoexperimental). Serve para manter os links antigos (onrender.com)
+#  funcionando depois que a unidade saiu da Render. Preserva caminho e querystring
+#  (ex.: /?origem=instagram). Deixe a variável VAZIA para atender o formulário normal.
+# ─────────────────────────────────────────────────────────────────────────
+FORM_REDIRECT_BASE = os.getenv("FORM_REDIRECT_BASE", "").strip().rstrip("/")
+
+
+@app.before_request
+def _redirecionar_para_pagina_nova():
+    if not FORM_REDIRECT_BASE:
+        return None
+    destino = FORM_REDIRECT_BASE + request.full_path   # full_path preserva a querystring
+    if destino.endswith("?"):                          # full_path põe "?" mesmo sem query
+        destino = destino[:-1]
+    return redirect(destino, code=301)
+
 # ---- configuração via ambiente ----
 FORM_DAYS = int(os.getenv("FORM_DAYS", "10"))                 # janela de dias visível
 FORM_MAX_OCUPACAO = int(os.getenv("FORM_MAX_OCUPACAO", "7"))  # turma com >7 fica indisponível
