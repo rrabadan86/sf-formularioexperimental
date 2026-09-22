@@ -257,12 +257,19 @@ class EvoClient:
         return None
 
     def get_or_create_prospect(self, name, last_name=None, email=None, phone=None,
-                               ddi=None, branch_id=None, document=None, birthday=None):
+                               ddi=None, branch_id=None, document=None, birthday=None,
+                               forcar_novo=False):
         """Idempotência: reaproveita prospect existente (por e-mail, depois telefone
-        com/sem o 9, depois CPF) ou cria um novo. Retorna (idProspect, criado?)."""
-        idp = self._search_prospect_id(email=email, phone=phone, document=document, log_hit=True)
-        if idp:
-            return idp, False
+        com/sem o 9, depois CPF) ou cria um novo. Retorna (idProspect, criado?).
+
+        forcar_novo=True PULA o reaproveitamento e cria um prospect SEPARADO —
+        para duas pessoas que compartilham o mesmo e-mail/telefone (clássico:
+        mãe e filha). Sem isso, o cadastro da segunda "cairia" no da primeira
+        (e o update sobrescreveria os dados dela)."""
+        if not forcar_novo:
+            idp = self._search_prospect_id(email=email, phone=phone, document=document, log_hit=True)
+            if idp:
+                return idp, False
         created = self.create_prospect(name, last_name, email, phone, ddi, branch_id,
                                        document=document, birthday=birthday)
         return created, True
