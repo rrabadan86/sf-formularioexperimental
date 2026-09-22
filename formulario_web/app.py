@@ -16,6 +16,7 @@ import os
 import re
 import threading
 import time
+import unicodedata
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -26,6 +27,7 @@ from evo_agendamento import config
 from evo_agendamento.orchestrator import _confirm_message
 from evo_agendamento.util import br_phone_with_9, only_digits, session_has_room_normal
 from evo_agendamento.orchestrator import turma_fechada
+from evo_agendamento.evo_client import _evo_cellphone_variants
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, static_folder=os.path.join(BASE, "static"), static_url_path="/static")
@@ -872,6 +874,63 @@ def api_outbox_ack():
 def health():
     return jsonify({"ok": True})
 
+
+# ─────────────────────────────────────────────────────────────────────────
+#  Detecção de "cadastro de outra pessoa" (mãe x filha com o mesmo contato)
+# ─────────────────────────────────────────────────────────────────────────
+def _nome_norm(s):
+    """Normaliza para comparar nomes: sem acento, minúsculo, espaços colapsados."""
+    s = unicodedata.normalize("NFD", str(s or ""))
+    s = "".join(c for c in s if unicodedata.category(c) != "Mn")
+    return " ".join(s.lower().split())
+
+
+def _nome_do_prospect(p):
+    n = (p.get("name") or p.get("firstName") or "").strip()
+    ln = (p.get("lastName") or "").strip()
+    full = (n + " " + ln).strip()
+    return full or (p.get("fullName") or "").strip()
+
+
+def _prospects_por_contato(evo, email, phone):
+    """Todos os prospects que batem por e-mail OU telefone (com/sem o 9), sem repetir."""
+    out, seen = [], set()
+    try:
+        if email:
+            for p in (evo.find_prospects(email=email) or []):
+                pid = p.get("idProspect")
+                if pid and pid not in seen:
+                    seen.add(pid); out.append(p)
+        if phone:
+            for tel in _evo_cellphone_variants(phone, config.EVO_DDI):
+                for p in (evo.find_prospects(phone=tel, normalize_phone=False) or []):
+                    pid = p.get("idProspect")
+                    if pid and pid not in seen:
+                        seen.add(pid); out.append(p)
+    except Exception:
+        app.logger.exception("book-sofia: falha ao buscar prospects por contato")
+    return out
+
+
+def _prospect_conflitante(evo, email, phone, nome):
+    """Retorna o 1º prospect existente cujo NOME difere do informado (ex.: mãe x
+    filha com o mesmo e-mail/telefone). None se não houver conflito real — se o
+    nome for o mesmo (ou um contiver o outro), é a mesma pessoa reagendando."""
+    alvo = _nome_norm(nome)
+    if not alvo:
+        return None
+    for p in _prospects_por_contato(evo, email, phone):
+        pn = _nome_norm(_nome_do_prospect(p))
+        if pn and pn != alvo and pn not in alvo and alvo not in pn:
+            return {
+                "idProspect": p.get("idProspect"),
+                "nome": _nome_do_prospect(p),
+                "email": p.get("email") or "",
+                "telefone": p.get("cellphone") or p.get("phone") or "",
+            }
+    return None
+
+
 @app.post("/api/book-sofia")
 def api_book_sofia():
     # 1) Autenticação simples por token compartilhado (só a Sofia conhece).
@@ -901,10 +960,30 @@ def api_book_sofia():
     if not when:
         return jsonify({"ok": False, "erro": "horário não informado"}), 400
 
+    # 2b) Cadastro de OUTRA pessoa com o mesmo e-mail/telefone? (clássico: mãe x
+    #     filha). Só age quando o NOME difere do cadastro encontrado. A tela decide
+    #     via "acao_duplicado": "sobrescrever" (reusa/atualiza o existente) ou
+    #     "novo" (cria um cadastro à parte).
+    acao = (dados.get("acao_duplicado") or "").strip().lower()
+    evo = EvoClient()
+    # Por ora só o Cadastro Express (origem="express") faz essa checagem — o
+    # formulário público e a SoFIA seguem o fluxo atual (reaproveita/atualiza).
+    if origem == "express" and acao not in ("sobrescrever", "novo"):
+        conflito = _prospect_conflitante(evo, email, telefone, nome)
+        if conflito:
+            return jsonify({"ok": False, "motivo": "cadastro_existente", "existente": conflito}), 409
+    forcar_novo = (acao == "novo")
+    # Para "criar novo": guarda os ids já existentes, p/ detectar se o EVO "mesclou"
+    # (não aceitou e-mail/telefone duplicado e devolveu o cadastro antigo).
+    ids_antes = set()
+    if forcar_novo:
+        ids_antes = {str(p.get("idProspect")) for p in _prospects_por_contato(evo, email, telefone) if p.get("idProspect")}
+
     # 3) Agenda no EVO reusando TODA a sua lógica (cadastro + venda + matrícula,
     #    deduplicação, limite de experimentais, etc.). CPF/nascimento ficam de fora.
     try:
-        res = book_experimental(name=nome, when=when, email=(email or None), phone=telefone)
+        res = book_experimental(name=nome, when=when, email=(email or None),
+                                phone=telefone, forcar_novo=forcar_novo, evo=evo)
     except TurmaLotadaError as e:
         # Turma cheia / inexistente / fora de janela: o lead JÁ foi cadastrado no EVO.
         # Devolvemos as alternativas para a Sofia oferecer outro horário à aluna.
@@ -948,12 +1027,19 @@ def api_book_sofia():
         app.logger.exception("Sofia: agendou mas falhou ao enfileirar a confirmação")
 
     # 5) Sucesso: a aula foi agendada no EVO.
-    return jsonify({
+    resp = {
         "ok": True,
         "when": res.when,               # "2026-07-30 16:30" (data real resolvida)
         "idProspect": res.id_prospect,
         "activity": res.activity,
-    })
+    }
+    # "Criar novo" mas o EVO devolveu um id que já existia = ele não separa cadastros
+    # com o mesmo e-mail/telefone. Agendou, mas ficou no cadastro existente.
+    if forcar_novo and str(res.id_prospect) in ids_antes:
+        resp["aviso"] = ("Agendado, mas ficou no cadastro existente — o EVO não separa "
+                         "dois cadastros com o mesmo e-mail/telefone. Para um cadastro "
+                         "próprio, use um e-mail diferente.")
+    return jsonify(resp)
 
 
 # ─────────────────────────────────────────────────────────────────────────
