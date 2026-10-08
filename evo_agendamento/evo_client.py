@@ -227,21 +227,25 @@ class EvoClient:
         celular COM e SEM o 9), depois CPF. Cadastros antigos podem ter sido salvos
         sem o 9 do celular (ex.: 6293185183 em vez de 62993185183); procurar as duas
         formas evita criar um duplicado. Retorna idProspect ou None."""
+        # IMPORTANTE: o EVO às vezes IGNORA o filtro e devolve uma lista genérica.
+        # Por isso, para e-mail e telefone (como já era feito no CPF), só reaproveita
+        # o prospect se o e-mail/telefone retornado REALMENTE bater — senão criaríamos
+        # a venda no cadastro de outra pessoa (bug do "limite de celulares").
         if email:
-            found = self.find_prospects(email=email)
-            if found and found[0].get("idProspect"):
-                idp = found[0]["idProspect"]
-                if log_hit:
-                    log.info("Prospect já existe (email=%s): idProspect=%s", email, idp)
-                return idp
+            for p in self.find_prospects(email=email):
+                if p.get("idProspect") and _prospect_tem_email(p, email):
+                    idp = p["idProspect"]
+                    if log_hit:
+                        log.info("Prospect já existe (email=%s): idProspect=%s", email, idp)
+                    return idp
         if phone:
             for tel in _evo_cellphone_variants(phone, config.EVO_DDI):
-                found = self.find_prospects(phone=tel, normalize_phone=False)
-                if found and found[0].get("idProspect"):
-                    idp = found[0]["idProspect"]
-                    if log_hit:
-                        log.info("Prospect já existe (phone=%s): idProspect=%s", tel, idp)
-                    return idp
+                for p in self.find_prospects(phone=tel, normalize_phone=False):
+                    if p.get("idProspect") and _prospect_bate_telefone(p, tel):
+                        idp = p["idProspect"]
+                        if log_hit:
+                            log.info("Prospect já existe (phone=%s): idProspect=%s", tel, idp)
+                        return idp
         if document:
             doc = only_digits(document)
             if doc:
@@ -623,6 +627,50 @@ def _drop_empty(d):
     if not d:
         return d
     return {k: v for k, v in d.items() if v not in (None, "")}
+
+
+def _strings_do_prospect(obj, prof=0):
+    """Coleta TODAS as strings/números de um prospect (raso + aninhado). Serve para
+    conferir e-mail/telefone sem depender do nome exato da chave que o EVO devolve
+    (a saída da API difere da entrada: cpf->document, etc.)."""
+    out = []
+    if prof > 3 or obj is None:
+        return out
+    if isinstance(obj, dict):
+        for v in obj.values():
+            out.extend(_strings_do_prospect(v, prof + 1))
+    elif isinstance(obj, (list, tuple)):
+        for v in obj:
+            out.extend(_strings_do_prospect(v, prof + 1))
+    elif isinstance(obj, str):
+        out.append(obj)
+    elif isinstance(obj, (int, float)):
+        out.append(str(obj))
+    return out
+
+
+def _prospect_tem_email(p, email):
+    """True se o prospect realmente contém esse e-mail (comparação exata, sem caixa).
+    Protege contra o EVO ignorar o filtro 'email' e devolver uma lista genérica."""
+    alvo = (email or "").strip().lower()
+    if not alvo:
+        return False
+    return any(s.strip().lower() == alvo for s in _strings_do_prospect(p))
+
+
+def _prospect_bate_telefone(p, tel):
+    """True se o prospect realmente contém esse telefone. Compara pelos 8 últimos
+    dígitos (número local, tolerando DDI/DDD e o 9º dígito), mas só em campos com
+    cara de telefone (10–13 dígitos) — evita casar por acaso com CPF/outros."""
+    d = only_digits(tel)
+    if len(d) < 8:
+        return False
+    suf = d[-8:]
+    for s in _strings_do_prospect(p):
+        sd = only_digits(s)
+        if 10 <= len(sd) <= 13 and sd[-8:] == suf:
+            return True
+    return False
 
 
 def _evo_cellphone(phone, ddi):
