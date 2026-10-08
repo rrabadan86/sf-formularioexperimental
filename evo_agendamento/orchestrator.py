@@ -193,6 +193,7 @@ def book_experimental(
     document: str = None,          # CPF (opcional, usado pelo formulário web)
     birthday: str = None,          # data de nascimento yyyy-MM-dd (opcional)
     forcar_novo: bool = False,     # cria cadastro SEPARADO mesmo se e-mail/telefone já existir (mãe x filha)
+    reuse_por: str = None,         # "phone" = reaproveita só por telefone (ignora e-mail/CPF)
     evo: EvoClient = None,
 ) -> BookingResult:
     """Fluxo real do Studio: cadastro -> venda do serviço -> matrícula na turma.
@@ -225,7 +226,7 @@ def book_experimental(
     first, last = split_name(name)
     id_prospect, created = evo.get_or_create_prospect(
         name=first, last_name=last, email=email, phone=phone, branch_id=branch_id,
-        document=document, birthday=birthday, forcar_novo=forcar_novo,
+        document=document, birthday=birthday, forcar_novo=forcar_novo, reuse_por=reuse_por,
     )
 
     # Se o cadastro JÁ existia (ex.: cadastro antigo da aluna), completa/atualiza

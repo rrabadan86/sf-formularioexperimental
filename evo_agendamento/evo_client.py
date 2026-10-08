@@ -222,16 +222,21 @@ class EvoClient:
         log.warning("Não consegui atualizar o prospect %s: %s", id_prospect, ultimo_erro)
         return {"ok": False, "erro": ultimo_erro or "falha desconhecida"}
 
-    def _search_prospect_id(self, email=None, phone=None, document=None, log_hit=False):
+    def _search_prospect_id(self, email=None, phone=None, document=None, log_hit=False,
+                            reuse_por=None):
         """Procura um prospect existente: por e-mail, depois telefone (testando o
         celular COM e SEM o 9), depois CPF. Cadastros antigos podem ter sido salvos
         sem o 9 do celular (ex.: 6293185183 em vez de 62993185183); procurar as duas
-        formas evita criar um duplicado. Retorna idProspect ou None."""
+        formas evita criar um duplicado. Retorna idProspect ou None.
+
+        reuse_por="phone" limita o reaproveitamento ao TELEFONE (ignora e-mail/CPF) —
+        usado pelos fluxos onde o critério de duplicado é só o telefone."""
         # IMPORTANTE: o EVO às vezes IGNORA o filtro e devolve uma lista genérica.
         # Por isso, para e-mail e telefone (como já era feito no CPF), só reaproveita
         # o prospect se o e-mail/telefone retornado REALMENTE bater — senão criaríamos
         # a venda no cadastro de outra pessoa (bug do "limite de celulares").
-        if email:
+        so_telefone = (reuse_por == "phone")
+        if email and not so_telefone:
             for p in self.find_prospects(email=email):
                 if p.get("idProspect") and _prospect_tem_email(p, email):
                     idp = p["idProspect"]
@@ -246,7 +251,7 @@ class EvoClient:
                         if log_hit:
                             log.info("Prospect já existe (phone=%s): idProspect=%s", tel, idp)
                         return idp
-        if document:
+        if document and not so_telefone:
             doc = only_digits(document)
             if doc:
                 # Confirma que o CPF do prospect retornado realmente bate — se o EVO
@@ -262,16 +267,19 @@ class EvoClient:
 
     def get_or_create_prospect(self, name, last_name=None, email=None, phone=None,
                                ddi=None, branch_id=None, document=None, birthday=None,
-                               forcar_novo=False):
+                               forcar_novo=False, reuse_por=None):
         """Idempotência: reaproveita prospect existente (por e-mail, depois telefone
         com/sem o 9, depois CPF) ou cria um novo. Retorna (idProspect, criado?).
 
         forcar_novo=True PULA o reaproveitamento e cria um prospect SEPARADO —
         para duas pessoas que compartilham o mesmo e-mail/telefone (clássico:
         mãe e filha). Sem isso, o cadastro da segunda "cairia" no da primeira
-        (e o update sobrescreveria os dados dela)."""
+        (e o update sobrescreveria os dados dela).
+
+        reuse_por="phone" limita o reaproveitamento ao TELEFONE (ignora e-mail/CPF)."""
         if not forcar_novo:
-            idp = self._search_prospect_id(email=email, phone=phone, document=document, log_hit=True)
+            idp = self._search_prospect_id(email=email, phone=phone, document=document,
+                                           log_hit=True, reuse_por=reuse_por)
             if idp:
                 return idp, False
         created = self.create_prospect(name, last_name, email, phone, ddi, branch_id,
