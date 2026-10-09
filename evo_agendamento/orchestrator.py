@@ -399,9 +399,19 @@ def available_slots(evo=None, days=10, activity=None, id_activity=None, branch_i
     budget = float(getattr(config, "FORM_SLOTS_BUDGET", 70) or 0)
 
     vistos, itens = set(), []
+    houve_erro = False                            # alguma semana falhou ao listar?
     d = inicio
     while d < fim:                                # cobre as semanas do intervalo
-        for s in (evo.list_schedule(d, show_full_week=True, branch_id=branch_id) or []):
+        try:
+            sched = evo.list_schedule(d, show_full_week=True, branch_id=branch_id) or []
+        except Exception as e:
+            # EVO lento / limite de requisições (429) / 5xx: NÃO derruba a grade inteira
+            # nem cacheia vazio — marca o erro e segue (ver tratamento no final).
+            log.warning("Grade: falha ao listar a semana de %s (%s) — mantendo o que já tiver.", d.date(), e)
+            houve_erro = True
+            d += timedelta(days=7)
+            continue
+        for s in sched:
             if not _match_activity(s, activity, id_activity):
                 continue
             dt = session_start_datetime(s)
@@ -447,6 +457,15 @@ def available_slots(evo=None, days=10, activity=None, id_activity=None, branch_i
             })
         d += timedelta(days=7)
     itens.sort(key=lambda x: x["activityDate"])
+    # Se alguma semana falhou (EVO instável/429), a grade pode estar INCOMPLETA.
+    # Nesse caso NÃO cacheia (pra não "prender" uma grade ruim por TTL) e, se houver
+    # um cache anterior, devolve ele — melhor a grade de 2 min atrás do que vazia.
+    if houve_erro:
+        prev = _SLOTS_CACHE.get(cache_key)
+        if prev and prev[1]:
+            log.info("Grade incompleta (erro no EVO) — devolvendo a última grade boa (cache).")
+            return prev[1]
+        return itens          # sem cache anterior: devolve o parcial, mas não cacheia (retenta já no próximo)
     if use_cache and _SLOTS_TTL > 0:
         _SLOTS_CACHE[cache_key] = (time.monotonic() + _SLOTS_TTL, itens)
     return itens
