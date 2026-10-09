@@ -222,27 +222,36 @@ class EvoClient:
         log.warning("Não consegui atualizar o prospect %s: %s", id_prospect, ultimo_erro)
         return {"ok": False, "erro": ultimo_erro or "falha desconhecida"}
 
-    def _search_prospect_id(self, email=None, phone=None, document=None, log_hit=False):
+    def _search_prospect_id(self, email=None, phone=None, document=None, log_hit=False,
+                            reuse_por=None):
         """Procura um prospect existente: por e-mail, depois telefone (testando o
         celular COM e SEM o 9), depois CPF. Cadastros antigos podem ter sido salvos
         sem o 9 do celular (ex.: 6293185183 em vez de 62993185183); procurar as duas
-        formas evita criar um duplicado. Retorna idProspect ou None."""
-        if email:
-            found = self.find_prospects(email=email)
-            if found and found[0].get("idProspect"):
-                idp = found[0]["idProspect"]
-                if log_hit:
-                    log.info("Prospect já existe (email=%s): idProspect=%s", email, idp)
-                return idp
+        formas evita criar um duplicado. Retorna idProspect ou None.
+
+        reuse_por="phone" limita o reaproveitamento ao TELEFONE (ignora e-mail/CPF) —
+        usado pelos fluxos onde o critério de duplicado é só o telefone."""
+        # IMPORTANTE: o EVO às vezes IGNORA o filtro e devolve uma lista genérica.
+        # Por isso, para e-mail e telefone (como já era feito no CPF), só reaproveita
+        # o prospect se o e-mail/telefone retornado REALMENTE bater — senão criaríamos
+        # a venda no cadastro de outra pessoa (bug do "limite de celulares").
+        so_telefone = (reuse_por == "phone")
+        if email and not so_telefone:
+            for p in self.find_prospects(email=email):
+                if p.get("idProspect") and _prospect_tem_email(p, email):
+                    idp = p["idProspect"]
+                    if log_hit:
+                        log.info("Prospect já existe (email=%s): idProspect=%s", email, idp)
+                    return idp
         if phone:
             for tel in _evo_cellphone_variants(phone, config.EVO_DDI):
-                found = self.find_prospects(phone=tel, normalize_phone=False)
-                if found and found[0].get("idProspect"):
-                    idp = found[0]["idProspect"]
-                    if log_hit:
-                        log.info("Prospect já existe (phone=%s): idProspect=%s", tel, idp)
-                    return idp
-        if document:
+                for p in self.find_prospects(phone=tel, normalize_phone=False):
+                    if p.get("idProspect") and _prospect_bate_telefone(p, tel):
+                        idp = p["idProspect"]
+                        if log_hit:
+                            log.info("Prospect já existe (phone=%s): idProspect=%s", tel, idp)
+                        return idp
+        if document and not so_telefone:
             doc = only_digits(document)
             if doc:
                 # Confirma que o CPF do prospect retornado realmente bate — se o EVO
@@ -258,16 +267,19 @@ class EvoClient:
 
     def get_or_create_prospect(self, name, last_name=None, email=None, phone=None,
                                ddi=None, branch_id=None, document=None, birthday=None,
-                               forcar_novo=False):
+                               forcar_novo=False, reuse_por=None):
         """Idempotência: reaproveita prospect existente (por e-mail, depois telefone
         com/sem o 9, depois CPF) ou cria um novo. Retorna (idProspect, criado?).
 
         forcar_novo=True PULA o reaproveitamento e cria um prospect SEPARADO —
         para duas pessoas que compartilham o mesmo e-mail/telefone (clássico:
         mãe e filha). Sem isso, o cadastro da segunda "cairia" no da primeira
-        (e o update sobrescreveria os dados dela)."""
+        (e o update sobrescreveria os dados dela).
+
+        reuse_por="phone" limita o reaproveitamento ao TELEFONE (ignora e-mail/CPF)."""
         if not forcar_novo:
-            idp = self._search_prospect_id(email=email, phone=phone, document=document, log_hit=True)
+            idp = self._search_prospect_id(email=email, phone=phone, document=document,
+                                           log_hit=True, reuse_por=reuse_por)
             if idp:
                 return idp, False
         created = self.create_prospect(name, last_name, email, phone, ddi, branch_id,
@@ -623,6 +635,50 @@ def _drop_empty(d):
     if not d:
         return d
     return {k: v for k, v in d.items() if v not in (None, "")}
+
+
+def _strings_do_prospect(obj, prof=0):
+    """Coleta TODAS as strings/números de um prospect (raso + aninhado). Serve para
+    conferir e-mail/telefone sem depender do nome exato da chave que o EVO devolve
+    (a saída da API difere da entrada: cpf->document, etc.)."""
+    out = []
+    if prof > 3 or obj is None:
+        return out
+    if isinstance(obj, dict):
+        for v in obj.values():
+            out.extend(_strings_do_prospect(v, prof + 1))
+    elif isinstance(obj, (list, tuple)):
+        for v in obj:
+            out.extend(_strings_do_prospect(v, prof + 1))
+    elif isinstance(obj, str):
+        out.append(obj)
+    elif isinstance(obj, (int, float)):
+        out.append(str(obj))
+    return out
+
+
+def _prospect_tem_email(p, email):
+    """True se o prospect realmente contém esse e-mail (comparação exata, sem caixa).
+    Protege contra o EVO ignorar o filtro 'email' e devolver uma lista genérica."""
+    alvo = (email or "").strip().lower()
+    if not alvo:
+        return False
+    return any(s.strip().lower() == alvo for s in _strings_do_prospect(p))
+
+
+def _prospect_bate_telefone(p, tel):
+    """True se o prospect realmente contém esse telefone. Compara pelos 8 últimos
+    dígitos (número local, tolerando DDI/DDD e o 9º dígito), mas só em campos com
+    cara de telefone (10–13 dígitos) — evita casar por acaso com CPF/outros."""
+    d = only_digits(tel)
+    if len(d) < 8:
+        return False
+    suf = d[-8:]
+    for s in _strings_do_prospect(p):
+        sd = only_digits(s)
+        if 10 <= len(sd) <= 13 and sd[-8:] == suf:
+            return True
+    return False
 
 
 def _evo_cellphone(phone, ddi):

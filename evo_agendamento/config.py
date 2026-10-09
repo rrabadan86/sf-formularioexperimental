@@ -90,15 +90,36 @@ EVO_MAX_EXPERIMENTAIS = int(_clean("EVO_MAX_EXPERIMENTAIS", "2") or "0")
 # o número em Experimental/data/sofia-exp-limite.txt. Lemos o arquivo a cada
 # chamada (barato) e, se existir e for válido, ele MANDA sobre o .env. Assim o
 # Studio muda quantas experimentais cabem por turma direto pela telinha.
-EXP_LIMITE_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "sofia-exp-limite.txt")
+#
+# O CAMINHO desse arquivo depende do layout do deploy:
+#  • Lago Sul: o agendamento roda DENTRO do repo do painel (.../Experimental/src/
+#    agendamento_evo), então o arquivo do painel (.../Experimental/data/...) é
+#    encontrado automaticamente.
+#  • Bueno: o agendamento é um deploy SEPARADO (/root/sf-form-real), então aponte
+#    para o arquivo do painel com a variável SOFIA_EXP_LIMITE_FILE no .env — aí o
+#    limite também passa a ser controlado pela telinha, igual ao Lago Sul.
+def _exp_limite_paths():
+    env = (os.getenv("SOFIA_EXP_LIMITE_FILE") or "").strip()
+    if env:
+        return [env]
+    here = os.path.dirname(__file__)
+    cands = [os.path.join(here, "..", "..", "..", "data", "sofia-exp-limite.txt")]  # layout Lago Sul
+    d = here
+    for _ in range(7):                     # procura uma pasta Experimental/data subindo a árvore
+        d = os.path.dirname(d)
+        cands.append(os.path.join(d, "Experimental", "data", "sofia-exp-limite.txt"))
+    return cands
+
+EXP_LIMITE_FILE = _exp_limite_paths()[0]   # compatibilidade (referência ao caminho principal)
 def max_experimentais():
-    try:
-        with open(EXP_LIMITE_FILE, encoding="utf-8") as f:
-            n = int((f.read() or "").strip())
-            if n >= 0:
-                return n
-    except (OSError, ValueError):
-        pass
+    for path in _exp_limite_paths():
+        try:
+            with open(path, encoding="utf-8") as f:
+                n = int((f.read() or "").strip())
+                if n >= 0:
+                    return n
+        except (OSError, ValueError):
+            continue
     return EVO_MAX_EXPERIMENTAIS
 
 # Cache da grade do formulário (available_slots), em segundos. Evita refazer

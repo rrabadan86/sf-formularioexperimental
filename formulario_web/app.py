@@ -27,7 +27,7 @@ from evo_agendamento import config
 from evo_agendamento.orchestrator import _confirm_message
 from evo_agendamento.util import br_phone_with_9, only_digits, session_has_room_normal
 from evo_agendamento.orchestrator import turma_fechada
-from evo_agendamento.evo_client import _evo_cellphone_variants
+from evo_agendamento.evo_client import _evo_cellphone_variants, _prospect_bate_telefone
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, static_folder=os.path.join(BASE, "static"), static_url_path="/static")
@@ -931,6 +931,24 @@ def _prospect_conflitante(evo, email, phone, nome):
     return None
 
 
+def _dup_por_telefone(evo, phone):
+    """Critério de duplicado = TELEFONE. Retorna o 1º prospect existente cujo
+    telefone REALMENTE bate (confere o retorno porque o EVO às vezes ignora o filtro
+    e devolve uma lista genérica), independentemente do nome. None se não houver."""
+    if not phone:
+        return None
+    for tel in _evo_cellphone_variants(phone, config.EVO_DDI):
+        for p in (evo.find_prospects(phone=tel, normalize_phone=False) or []):
+            if p.get("idProspect") and _prospect_bate_telefone(p, tel):
+                return {
+                    "idProspect": p.get("idProspect"),
+                    "nome": _nome_do_prospect(p),
+                    "email": p.get("email") or "",
+                    "telefone": p.get("cellphone") or p.get("phone") or "",
+                }
+    return None
+
+
 @app.post("/api/book-sofia")
 def api_book_sofia():
     # 1) Autenticação simples por token compartilhado (só a Sofia conhece).
@@ -966,13 +984,22 @@ def api_book_sofia():
     #     "novo" (cria um cadastro à parte).
     acao = (dados.get("acao_duplicado") or "").strip().lower()
     evo = EvoClient()
-    # Por ora só o Cadastro Express (origem="express") faz essa checagem — o
-    # formulário público e a SoFIA seguem o fluxo atual (reaproveita/atualiza).
-    if origem == "express" and acao not in ("sobrescrever", "novo"):
-        conflito = _prospect_conflitante(evo, email, telefone, nome)
-        if conflito:
-            return jsonify({"ok": False, "motivo": "cadastro_existente", "existente": conflito}), 409
-    forcar_novo = (acao == "novo")
+    # Critério de duplicado = TELEFONE (regra do Studio). Dois fluxos:
+    #  • OPERADOR no painel (Cadastro Express e widget da conversa): se já existe
+    #    cadastro com esse telefone, PARA e PERGUNTA (409) — a tela decide
+    #    "sobrescrever" (atualiza o existente) ou "novo" (cria à parte).
+    #  • SoFIA SOZINHA na conversa (sem operador, origem vazia/"sofia"): NUNCA
+    #    sobrescreve — sempre cria um cadastro novo.
+    OPERADOR = {"express", "painel"}
+    if origem in OPERADOR:
+        if acao not in ("sobrescrever", "novo"):
+            dup = _dup_por_telefone(evo, telefone)
+            if dup:
+                return jsonify({"ok": False, "motivo": "cadastro_existente", "existente": dup}), 409
+        forcar_novo = (acao == "novo")
+    else:
+        # SoFIA autônoma: sempre cria novo (não reaproveita/atualiza cadastro alheio).
+        forcar_novo = True
     # Para "criar novo": guarda os ids já existentes, p/ detectar se o EVO "mesclou"
     # (não aceitou e-mail/telefone duplicado e devolveu o cadastro antigo).
     ids_antes = set()
@@ -983,7 +1010,8 @@ def api_book_sofia():
     #    deduplicação, limite de experimentais, etc.). CPF/nascimento ficam de fora.
     try:
         res = book_experimental(name=nome, when=when, email=(email or None),
-                                phone=telefone, forcar_novo=forcar_novo, evo=evo)
+                                phone=telefone, forcar_novo=forcar_novo,
+                                reuse_por="phone", evo=evo)
     except TurmaLotadaError as e:
         # Turma cheia / inexistente / fora de janela: o lead JÁ foi cadastrado no EVO.
         # Devolvemos as alternativas para a Sofia oferecer outro horário à aluna.
