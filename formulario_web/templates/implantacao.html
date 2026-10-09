@@ -363,6 +363,19 @@ pm2 start <b>SEU-SLUG</b>-exp       <span class="c"># volta ao normal</span></pr
     <div class="tip">Recursos <b>opcionais</b> (Instagram, planilha do Google, vigia/backup
       por cron) e os <b>detalhes granulares</b> de cada etapa estão na
       <b>referência detalhada</b> logo abaixo — use só o que precisar.</div>
+    <div class="tip">💳 <b>Cobrança de inadimplentes (pela SoFIA):</b> configure em
+      <b>🤖 SoFIA → Cobrança</b> — textos (recorrente com o <code>{link}</code> de
+      pagamento; boleto com o <code>{link}</code> do boleto; variável <code>{valor}</code>
+      disponível), <b>a partir de quantos dias</b> de atraso, <b>horário/dias</b> do envio
+      e o <b>toggle</b> Ativado/Desligado de cada mensagem. É enviada pelo
+      <b>número da SoFIA</b> (não o do robô), então a <b>SoFIA precisa estar no ar</b>
+      (<code>SEU-SLUG-sofia</code> conectado). Para testar sem enviar às alunas, use o
+      campo "Número para testes" + "Enviar teste (pela SoFIA)".</div>
+    <div class="tip">🎟️ <b>Limite de aulas experimentais por turma:</b> ajuste em
+      <b>🤖 SoFIA → Configuração → "Máx. experimentais por turma"</b>
+      (<b>0 = sem limite</b>, vale só a capacidade real da turma). O script já conecta o
+      formulário a esse controle (<code>SOFIA_EXP_LIMITE_FILE</code> no <code>.env</code>
+      do form aponta para o arquivo do painel), então a mudança vale sem reiniciar.</div>
   </section>
 
   <!-- DUAS LOJAS NO MESMO SERVIDOR -->
