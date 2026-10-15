@@ -248,6 +248,14 @@ def book_experimental(
     #    Se a turma estiver cheia ou não existir nesse horário, a oportunidade já
     #    ficou cadastrada, mas NÃO vende nem matricula — avisa o Studio p/ tratar.
     schedule = evo.list_schedule(when, show_full_week=True, branch_id=branch_id)
+    # Blindagem: se o EVO devolveu a grade VAZIA (nenhuma turma na semana inteira),
+    # isso NÃO é "turma cheia" — é um soluço de leitura do EVO (timeout, limite de
+    # requisições/429 ou filial momentaneamente sem resposta). Reportar "cheia" aqui
+    # enganaria a aluna/operador (foi o que gerava o falso "Turma cheia · Alternativas: —").
+    # Levantamos um erro RETRYÁVEL: o Express mostra "tente de novo" em vez de "cheia".
+    if not schedule:
+        raise EvoError("não consegui ler a grade do EVO agora (grade vazia). "
+                       "Tente de novo em instantes.")
     session = _find_session(schedule, when, activity, id_activity)
     if session is None:
         raise TurmaLotadaError(
