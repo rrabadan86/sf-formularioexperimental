@@ -9,6 +9,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 
 from . import config
+from . import evo_ratelimit
 from .util import br_phone_with_9, build_session, fmt_date_evo, fmt_datetime_evo, only_digits
 
 log = logging.getLogger("evo")
@@ -52,6 +53,7 @@ class EvoClient:
         token = token if token is not None else config.EVO_TOKEN
         if not dns or not token:
             raise EvoError("EVO_DNS e EVO_TOKEN são obrigatórios (Basic auth).")
+        self._dns = dns                               # chave do limitador compartilhado (por conta EVO)
         self.auth = HTTPBasicAuth(dns, token)
         _branch = branch_id if branch_id is not None else config.EVO_BRANCH_ID
         self.branch_id = int(_branch) if str(_branch).strip() else None
@@ -62,7 +64,8 @@ class EvoClient:
     def _request(self, method, path, params=None, json=None):
         url = f"{self.base_url}{path}"
         for tentativa in range(1, 5):                 # 1 tentativa + 3 retries no 429
-            _rate_gate()                              # respeita o limite de req/min
+            evo_ratelimit.acquire(self._dns)          # limite COMPARTILHADO entre processos (mesma conta EVO)
+            _rate_gate()                              # + limite local deste processo
             try:
                 resp = self.session.request(
                     method, url,
