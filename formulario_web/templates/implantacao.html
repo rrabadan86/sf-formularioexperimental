@@ -193,15 +193,17 @@
       <span class="eyebrow">Caminho rápido — recomendado</span>
       <h2>Implantação com o script</h2>
     </div>
-    <p>Um script faz quase tudo: instala o sistema, as dependências, monta os
-      <code>.env</code> com segredos, sobe os processos e liga o HTTPS. Serve para o
-      <b>primeiro studio</b> e para <b>cada novo studio</b> — cada um numa VPS própria.
-      Ao final, só sobram <b>4 tarefas manuais</b> (credenciais, formulário, DNS e
-      conteúdo do painel).</p>
+    <p>Um <b>único comando</b> (<code>--tudo</code>) faz quase tudo: instala o sistema e as
+      dependências, clona o formulário, monta os <code>.env</code> com segredos, <b>pergunta
+      as credenciais no terminal</b>, sobe os <b>4 processos</b> e <b>configura o HTTPS
+      (Caddy) sozinho</b>. Serve para o <b>primeiro studio</b> e para <b>cada novo studio</b>
+      (um por VPS). O <b>único</b> passo realmente manual é apontar o <b>DNS</b>.</p>
     <div class="tip">O <code>--slug</code> e o <code>--studio</code> são <b>livres</b>:
       troque <code>lagosul</code> pelo apelido do studio (sem espaço/acento) — ex.:
       <code>--slug marista --studio "Studio SlimFit Marista"</code>. O slug vira os
-      nomes dos processos (<code>marista-painel</code>…) e a pasta de dados.</div>
+      nomes dos processos (<code>marista-painel</code>…) e a pasta de dados.
+      ⚠️ Nunca use <code>&lt; &gt;</code> nos valores (são redirecionamento no shell):
+      <code>--evo-dns slimfit</code>, nunca <code>--evo-dns &lt;slimfit&gt;</code>.</div>
 
     <div class="tip">🏢 <b>Duas lojas no mesmo servidor</b> (mesmo franqueado)? Funciona:
       use <b>dois clones</b> do repositório, um por loja, cada um com <code>--slug</code>
@@ -223,91 +225,88 @@ cd SF-Chat_Experimental-Mensagens/Experimental</pre>
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">2</span> Preparar tudo (sistema + deps + <code>.env</code>)</h3>
+      <h3><span class="num">2</span> Instalar tudo num comando (<code>--tudo</code>)</h3>
       <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">setup</span></div>
-<pre class="term-body">bash setup-novo-studio.sh --slug <b>lagosul</b> --studio <b>"Studio SlimFit Lago Sul"</b> \
-  --evo-tenant <b>slimfitlagosul</b> --evo-branch <b>22</b> --install-deps</pre>
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">--tudo</span></div>
+<pre class="term-body">bash setup-novo-studio.sh --tudo \
+  --slug <b>lagosul</b> --studio <b>"Studio SlimFit Lago Sul"</b> \
+  --install-deps \
+  --evo-tenant <b>slimfitlagosul</b> --evo-branch <b>22</b> \
+  --port 8080 \
+  --domain <b>painel-lagosul.duckdns.org</b> \
+  --evo-email <b>LOGIN-DO-ROBO-NO-EVO</b></pre>
       </div>
-      <div class="tip">🔄 <b>Já instala com o código mais recente:</b> ao rodar, o script faz um <code>git pull --ff-only</code> sozinho (na branch que você clonou) para pegar as últimas correções — e, se o próprio script mudou, se <b>reexecuta</b> na versão nova. Se estiver offline ou a árvore estiver "suja", ele avisa e segue com o que já está clonado. Para instalar exatamente o que foi clonado, sem atualizar, use <code>--no-git-pull</code>. <b>Importante:</b> ele atualiza a <b>branch atual</b> — então clone/faça checkout da branch de deploy (ver passo 1) antes.</div>
-      <p>O <code>--install-deps</code> instala <b>Node 20, git, Chromium, python3-venv,
-        pm2 e tsx</b>; depois o script instala as dependências do projeto (Node +
-        Python num venv), cria a pasta de dados (<code>SOFIA_DIR</code>) e gera
-        <code>Experimental/.env</code> e <code>ChatBot/.env</code> já com
-        <b>segredos aleatórios</b> e a <b>senha do painel</b> (anote a que ele imprime).
-        Nunca sobrescreve um <code>.env</code> existente. <b>2ª loja no mesmo servidor:</b>
-        acrescente <code>--port 8081</code> aqui (a 1ª usa 8080) para os dois painéis
-        não brigarem pela mesma porta.</p>
+      <p>Os segredos que você <b>não</b> passar por flag — <code>EVO_DNS</code>,
+        <code>EVO_TOKEN</code>, <code>EVO_PASSWORD</code>, <code>ANTHROPIC_API_KEY</code>,
+        <code>GRUPO_EQUIPE</code> — o script <b>pergunta no terminal</b> (senha/chave
+        ocultas). Ele faz tudo: instala sistema + <b>Caddy</b>, clona o formulário, gera os
+        <code>.env</code> (com a <b>senha do painel</b> aleatória — anote a que ele imprime),
+        valida (<code>--check</code>) e <b>sobe os 4 processos</b> com <b>HTTPS</b>. Ao final,
+        <b>imprime o IP do VPS</b> para você apontar o DNS (passo 3).</p>
+      <div class="tip">🔎 <b>tenant e branch do EVO</b>: na URL do EVO da unidade
+        (<code>.../app/&lt;tenant&gt;/&lt;branch&gt;/...</code>). ⚠️ Sem passar, cai no padrão
+        <code>slimfit/15</code> (Setor Bueno) e lê os dados da unidade <b>errada</b>.
+        <b>2ª loja no mesmo VPS:</b> use <code>--port 8081</code> e clone em outra pasta.</div>
+      <div class="tip">🔑 Prefere não digitar a senha do EVO / chave da IA no terminal?
+        Deixe em branco (Enter) e preencha depois no painel: <b>SoFIA → Configuração →
+        🔑 Credenciais da unidade</b> (login do EVO, chave da IA), com botões de reiniciar.</div>
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">3</span> Preencher as credenciais <b>[POR STUDIO]</b></h3>
-      <p>Edite os dois <code>.env</code> (o script diz quais campos):</p>
-      <ul>
-        <li><code>Experimental/.env</code> → <b><code>EVO_EMAIL</code> + <code>EVO_PASSWORD</code></b>
-          (login do robô no EVO — <b>sem eles os jobs diários do robô falham</b>),
-          <code>EVO_DNS</code>, <code>EVO_TOKEN</code>, <code>FORM_CLOUD_URL</code>,
-          <code>ZEE_STUDIO_PHONE</code>. Confira <code>EVO_URL</code> e os
-          <code>*_PATH</code>/<code>*_HASH</code> (já vêm montados pelo <code>--evo-tenant</code>/<code>--evo-branch</code>).</li>
-        <li><code>ChatBot/.env</code> → <code>ANTHROPIC_API_KEY</code>,
-          <code>SOFIA_BOOK_URL</code>.</li>
-        <li>Confira que <code>SOFIA_DIR</code> é <b>igual</b> nos dois.</li>
-      </ul>
-      <div class="tip">🔎 <b>Onde achar o tenant e o branch do EVO:</b> na URL do EVO da unidade,
-        no formato <code>.../app/<b>&lt;tenant&gt;</b>/<b>&lt;branch&gt;</b>/...</code> — ex.:
-        <code>.../app/slimfitlagosul/22/gerencial/...</code> → tenant <code>slimfitlagosul</code>, branch <code>22</code>.
-        Se não passar as flags, o script cai no padrão da unidade original (<code>slimfit</code>/<code>15</code>).</div>
-      <div class="tip">🔑 <b>Prefere não abrir o <code>.env</code>? Dá para preencher pelo painel.</b> Depois que o painel sobe (Fase 6), entre como <b>admin</b> em <b>SoFIA → Configuração → 🔑 Credenciais da unidade</b> e informe por ali o <b>login do EVO</b> (<code>EVO_EMAIL</code> + <code>EVO_PASSWORD</code>), a <b>chave da IA</b> (<code>ANTHROPIC_API_KEY</code>) e a <b>chave de transcrição</b> (<code>TRANSCRICAO_API_KEY</code>) — sem mexer no arquivo. Salvou o login do EVO → <b>🔄 Reiniciar robô</b> (botão na própria tela); salvou uma chave de IA → <b>🔄 Reiniciar SoFIA</b>. O que ainda precisa vir no <code>.env</code> (estrutural, o script já monta): <code>SOFIA_DIR</code>, <code>EVO_DNS</code>/<code>EVO_TOKEN</code>, <code>EVO_URL</code>/<code>*_PATH</code>/<code>*_HASH</code>, <code>FORM_CLOUD_URL</code>/<code>SOFIA_BOOK_URL</code>. <b>Caminho reverso:</b> suba o painel primeiro (com o <code>.env</code> estrutural do script) e preencha as credenciais operacionais pela tela — os jobs do EVO só passam a rodar depois que o login estiver salvo e o robô reiniciado.</div>
+      <h3><span class="num">3</span> Apontar o DNS</h3>
+      <p>No <b>DuckDNS</b>, aponte <code>painel-&lt;slug&gt;.duckdns.org</code> para o
+        <b>IPv4 do VPS</b> que o script imprimiu (ou <code>curl -s4 ifconfig.me</code>). Em
+        ~1 min o <code>https://…</code> abre com cadeado (certificado automático). As portas
+        <b>80 e 443</b> precisam estar abertas no firewall do provedor.</p>
+      <div class="tip">Ainda "não seguro" depois de alguns minutos? Confira a <b>porta 80</b>
+        e os logs do Caddy:
+        <code>sudo journalctl -u caddy -n 50 --no-pager | grep -iE "certificate|challenge|error"</code>.
+        No DuckDNS, "update ip" pelo navegador grava o IP do <b>seu PC</b> — ponha o IPv4 da
+        VPS no campo "current ip". Confira: <code>getent hosts SEU-DOMINIO</code>.</div>
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">4</span> Descobrir os ids da aula no EVO (opcional)</h3>
+      <h3><span class="num">4</span> Conectar os 2 WhatsApp + persistir no reboot</h3>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">WhatsApp</span></div>
+<pre class="term-body">pm2 logs <b>lagosul</b>-exp     <span class="c"># QR do robô</span>
+pm2 logs <b>lagosul</b>-sofia   <span class="c"># QR da SoFIA (ou pela aba WhatsApp do painel)</span>
+pm2 startup              <span class="c"># rode a linha impressa — sobe tudo após reboot</span></pre>
+      </div>
+      <p>Escaneie cada QR com o celular do número correspondente. Depois de escanear
+        <b>uma vez</b>, os próximos restarts mantêm a conexão (a sessão fica salva).</p>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">5</span> IDs da aula experimental no EVO</h3>
       <div class="term">
         <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">ids do EVO</span></div>
 <pre class="term-body">bash setup-novo-studio.sh --slug <b>lagosul</b> --evo-ids</pre>
       </div>
-      <p>Mostra os serviços/atividades de aula experimental com seus <b>ids</b> —
-        copie para <code>EVO_SERVICE_ID</code> / <code>EVO_ACTIVITY_ID</code> no
-        <code>.env</code> (ou use os nomes em <code>EVO_SERVICE</code> /
-        <code>EVO_ACTIVITY</code>).</p>
+      <p>Lista as <b>atividades</b> (idActivity → nome) e os <b>serviços</b> (idService →
+        nome). Ache a atividade <b>SlimFit</b> e o serviço <b>"Aula experimental"</b> e grave
+        os ids <b>nos DOIS <code>.env</code></b> (o formulário é quem agenda):
+        <code>Experimental/.env</code> e <code>/root/sf-form-&lt;slug&gt;/.env</code> — depois
+        <code>pm2 restart &lt;slug&gt;-form</code>. Não é urgente: a experimental só usa esses
+        ids <b>quando alguém agenda</b>. (Você também pode passar <code>--evo-service-id</code>
+        /<code>--evo-activity-id</code> direto no comando do passo 2, se já souber.)</p>
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">5</span> Conferir o <code>.env</code> antes de subir (<code>--check</code>)</h3>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">validar</span></div>
-<pre class="term-body">bash setup-novo-studio.sh --slug <b>lagosul</b> --check</pre>
-      </div>
-      <p>Uma <b>validação de pré-voo</b>: confere que os dois <code>.env</code> existem e
-        estão completos — tokens do EVO (API e navegador), os <b>três tokens</b> do
-        formulário, <code>SOFIA_DIR</code> <b>igual</b> nos dois arquivos, nada com o
-        exemplo <code>SEU-PAINEL</code>, e avisa se o EVO ficou no padrão original
-        (<code>slimfit/15</code>) ou se falta Xvfb. Só suba quando ele imprimir <b>✅</b>.</p>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">6</span> Subir tudo — com HTTPS automático — e ler os QRs</h3>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">subir</span></div>
-<pre class="term-body">bash setup-novo-studio.sh --slug <b>lagosul</b> --evo-tenant slimfit --evo-branch <b>NN</b> \
-  --start --domain <b>painel-lagosul.duckdns.org</b> --install-deps
-pm2 startup            <span class="c"># sobe sozinho após reboot</span>
-
-<span class="c"># ler os QRs dos 2 WhatsApp da unidade</span>
-pm2 logs <b>lagosul</b>-exp    <span class="c"># WhatsApp do robô</span>
-pm2 logs <b>lagosul</b>-sofia  <span class="c"># WhatsApp da SoFIA</span></pre>
-      </div>
-      <p>Sobem três processos (<code>lagosul-painel</code>, <code>lagosul-exp</code>,
-        <code>lagosul-sofia</code>) e o <code>--domain</code> gera o bloco do <b>Caddy</b>,
-        liga o <b>HTTPS</b> e recarrega. Escaneie cada QR com o celular do número
-        correspondente.</p>
+      <h3><span class="num">6</span> Trocar os textos padrão (são do Setor Bueno!)</h3>
+      <p>Antes de divulgar, no painel: <b>🤖 SoFIA → Configuração</b> (roteiro da SoFIA,
+        endereço, promoção, professoras, imagens de grade/preços) e <b>💬 WhatsApp →
+        Configuração</b> (mensagens de confirmação, follow-up etc.). Confira também o
+        <b>grupo da equipe</b> no WhatsApp e, no <code>.env</code> do formulário, o
+        <b>telefone da recepção</b> (<code>ZEE_STUDIO_PHONE</code>). Sem isso, a aluna recebe
+        o endereço e os contatos do <b>Setor Bueno</b>.</p>
 
       <div class="call danger" style="margin-top:14px">
         <div class="ic">!</div>
         <div>
           <h3>Armadilhas comuns (aprendidas numa instalação real)</h3>
           <ul style="margin:6px 0 0;padding-left:18px;line-height:1.55">
-            <li><b>Painel não abre (<code>ERR_CONNECTION_TIMED_OUT</code>):</b> o HTTPS/Caddy só sobe com <code>--domain</code>, e o Caddy só é <b>instalado</b> com <code>--install-deps</code>. Se você rodou <code>--start</code> sozinho, os processos sobem mas <b>nada escuta em 80/443</b>. Rode com <code>--start --domain … --install-deps</code>. Confira: <code>ss -tlnp | grep -E ':80 |:443 '</code> (tem que aparecer o caddy).</li>
+            <li><b>Painel não abre (<code>ERR_CONNECTION_TIMED_OUT</code>):</b> o HTTPS/Caddy só sobe com <code>--domain</code>. O <code>--tudo … --domain</code> já <b>instala e configura o Caddy</b> sozinho (substitui o Caddyfile de exemplo ou acrescenta o bloco da 2ª loja). Confira: <code>ss -tlnp | grep -E ':80 |:443 '</code> (tem que aparecer o caddy) e o <b>DNS apontando pro IPv4 da VPS</b>.</li>
             <li><b>DuckDNS apontando pro IP errado:</b> clicar em <b>“update ip”</b> pelo navegador grava o IP do <b>seu computador</b>, não o da VPS. Ponha o <b>IPv4 da VPS</b> no campo “current ip”. Atenção: <code>curl ifconfig.me</code> às vezes devolve <b>IPv6</b> — use <code>curl -s4 ifconfig.me</code> para pegar o IPv4. Confira com <code>getent hosts SEU-DOMINIO</code> (tem que dar o IP da VPS).</li>
             <li><b>EVO: <code>--evo-ids</code> sem as flags</b> cai no padrão <code>slimfit/15</code> (Setor Bueno) e traz os ids/ caminhos da unidade <b>errada</b>. <b>Sempre</b> passe <code>--evo-tenant</code> e <code>--evo-branch</code> (da URL do EVO: <code>…/app/&lt;tenant&gt;/&lt;branch&gt;/…</code>).</li>
             <li><b>Dois acessos ao EVO, não confunda:</b> <code>EVO_DNS</code>+<code>EVO_TOKEN</code> são a <b>API de integração</b> (DNS + Secret Key, Basic auth — <b>não</b> é o login do site); o <b>e-mail/senha do site</b> vão em <code>EVO_EMAIL</code>+<code>EVO_PASSWORD</code> (usados pelo navegador que lê grade/faltas).</li>
@@ -354,10 +353,11 @@ pm2 start <b>SEU-SLUG</b>-exp       <span class="c"># volta ao normal</span></pr
     </div>
 
     <div class="phase" style="margin-top:26px"><span class="pn">No final</span><h2>O que continua manual</h2></div>
-    <p>O script não consegue fazer estas 4 coisas (são externas ou de credencial):</p>
+    <p>O <code>--tudo</code> faz <b>toda</b> a instalação (inclusive o formulário e o HTTPS).
+      Continuam manuais só o que é <b>externo</b> ou de <b>conteúdo</b>:</p>
     <ul class="chk">
-      <li><span class="box">✓</span><span><b>Credenciais</b> — EVO e Anthropic você cola no <code>.env</code> (passo 3).</span></li>
-      <li><span class="box">✓</span><span><b>Formulário no próprio VPS</b> (sob <code>/agendamentoexperimental</code>) — um <b>deploy por unidade</b>, com os <b>três tokens</b> <b>iguais</b> aos do <code>.env</code> do VPS (<code>FORM_SLOTS_TOKEN</code>, <code>FORM_OUTBOX_TOKEN</code> e <code>SOFIA_TOKEN</code>) e o EVO da unidade. Veja a <b>Fase 5</b> abaixo.</span></li>
+      <li><span class="box">✓</span><span><b>Credenciais</b> — o script <b>pergunta</b> no terminal (EVO e Anthropic); ou deixe em branco e preencha depois pelo painel (SoFIA → Configuração → 🔑 Credenciais da unidade).</span></li>
+      <li><span class="box">✓</span><span><b>IDs da aula experimental no EVO</b> — o formulário é instalado <b>automaticamente</b> pelo <code>--tudo</code>; o que falta por unidade é confirmar <code>EVO_SERVICE_ID</code>/<code>EVO_ACTIVITY_ID</code> (passo 5) e o <b>telefone da recepção</b> (<code>ZEE_STUDIO_PHONE</code>) no <code>.env</code> do formulário.</span></li>
       <li><span class="box">✓</span><span><b>Apontar o DNS</b> do subdomínio (o do <code>--domain</code>) para o IP da VPS — no seu provedor de DNS. O Caddy emite o certificado sozinho.</span></li>
       <li><span class="box">✓</span><span><b>Preencher o conteúdo — os textos-modelo vêm com marcadores <code>[ENTRE COLCHETES]</code> para você completar.</b> Antes de divulgar, preencha em <b>dois lugares no painel</b>: (1) o <b>roteiro da SoFIA</b> e as <b>imagens de grade/preços</b> (🤖 SoFIA → Configuração); (2) as <b>mensagens do robô</b> no WhatsApp — confirmação, follow-up etc. (💬 WhatsApp → Configuração). E, no <b>.env do formulário (no VPS)</b>, defina o <b>telefone da recepção</b> (<code>ZEE_STUDIO_PHONE</code>) e o <b>link do painel</b> (<code>PAINEL_URL</code>) da unidade (Fase 5). Sem isso, os textos saem com os colchetes no lugar do endereço/contatos. Também: usuários (Perfis) e os grupos do WhatsApp.</span></li>
       <li><span class="box">✓</span><span><b>Login com Google (opcional)</b> — para entrar no painel com a conta Google em vez de senha. Crie um cliente OAuth no Google Cloud, libere o domínio do painel e preencha <code>GOOGLE_CLIENT_ID</code>, <code>GOOGLE_CLIENT_SECRET</code> e <code>PAINEL_ADMIN_EMAIL</code> no <code>Experimental/.env</code> (estão comentados lá). Só entram e-mails cadastrados em <b>Perfis</b>.</span></li>
@@ -489,10 +489,12 @@ free -h                                                       <span class="c"># 
       <span class="eyebrow">Referência detalhada — manual</span>
       <h2>Passo a passo completo (e recursos opcionais)</h2>
     </div>
-    <p>As <b>Fases</b> abaixo são a via <b>manual e granular</b>, e cobrem os recursos
-      <b>opcionais</b> (Instagram, planilha, cron). Se você usou o script acima, pule
-      direto para o que precisar — ex.: <b>Fase 5</b> (formulário no VPS),
-      <b>Fase 6</b> (Instagram) ou <b>Fase 9.5</b> (ajustes no painel).</p>
+    <p>⚠️ <b>Você quase nunca precisa disto.</b> O instalador <code>--tudo</code> (acima) já
+      faz <b>todas</b> as fases de instalação (servidor, robô, SoFIA, formulário, HTTPS).
+      As <b>Fases</b> abaixo são só <b>referência manual/granular</b> para <b>entender por
+      dentro</b> ou configurar <b>recursos opcionais</b> que o script não liga sozinho —
+      principalmente a <b>Fase 6</b> (Instagram) e a <b>Fase 9.5</b> (ajustes no painel).
+      Se você usou o script, pule direto para o que precisar.</p>
   </section>
 
   <!-- FASE 1 -->
