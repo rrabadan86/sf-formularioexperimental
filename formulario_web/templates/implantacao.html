@@ -137,1114 +137,550 @@
     .term,.stepblock,.call,.fieldnote{break-inside:avoid}
     pre.term-body{white-space:pre-wrap}
   }
+
+  /* índice */
+  .toc{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;margin:0;padding:0;list-style:none;counter-reset:toc}
+  .toc li{counter-increment:toc}
+  .toc a{display:flex;gap:10px;align-items:baseline;text-decoration:none;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:10px 13px;font-weight:600;font-size:.94rem;box-shadow:var(--shadow)}
+  .toc a::before{content:counter(toc);font-family:"JetBrains Mono",monospace;font-size:.78rem;color:var(--accent);font-weight:700}
+  .toc a:hover{border-color:var(--accent)}
+  .toc small{display:block;font-weight:400;color:var(--text-soft);font-size:.8rem}
+  /* blocos recolhíveis (problemas, opcionais, histórico) */
+  details.fold{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin:10px 0;box-shadow:var(--shadow)}
+  details.fold > summary{cursor:pointer;list-style:none;padding:13px 16px;font-family:"Manrope",sans-serif;font-weight:700;font-size:1rem;display:flex;gap:10px;align-items:center}
+  details.fold > summary::-webkit-details-marker{display:none}
+  details.fold > summary::after{content:"+";margin-left:auto;font-family:"JetBrains Mono",monospace;color:var(--accent);font-weight:700}
+  details.fold[open] > summary::after{content:"–"}
+  details.fold > .in{padding:0 16px 14px;color:var(--text-soft);font-size:.94rem}
+  details.fold > .in p{margin:0 0 10px}
+  details.fold > .in ul,details.fold > .in ol{margin:0 0 10px;padding-left:20px;display:flex;flex-direction:column;gap:5px}
+  details.fold b{color:var(--text);font-weight:600}
+  .regra{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin:12px 0}
+  .regra div{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:.92rem;color:var(--text-soft)}
+  .regra div b{display:block;color:var(--text);font-family:"Manrope",sans-serif;font-size:.98rem;margin-bottom:3px}
+  .regra .ok{border-left:4px solid #2f9e5b}
+  .regra .cuidado{border-left:4px solid var(--amber)}
+  :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 </style>
 
 <header class="hero">
   <div class="wrap hero-in">
     <div class="brand"><img class="brand-logo" alt="SlimFit Studio" src="https://slimfitbrasil.com.br/wp-content/uploads/2025/09/logo-com-contraste.svg"> <span class="reg">Robô · instalação</span></div>
     <h1>Runbook de <span class="accent">instalação</span></h1>
-    <p class="lede">Passo a passo para colocar o robô rodando na franquia nova — do servidor zerado até tudo no ar, usando os comandos já validados em produção. Faça depois de receber a ficha da unidade preenchida.</p>
+    <p class="lede">Como colocar uma loja nova no ar — do servidor zerado até divulgar — e como manter as lojas funcionando depois. Tudo com os comandos validados em produção.</p>
     <div class="facts">
-      <span class="fact"><b>Ubuntu</b> + Node 20</span>
-      <span class="fact"><b>PM2</b> 24/7</span>
-      <span class="fact"><b>Xvfb</b> (tela virtual)</span>
-      <span class="fact">≈ <b>1 dia</b> de trabalho</span>
+      <span class="fact"><b>1 comando</b> instala tudo (<code>--tudo</code>)</span>
+      <span class="fact"><b>4 processos</b> por loja</span>
+      <span class="fact"><b>≈ 1 dia</b> até divulgar</span>
     </div>
   </div>
 </header>
 
 <main class="wrap">
 
-  <!-- PRINCÍPIO -->
+  <!-- ÍNDICE -->
   <section>
+    <div class="sec-head"><span class="eyebrow">Nesta página</span><h2>Siga na ordem</h2>
+      <p>Loja nova: seções 1 a 4. Já está no ar: vá direto para <b>Atualizar</b> ou <b>Quando algo dá errado</b>.</p></div>
+    <ol class="toc">
+      <li><a href="#antes">Antes de começar<small>o que ter em mãos e o que é instalado</small></a></li>
+      <li><a href="#instalar">Instalar uma loja<small>servidor, <code>--tudo</code>, DNS e QRs</small></a></li>
+      <li><a href="#pos">Configurar antes de divulgar<small>textos, EVO, 2FA, perfis, alertas</small></a></li>
+      <li><a href="#testar">Testar sem enviar<small>cada job em modo seguro</small></a></li>
+      <li><a href="#duas-lojas">Duas lojas no mesmo servidor<small>mesmo franqueado, mesma VPS</small></a></li>
+      <li><a href="#manter">Atualizar e manter<small>o que reiniciar, sem derrubar o WhatsApp</small></a></li>
+      <li><a href="#problemas">Quando algo dá errado<small>WhatsApp, EVO, HTTPS, grade…</small></a></li>
+      <li><a href="#opcionais">Recursos opcionais<small>Instagram, Google, transcrição, ajustes</small></a></li>
+      <li><a href="#novidades">Histórico de novidades<small>o que mudou e o que reiniciar</small></a></li>
+    </ol>
+  </section>
+
+  <!-- 1. ANTES DE COMEÇAR -->
+  <section id="antes">
+    <div class="phase"><span class="pn">1</span><h2>Antes de começar</h2></div>
+
     <div class="call danger">
       <div class="ic">!</div>
       <div>
         <h3>Nunca copie o disco da sua VPS para a do cliente</h3>
-        <p>Parece atalho, mas arrasta três coisas que não podem ir para outra unidade:</p>
-        <ul>
-          <li>🚨 <b>A sessão do seu WhatsApp</b> — o robô do cliente conectaria no <b>seu</b> número (e ele sumiria da sua VPS).</li>
-          <li>🔑 <b>O seu <code>.env</code></b> com as senhas do seu EVO, seus alertas e sua planilha.</li>
-          <li>🗑️ Logs, filas de mensagens, cache do navegador e <code>node_modules</code> — só dão problema.</li>
-        </ul>
-        <p style="margin-top:8px">O caminho certo: <b>clonar do GitHub → criar um <code>.env</code> novo → escanear o QR do WhatsApp dele → testar.</b> Sempre na versão mais atual do código.</p>
+        <p>Parece atalho, mas leva junto o que não pode ir para outra loja: a <b>sessão do seu WhatsApp</b> (o robô do cliente entraria no seu número), o seu <code>.env</code> com as <b>suas senhas</b>, e logs/filas/cache que só dão problema. O caminho certo é sempre: <b>clonar do GitHub → instalar com o script → escanear os QRs da loja</b>.</p>
       </div>
     </div>
+
+    <div class="stepblock" style="margin-top:22px">
+      <h3>O que ter em mãos</h3>
+      <ul class="chk">
+        <li><span class="box">✓</span><span>A <b>ficha da unidade</b> preenchida (o cliente envia pelo <code>/cadastro</code>): EVO, grupo da equipe, professoras, endereço e contatos.</span></li>
+        <li><span class="box">✓</span><span>Uma <b>VPS Ubuntu</b> com acesso SSH (IP + senha/chave). Duas lojas na mesma VPS pedem 8&nbsp;GB.</span></li>
+        <li><span class="box">✓</span><span><b>Dois números de WhatsApp</b>: o do <b>robô</b> (o do Studio) e o da <b>SoFIA</b> (exclusivo dela), com alguém do lado do cliente para escanear os QRs.</span></li>
+        <li><span class="box">✓</span><span>Do <b>EVO da unidade</b>: o <b>tenant</b> e o <b>branch</b> (na URL: <code>…/app/&lt;tenant&gt;/&lt;branch&gt;/…</code>), o <b>DNS + Secret Key</b> da API de integração e um <b>usuário do site só para o robô</b> (e-mail + senha).</span></li>
+        <li><span class="box">✓</span><span>A <b>chave da IA</b> (Anthropic) para a SoFIA — é o que tem custo por conversa.</span></li>
+      </ul>
+    </div>
+
+    <div class="fieldnote">
+      <div class="fnh">O que fica rodando em cada loja (troque &lt;slug&gt; pelo apelido, ex.: marista)</div>
+      <table>
+        <tr><td>&lt;slug&gt;-painel</td><td>O <b>painel</b> do Studio (login, mensagens, SoFIA, Slim Club…). Reiniciar <b>não</b> derruba o WhatsApp.</td></tr>
+        <tr><td>&lt;slug&gt;-exp</td><td>O <b>robô</b>: agenda e dispara os envios e mantém o <b>WhatsApp do Studio</b> conectado.</td></tr>
+        <tr><td>&lt;slug&gt;-sofia</td><td>A <b>SoFIA</b> (atendente com IA), com o <b>WhatsApp dela</b>.</td></tr>
+        <tr><td>&lt;slug&gt;-form</td><td>O <b>formulário</b> de aula experimental, em <code>https://SEU-PAINEL/agendamentoexperimental</code>.</td></tr>
+        <tr><td>Pastas</td><td>Código em <code>~/SF-Chat_Experimental-Mensagens</code> · formulário em <code>~/sf-form-&lt;slug&gt;</code> · dados da SoFIA em <code>~/sofia-data-&lt;slug&gt;</code> · o que é editado no painel fica em <code>Experimental/data/</code> (fora do Git, com backup diário).</td></tr>
+      </table>
+    </div>
   </section>
 
-  <!-- ANTES -->
-  <section>
-    <div class="sec-head">
-      <span class="eyebrow">Antes de começar</span>
-      <h2>O que ter em mãos</h2>
-    </div>
-    <ul class="chk">
-      <li><span class="box">✓</span><span>A <b>ficha da unidade</b> preenchida (o cliente envia pelo <code>/cadastro</code>): EVO, grupo, planilha, professoras, dados da unidade, alertas.</span></li>
-      <li><span class="box">✓</span><span>O <b>servidor (VPS) contratado</b> pelo cliente — Ubuntu, com o <b>acesso SSH</b> (IP + senha/chave) em mãos.</span></li>
-      <li><span class="box">✓</span><span>As <b>duas linhas de WhatsApp</b> — a do <b>Studio (robô)</b> e a da <b>SoFIA (IA)</b>, que é exclusiva e separada — disponíveis para escanear os <b>dois QRs</b> (com alguém do lado do cliente para confirmar no celular).</span></li>
-      <li><span class="box">✓</span><span>A <b>chave da IA (Anthropic / Claude)</b> para a SoFIA — é o que tem <b>custo por conversa</b>, à parte do servidor (vai no <code>ChatBot/.env</code>).</span></li>
-      <li><span class="box">✓</span><span>Os <b>áudios das professoras</b> e a <b>chave da conta de serviço do Google</b> (se for usar planilha).</span></li>
-    </ul>
-  </section>
-
-  <!-- IMPLANTAÇÃO RÁPIDA (SCRIPT) -->
-  <section>
-    <div class="sec-head">
-      <span class="eyebrow">Caminho rápido — recomendado</span>
-      <h2>Implantação com o script</h2>
-    </div>
-    <p>Um <b>único comando</b> (<code>--tudo</code>) faz quase tudo: instala o sistema e as
-      dependências, clona o formulário, monta os <code>.env</code> com segredos, <b>pergunta
-      as credenciais no terminal</b>, sobe os <b>4 processos</b> e <b>configura o HTTPS
-      (Caddy) sozinho</b>. Serve para o <b>primeiro studio</b> e para <b>cada novo studio</b>
-      (um por VPS). O <b>único</b> passo realmente manual é apontar o <b>DNS</b>.</p>
-    <div class="tip">O <code>--slug</code> e o <code>--studio</code> são <b>livres</b>:
-      troque <code>lagosul</code> pelo apelido do studio (sem espaço/acento) — ex.:
-      <code>--slug marista --studio "Studio SlimFit Marista"</code>. O slug vira os
-      nomes dos processos (<code>marista-painel</code>…) e a pasta de dados.
-      ⚠️ Nunca use <code>&lt; &gt;</code> nos valores (são redirecionamento no shell):
-      <code>--evo-dns slimfit</code>, nunca <code>--evo-dns &lt;slimfit&gt;</code>.</div>
-
-    <div class="tip">🏢 <b>Duas lojas no mesmo servidor</b> (mesmo franqueado)? Funciona com o
-      mesmo <code>--tudo</code>: um <b>clone separado</b> do repositório por loja, cada um com
-      <code>--slug</code>, <code>--port</code> e <code>--domain</code> <b>próprios</b>. Cada loja fica
-      <b>100% isolada</b> (dados, processos PM2, painel, formulário e <code>.env</code>).
-      Comandos prontos em <a href="#duas-lojas"><b>Duas lojas no mesmo servidor</b></a>.</div>
+  <!-- 2. INSTALAR -->
+  <section id="instalar">
+    <div class="phase"><span class="pn">2</span><h2>Instalar uma loja</h2></div>
+    <p class="sec-head" style="color:var(--text-soft);max-width:70ch">Um comando (<code>--tudo</code>) instala o sistema, clona o formulário, gera os <code>.env</code> com segredos novos, <b>pergunta</b> as credenciais, sobe os 4 processos e liga o HTTPS. Os passos abaixo são tudo o que você faz à mão.</p>
 
     <div class="stepblock">
-      <h3><span class="num">1</span> Clonar o repositório</h3>
+      <h3><span class="num">2.1</span> Preparar o servidor (fuso de Brasília)</h3>
+      <p>Faça <b>antes</b> de instalar: o pm2 guarda o fuso de quando sobe. Se o fuso for ajustado depois, os horários do log ficam 3&nbsp;h adiantados (aconteceu no Guará).</p>
       <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS Debian/Ubuntu</span></div>
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS · root</span></div>
 <pre class="term-body"><span class="p">ssh</span> root@<b>IP-DO-CLIENTE</b>
-git clone https://github.com/rrabadan86/SF-Chat_Experimental-Mensagens.git
+timedatectl set-timezone America/Sao_Paulo
+date                                   <span class="c"># tem que mostrar o horário de Brasília (-03)</span>
+apt update &amp;&amp; apt install -y git curl</pre>
+      </div>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">2.2</span> Clonar o código</h3>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS</span></div>
+<pre class="term-body">cd ~ &amp;&amp; git clone https://github.com/rrabadan86/SF-Chat_Experimental-Mensagens.git
 cd SF-Chat_Experimental-Mensagens/Experimental</pre>
       </div>
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">2</span> Instalar tudo num comando (<code>--tudo</code>)</h3>
+      <h3><span class="num">2.3</span> Instalar tudo num comando (<code>--tudo</code>)</h3>
       <div class="term">
         <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">--tudo</span></div>
 <pre class="term-body">bash setup-novo-studio.sh --tudo \
-  --slug <b>lagosul</b> --studio <b>"Studio SlimFit Lago Sul"</b> \
+  --slug <b>marista</b> --studio <b>"Studio SlimFit Marista"</b> \
   --install-deps \
-  --evo-tenant <b>slimfitlagosul</b> --evo-branch <b>22</b> \
+  --evo-tenant <b>slimfit</b> --evo-branch <b>22</b> \
   --port 8080 \
-  --domain <b>painel-lagosul.duckdns.org</b> \
+  --domain <b>painel-marista.duckdns.org</b> \
   --evo-email <b>LOGIN-DO-ROBO-NO-EVO</b></pre>
       </div>
-      <p>Os segredos que você <b>não</b> passar por flag — <code>EVO_DNS</code>,
-        <code>EVO_TOKEN</code>, <code>EVO_PASSWORD</code>, <code>ANTHROPIC_API_KEY</code>,
-        <code>GRUPO_EQUIPE</code> — o script <b>pergunta no terminal</b> (senha/chave
-        ocultas). Ele faz tudo: instala sistema + <b>Caddy</b>, clona o formulário, gera os
-        <code>.env</code> (com a <b>senha do painel</b> aleatória — anote a que ele imprime),
-        valida (<code>--check</code>) e <b>sobe os 4 processos</b> com <b>HTTPS</b>. Ao final,
-        <b>imprime o IP do VPS</b> para você apontar o DNS (passo 3).</p>
-      <div class="tip">🔎 <b>tenant e branch do EVO</b>: na URL do EVO da unidade
-        (<code>.../app/&lt;tenant&gt;/&lt;branch&gt;/...</code>). ⚠️ Sem passar, cai no padrão
-        <code>slimfit/15</code> (Setor Bueno) e lê os dados da unidade <b>errada</b>.
-        <b>2ª loja no mesmo VPS:</b> veja <a href="#duas-lojas">Duas lojas no mesmo servidor</a>.</div>
-      <div class="tip">🔑 Prefere não digitar a senha do EVO / chave da IA no terminal?
-        Deixe em branco (Enter) e preencha depois no painel: <b>SoFIA → Configuração →
-        🔑 Credenciais da unidade</b> (login do EVO, chave da IA), com botões de reiniciar.</div>
+      <ul class="chk">
+        <li><span class="box">✓</span><span><b><code>--slug</code></b>: apelido curto, minúsculo, sem espaço/acento. Vira o nome dos processos (<code>marista-exp</code>…) e das pastas.</span></li>
+        <li><span class="box">✓</span><span><b><code>--evo-tenant</code> e <code>--evo-branch</code></b>: da URL do EVO da loja. <b>Sem eles</b> o robô cai no padrão do Setor Bueno (<code>slimfit/15</code>) e lê a loja <b>errada</b>.</span></li>
+        <li><span class="box">✓</span><span>O que você não passar por flag (DNS/Secret Key do EVO, senha do robô, chave da IA, grupo da equipe) o script <b>pergunta</b> — senha e chaves ficam ocultas. Pode deixar em branco e preencher depois no painel: <b>SoFIA → Configuração → 🔑 Credenciais da unidade</b>.</span></li>
+        <li><span class="box">✓</span><span>No fim ele imprime a <b>senha do painel</b> (usuário <code>admin</code>) e o <b>IPv4 da VPS</b>. Anote os dois. Para rever a senha: <code>grep ^PAINEL_SENHA= .env</code>.</span></li>
+      </ul>
+      <div class="tip">⚠️ Nunca use <code>&lt; &gt;</code> nos valores (no terminal são redirecionamento): <code>--evo-branch 22</code>, nunca <code>--evo-branch &lt;22&gt;</code>. O script se atualiza sozinho pelo Git antes de instalar (<code>--no-git-pull</code> desliga).</div>
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">3</span> Apontar o DNS</h3>
-      <p>No <b>DuckDNS</b>, aponte <code>painel-&lt;slug&gt;.duckdns.org</code> para o
-        <b>IPv4 do VPS</b> que o script imprimiu (ou <code>curl -s4 ifconfig.me</code>). Em
-        ~1 min o <code>https://…</code> abre com cadeado (certificado automático). As portas
-        <b>80 e 443</b> precisam estar abertas no firewall do provedor.</p>
-      <div class="tip">Ainda "não seguro" depois de alguns minutos? Confira a <b>porta 80</b>
-        e os logs do Caddy:
-        <code>sudo journalctl -u caddy -n 50 --no-pager | grep -iE "certificate|challenge|error"</code>.
-        No DuckDNS, "update ip" pelo navegador grava o IP do <b>seu PC</b> — ponha o IPv4 da
-        VPS no campo "current ip". Confira: <code>getent hosts SEU-DOMINIO</code>.</div>
+      <h3><span class="num">2.4</span> Apontar o domínio (DuckDNS)</h3>
+      <p>O painel precisa de um endereço para o HTTPS. O <b>DuckDNS</b> dá um grátis (<code>algo.duckdns.org</code>):</p>
+      <ol style="margin:0 0 10px;padding-left:20px;color:var(--text-soft);font-size:.95rem;display:flex;flex-direction:column;gap:5px">
+        <li>Entre em <b>duckdns.org</b> (Sign in com Google), crie o subdomínio (ex.: <code>painel-marista</code>) e <b>guarde o token</b> do topo da página.</li>
+        <li>No campo <b>current ip</b>, cole o <b>IPv4 da VPS</b> (o que o script imprimiu, ou <code>curl -s4 ifconfig.me</code> rodado <b>na VPS</b>) e clique em <b>update ip</b>.</li>
+        <li>Confira na VPS: <code>getent hosts painel-marista.duckdns.org</code> tem que mostrar o mesmo IP. Em 1–2 min o <code>https://</code> abre com cadeado.</li>
+      </ol>
+      <div class="tip">As portas <b>80 e 443</b> precisam estar abertas também no firewall do <b>provedor</b> da VPS. Não clique em “update ip” sem preencher o campo: ele grava o IP do <b>seu computador</b>. Para o IP se manter certo sozinho, veja “Domínio que se atualiza sozinho” em <a href="#opcionais">Recursos opcionais</a>.</div>
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">4</span> Conectar os 2 WhatsApp + persistir no reboot</h3>
+      <h3><span class="num">2.5</span> Conectar os 2 WhatsApps e salvar no reboot</h3>
+      <p>No painel (<code>https://painel-marista.duckdns.org</code>), aba <b>💬 WhatsApp</b>, aparece o QR do <b>robô</b>; na aba <b>🤖 SoFIA</b>, o QR <b>dela</b>. Escaneie cada um com o celular do número certo: <b>WhatsApp → Aparelhos conectados → Conectar um aparelho</b>. Depois:</p>
       <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">WhatsApp</span></div>
-<pre class="term-body">pm2 logs <b>lagosul</b>-exp     <span class="c"># QR do robô</span>
-pm2 logs <b>lagosul</b>-sofia   <span class="c"># QR da SoFIA (ou pela aba WhatsApp do painel)</span>
-pm2 startup              <span class="c"># rode a linha impressa — sobe tudo após reboot</span></pre>
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS · uma vez por servidor</span></div>
+<pre class="term-body">pm2 save
+pm2 startup        <span class="c"># rode a linha que ele imprimir: sobe tudo sozinho após reboot</span></pre>
       </div>
-      <p>Escaneie cada QR com o celular do número correspondente. Depois de escanear
-        <b>uma vez</b>, os próximos restarts mantêm a conexão (a sessão fica salva).</p>
+      <div class="tip">Escaneie <b>uma vez só</b> e deixe o robô quieto por algumas horas. Muitas tentativas seguidas fazem o WhatsApp bloquear novas conexões por algumas horas (“Não foi possível conectar o dispositivo”). Se o QR não pegar, use <b>Conectar por código</b> na mesma tela. A linha do robô precisa estar <b>dentro do grupo da equipe</b>.</div>
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">5</span> IDs da aula experimental no EVO</h3>
+      <h3><span class="num">2.6</span> IDs da aula experimental no EVO</h3>
       <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">ids do EVO</span></div>
-<pre class="term-body">bash setup-novo-studio.sh --slug <b>lagosul</b> --evo-ids</pre>
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS</span></div>
+<pre class="term-body">bash setup-novo-studio.sh --slug <b>marista</b> --evo-tenant <b>slimfit</b> --evo-branch <b>22</b> --evo-ids</pre>
       </div>
-      <p>Lista as <b>atividades</b> (idActivity → nome) e os <b>serviços</b> (idService →
-        nome). Ache a atividade <b>SlimFit</b> e o serviço <b>"Aula experimental"</b> e grave
-        os ids <b>nos DOIS <code>.env</code></b> (o formulário é quem agenda):
-        <code>Experimental/.env</code> e <code>/root/sf-form-&lt;slug&gt;/.env</code> — depois
-        <code>pm2 restart &lt;slug&gt;-form</code>. Não é urgente: a experimental só usa esses
-        ids <b>quando alguém agenda</b>. (Você também pode passar <code>--evo-service-id</code>
-        /<code>--evo-activity-id</code> direto no comando do passo 2, se já souber.)</p>
+      <p>Ele lista as <b>atividades</b> e os <b>serviços</b> do EVO. Ache a atividade <b>SlimFit</b> e o serviço <b>“Aula experimental”</b> e grave os ids nos <b>dois</b> <code>.env</code> (<code>EVO_ACTIVITY_ID</code> e <code>EVO_SERVICE_ID</code>): <code>Experimental/.env</code> e <code>~/sf-form-marista/.env</code>. Depois: <code>pm2 restart marista-form marista-exp</code>. Se já souber os ids, dá para passar <code>--evo-activity-id</code>/<code>--evo-service-id</code> no <code>--tudo</code>.</p>
+      <div class="tip">Não confunda os dois acessos ao EVO: <b>DNS + Secret Key</b> (<code>EVO_DNS</code>/<code>EVO_TOKEN</code>) são a <b>API de integração</b>; o <b>e-mail/senha</b> (<code>EVO_EMAIL</code>/<code>EVO_PASSWORD</code>) são o login do site, usado pelo robô para ler grade, faltas e segmentações.</div>
     </div>
+  </section>
 
-    <div class="stepblock">
-      <h3><span class="num">6</span> Trocar os textos padrão (são do Setor Bueno!)</h3>
-      <p>Antes de divulgar, no painel: <b>🤖 SoFIA → Configuração</b> (roteiro da SoFIA,
-        endereço, promoção, professoras, imagens de grade/preços) e <b>💬 WhatsApp →
-        Configuração</b> (mensagens de confirmação, follow-up etc.). Confira também o
-        <b>grupo da equipe</b> no WhatsApp e, no <code>.env</code> do formulário, o
-        <b>telefone da recepção</b> (<code>ZEE_STUDIO_PHONE</code>). Sem isso, a aluna recebe
-        o endereço e os contatos do <b>Setor Bueno</b>.</p>
+  <!-- 3. PÓS-INSTALAÇÃO -->
+  <section id="pos">
+    <div class="phase"><span class="pn">3</span><h2>Configurar antes de divulgar</h2></div>
+    <p class="sec-head" style="color:var(--text-soft);max-width:70ch">A instalação deixa tudo rodando, mas com <b>textos-modelo</b> e sem o que depende da unidade. Faça os itens abaixo antes de divulgar para as alunas.</p>
 
-      <div class="call danger" style="margin-top:14px">
-        <div class="ic">!</div>
-        <div>
-          <h3>Armadilhas comuns (aprendidas numa instalação real)</h3>
-          <ul style="margin:6px 0 0;padding-left:18px;line-height:1.55">
-            <li><b>Painel não abre (<code>ERR_CONNECTION_TIMED_OUT</code>):</b> o HTTPS/Caddy só sobe com <code>--domain</code>. O <code>--tudo … --domain</code> já <b>instala e configura o Caddy</b> sozinho (substitui o Caddyfile de exemplo ou acrescenta o bloco da 2ª loja). Confira: <code>ss -tlnp | grep -E ':80 |:443 '</code> (tem que aparecer o caddy) e o <b>DNS apontando pro IPv4 da VPS</b>.</li>
-            <li><b>DuckDNS apontando pro IP errado:</b> clicar em <b>“update ip”</b> pelo navegador grava o IP do <b>seu computador</b>, não o da VPS. Ponha o <b>IPv4 da VPS</b> no campo “current ip”. Atenção: <code>curl ifconfig.me</code> às vezes devolve <b>IPv6</b> — use <code>curl -s4 ifconfig.me</code> para pegar o IPv4. Confira com <code>getent hosts SEU-DOMINIO</code> (tem que dar o IP da VPS).</li>
-            <li><b>EVO: <code>--evo-ids</code> sem as flags</b> cai no padrão <code>slimfit/15</code> (Setor Bueno) e traz os ids/ caminhos da unidade <b>errada</b>. <b>Sempre</b> passe <code>--evo-tenant</code> e <code>--evo-branch</code> (da URL do EVO: <code>…/app/&lt;tenant&gt;/&lt;branch&gt;/…</code>).</li>
-            <li><b>Dois acessos ao EVO, não confunda:</b> <code>EVO_DNS</code>+<code>EVO_TOKEN</code> são a <b>API de integração</b> (DNS + Secret Key, Basic auth — <b>não</b> é o login do site); o <b>e-mail/senha do site</b> vão em <code>EVO_EMAIL</code>+<code>EVO_PASSWORD</code> (usados pelo navegador que lê grade/faltas).</li>
-            <li><b>Serviço da experimental:</b> o <b>id</b> vai em <code>EVO_SERVICE_ID</code> (o <b>nome</b> vai em <code>EVO_SERVICE</code>) — não misture. No <b>.env do formulário</b>, o modelo vem com <code>EVO_SERVICE_ID=128</code> (Setor Bueno): <b>troque pelo id da sua unidade</b>.</li>
-            <li><b>Login do painel:</b> usuário <code>admin</code> + a senha gerada em <code>PAINEL_SENHA</code> (leia com <code>grep ^PAINEL_SENHA= Experimental/.env</code>; também apareceu no terminal ao rodar o <code>--start</code>).</li>
-            <li><b>Grade “Preparando os horários…” pra sempre:</b> a grade vem <b>do EVO</b> (você não monta à mão). Se não preenche: (1) confira o EVO no <code>.env</code> do formulário (<code>EVO_BRANCH_ID</code>/<code>EVO_SERVICE_ID</code>) ou (2) a unidade ainda <b>não tem a grade de experimental cadastrada no EVO</b>. Teste na VPS: <code>cd Experimental/src/agendamento_evo && python3 push_slots.py</code> — <code>0 horários</code> = falta grade no EVO.</li>
-            <li><b>Painel manda reiniciar “<code>slimfit-exp</code>” (o do Bueno):</b> os nomes dos processos no PM2 são <b>por unidade</b> (<code>&lt;slug&gt;-exp</code>/<code>&lt;slug&gt;-painel</code>/<code>&lt;slug&gt;-sofia</code>). Ponha <code>PM2_SLUG=&lt;slug&gt;</code> no <code>Experimental/.env</code> (o <code>--start</code> já grava isso nas instalações novas) e reinicie o painel: <code>pm2 restart &lt;slug&gt;-painel --update-env</code>. Sem isso, o botão “Reiniciar robô” e o restart pós-salvar apontam para o processo do <b>Setor Bueno</b> e falham.</li>
-            <li><b>WhatsApp cai a cada <code>pm2 restart</code>:</b> um restart <b>não</b> deveria pedir QR de novo — a sessão fica salva em <code>WA_AUTH_DIR</code>. Se cair, é porque o caminho era <b>relativo</b> e o pm2 subiu o processo de outro diretório (a sessão “sumia”). O código agora <b>ancora</b> caminhos relativos na pasta do Experimental; se ainda quiser blindar, use um caminho <b>absoluto</b> em <code>WA_AUTH_DIR</code>. Depois de escanear <b>uma vez</b>, os próximos restarts mantêm a conexão.</li>
-          </ul>
-        </div>
+    <div class="call danger" style="margin-bottom:18px">
+      <div class="ic">!</div>
+      <div>
+        <h3>Os textos vêm com marcadores <code>[ENTRE COLCHETES]</code></h3>
+        <p>Se ninguém preencher, a aluna recebe colchetes no lugar do endereço e dos contatos. São três lugares: <b>🤖 SoFIA → Configuração</b> (roteiro: <code>[ENDEREÇO DA UNIDADE]</code>, <code>[LINK DO FORMULÁRIO]</code>, <code>[VALOR DE ENTRADA]</code>… e as imagens de grade/preços), <b>💬 WhatsApp → Configuração</b> (confirmação, follow-up, aniversário, renovação…) e o <b>.env do formulário</b> (abaixo).</p>
       </div>
     </div>
 
-    <div class="phase" style="margin-top:26px"><span class="pn">Testar</span><h2>Validar os jobs sem enviar (unidade recém-migrada)</h2></div>
+    <ul class="chk">
+      <li><span class="box">✓</span><span><b>Identidade do formulário</b> — em <code>~/sf-form-&lt;slug&gt;/.env</code>: <code>FORM_UNIDADE</code>, <code>FORM_ENDERECO</code>, <code>FORM_MAPS_URL</code>, <code>FORM_WHATSAPP</code> (só dígitos, com 55), <code>ZEE_STUDIO_PHONE</code> (recepção) e <code>PAINEL_URL</code>. Sem eles a página mostra os dados do <b>Setor Bueno</b>. Depois: <code>pm2 restart &lt;slug&gt;-form</code>.</span></li>
+      <li><span class="box">✓</span><span><b>Segmento do EVO para renovações</b> — em <b>Clientes → Segmentação</b> do EVO, crie um segmento com nome contendo <b>“Vencimento de Contrato Seman”</b> (ex.: <i>Vencimento de Contrato Semanal</i>, igual ao do Bueno) e o filtro <b>“Vencimento do contrato”</b>. A <b>renovação</b> (todo dia, 14:30, direto para as alunas) e os <b>contratos a vencer no mês</b> (dia 28, no grupo da equipe) dependem dele: <b>sem o segmento os dois falham</b>. Teste com <code>node src/renovacoes-mes-grupo.js --dry</code>.</span></li>
+      <li><span class="box">✓</span><span><b>2FA do EVO</b> — se o usuário do robô tem verificação em duas etapas, siga <a href="#opcionais">“2FA do EVO”</a> em Recursos opcionais. Sem isso, os jobs param com <code>Waiting failed: 30000ms</code>.</span></li>
+      <li><span class="box">✓</span><span><b>Grupos do WhatsApp</b> — confira o nome do <b>grupo da equipe</b> (e do Circuito, se houver) em <b>💬 WhatsApp → Configuração → 👥 Grupos</b>, e que a linha do robô está nesses grupos.</span></li>
+      <li><span class="box">✓</span><span><b>Usuários</b> — em <b>👤 Perfis</b>, crie um usuário para cada pessoa da recepção e marque só as telas que ela usa (inclusive <b>🤝 Slim Club</b>, se for usar).</span></li>
+      <li><span class="box">✓</span><span><b>Tags de alunas</b> — ligue <b>SoFIA → Tags → “Alunas / Ex-alunas automáticas”</b>. Ela marca <b>0. Aluna</b>/<b>0. Ex Aluna</b> pelo EVO uma vez por dia; a SoFIA, o Slim Club e as campanhas dependem dessas tags.</span></li>
+      <li><span class="box">✓</span><span><b>Alertas no celular</b> — o dono instala o app <b>ntfy</b> e assina o tópico do <code>NTFY_TOPIC</code> (está no <code>Experimental/.env</code>). Teste: <code>curl -d "teste de alerta" ntfy.sh/SEU_TOPICO</code>.</span></li>
+      <li><span class="box">✓</span><span><b>Vigia</b> — o backup diário já vem agendado; o <b>vigia</b> (avisa se o robô ou o painel caírem) entra no <code>crontab -e</code> (confira os caminhos com <code>which node</code> e <code>which pm2</code>):<br><code>PATH=/usr/local/bin:/usr/bin:/bin</code><br><code>*/5 * * * * cd ~/SF-Chat_Experimental-Mensagens/Experimental &amp;&amp; /usr/bin/node src/watchdog.js &gt;&gt; logs/watchdog.log 2&gt;&amp;1</code><br>Teste: <code>node src/watchdog.js</code> deve dizer “✅ tudo ok”.</span></li>
+      <li><span class="box">✓</span><span><b>Áudios das professoras</b> (se usar o pós-aula) — copie os <code>.ogg</code> para <code>Experimental/audios/</code> e ligue cada professora ao arquivo no <code>AUDIO_MAP</code> do <code>.env</code> (nome como aparece no EVO, minúsculo): <code>AUDIO_MAP={"ana":"A-Ana-Pos"}</code>. Reiniciar <code>&lt;slug&gt;-exp</code>.</span></li>
+    </ul>
+  </section>
+
+  <!-- 4. TESTAR -->
+  <section id="testar">
+    <div class="phase"><span class="pn">4</span><h2>Testar sem enviar</h2></div>
     <div class="stepblock">
-      <p>Antes de divulgar, rode <b>cada job em modo seguro</b>: ele faz tudo — lê o EVO, escolhe quem receberia, monta o texto — mas <b>NÃO envia</b>. Todos aceitam <code>--dry</code> (ou já vêm em "simulação" por padrão).</p>
-      <div class="tip">⚠️ Antes, abra uma <b>janela de teste limpa</b>: <code>pm2 stop SEU-SLUG-exp</code> — assim os jobs manuais não disputam o <b>Chromium do EVO</b> com o agendador (a SoFIA e o painel seguem no ar). Rode <b>um job de cada vez</b>. Ao terminar, <code>pm2 start SEU-SLUG-exp</code>.</div>
+      <p>Cada job aceita um modo seguro: lê o EVO, escolhe quem receberia e monta o texto, mas <b>não envia</b>. Rode <b>um de cada vez</b>, com o robô parado, para não disputarem o navegador do EVO (a SoFIA e o painel continuam no ar).</p>
       <div class="term">
         <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">testar os jobs (não envia)</span></div>
 <pre class="term-body">cd ~/SF-Chat_Experimental-Mensagens/Experimental
-pm2 stop <b>SEU-SLUG</b>-exp        <span class="c"># janela de teste (SoFIA/painel seguem no ar)</span>
+pm2 stop <b>SEU-SLUG</b>-exp        <span class="c"># janela de teste</span>
 
-node src/enviar_confirmacoes.js --dry                    <span class="c"># confirmação experimental</span>
+node src/enviar_confirmacoes.js --dry                    <span class="c"># confirmação da experimental</span>
 xvfb-run -a node src/followup-experimental.js --dry      <span class="c"># follow-up</span>
 xvfb-run -a node src/follow-up-no-show.js --dry          <span class="c"># faltas (no-show)</span>
 xvfb-run -a node src/aniversariantes.js                  <span class="c"># aniversário aluna (simulação)</span>
 xvfb-run -a node src/aniversario-ex.js                   <span class="c"># aniversário ex-alunas (simulação)</span>
 xvfb-run -a node src/aniversariantes-mes-grupo.js --dry  <span class="c"># equipe: aniversários do mês</span>
-xvfb-run -a node src/renovacoes-mes-grupo.js --dry       <span class="c"># equipe: renovações do mês</span>
+xvfb-run -a node src/renovacoes-mes-grupo.js --dry       <span class="c"># equipe: contratos a vencer no mês</span>
 xvfb-run -a node src/renovar-contratos.js                <span class="c"># renovação (simulação)</span>
 xvfb-run -a node src/comparecimento.js --dry             <span class="c"># presença / troca de tags</span>
 xvfb-run -a node src/enviar-circuito.js --convocacao --dry <span class="c"># circuito</span>
 xvfb-run -a node src/ausentes-10-dias.js --dry           <span class="c"># ausentes 10 dias</span>
-xvfb-run -a node src/planilha-aniversarios.js --dry      <span class="c"># planilha de aniversários</span>
-
-<span class="c"># ── Jobs novos (Cobrança + Planos FREE) ──────────────────────────────</span>
-xvfb-run -a node src/inadimplentes.js                    <span class="c"># cobrança: só LÊ os débitos no EVO (NÃO cobra, NÃO envia)</span>
-node src/free-antecedencia.js --dry                      <span class="c"># planos FREE: só LISTA quem marcou cedo demais (não desmarca; usa a API do EVO, dispensa Chromium)</span>
+xvfb-run -a node src/planilha-aniversarios.js --dry      <span class="c"># planilha + tags automáticas de alunas</span>
+xvfb-run -a node src/inadimplentes.js                    <span class="c"># cobrança: só LÊ os débitos</span>
+node src/free-antecedencia.js --dry                      <span class="c"># planos FREE: só lista</span>
 
 pm2 start <b>SEU-SLUG</b>-exp       <span class="c"># volta ao normal</span></pre>
       </div>
-      <div class="tip">Cada job imprime o que <b>faria</b> (quantos, para quem, prévia do texto) e termina com <code>🧪 Modo --dry: NADA foi enviado</code> (ou "simulação"). Erro de login do EVO num job → confira <code>EVO_EMAIL</code>/<code>EVO_PASSWORD</code> no <code>.env</code>. Para enviar de verdade, troque <code>--dry</code> por <code>--enviar</code>/<code>--run</code> conforme o job — ou deixe o agendador disparar no horário. Obs.: <code>suspensoes.js</code> mexe em contratos no EVO (não manda mensagem à aluna) — trate à parte.</div>
-      <div class="tip">🆕 <b>Os dois jobs novos:</b> <code>inadimplentes.js</code> <b>sem</b> argumento já é o teste seguro (só lê os débitos); com <code>--enviar</code> ele <b>enfileira a cobrança na fila da SoFIA</b> (quem envia é a SoFIA — precisa de <code>SEU-SLUG-sofia</code> no ar). <code>free-antecedencia.js --dry</code> só lista; <b>sem</b> <code>--dry</code> ele <b>desmarca de verdade</b> (falta justificada no EVO) e posta o resumo no <b>grupo da Equipe</b>. O <code>free-antecedencia.js</code> fala com a <b>API do EVO</b> (não abre o Chromium), então pode rodar mesmo com o <code>SEU-SLUG-exp</code> ligado.</div>
+      <div class="tip">Cada job termina com <code>🧪 Modo --dry: NADA foi enviado</code> (ou “simulação”). Erro de login do EVO → confira <code>EVO_EMAIL</code>/<code>EVO_PASSWORD</code> e o 2FA. <code>suspensoes.js</code> mexe em contratos no EVO (não manda mensagem) — trate à parte. Para disparar um job <b>de verdade</b> com o robô ligado, use o “rodar job agora” de <a href="#manter">Atualizar e manter</a>.</div>
     </div>
-
-    <div class="phase" style="margin-top:26px"><span class="pn">No final</span><h2>O que continua manual</h2></div>
-    <p>O <code>--tudo</code> faz <b>toda</b> a instalação (inclusive o formulário e o HTTPS).
-      Continuam manuais só o que é <b>externo</b> ou de <b>conteúdo</b>:</p>
-    <ul class="chk">
-      <li><span class="box">✓</span><span><b>Segmentações no EVO</b> — a <b>renovação de contratos</b> (todo dia, 14:30) e os <b>contratos a vencer no mês</b> (dia 28, no grupo da equipe) leem um segmento do EVO cujo nome contenha <b>"Vencimento de Contrato Seman"</b> (ex.: <i>Vencimento de Contrato Semanal</i>, igual ao do Bueno), com o filtro <b>"Vencimento do contrato"</b> (o robô ajusta o período sozinho). <b>Sem esse segmento os dois jobs falham</b> e nada é enviado (aprendido no Guará). Crie em <b>Clientes → Segmentação</b> antes de ligar a unidade e teste com <code>node src/renovacoes-mes-grupo.js --dry</code>.</span></li>
-      <li><span class="box">✓</span><span><b>Credenciais</b> — o script <b>pergunta</b> no terminal (EVO e Anthropic); ou deixe em branco e preencha depois pelo painel (SoFIA → Configuração → 🔑 Credenciais da unidade).</span></li>
-      <li><span class="box">✓</span><span><b>IDs da aula experimental no EVO</b> — o formulário é instalado <b>automaticamente</b> pelo <code>--tudo</code>; o que falta por unidade é confirmar <code>EVO_SERVICE_ID</code>/<code>EVO_ACTIVITY_ID</code> (passo 5) e o <b>telefone da recepção</b> (<code>ZEE_STUDIO_PHONE</code>) no <code>.env</code> do formulário.</span></li>
-      <li><span class="box">✓</span><span><b>Apontar o DNS</b> do subdomínio (o do <code>--domain</code>) para o IP da VPS — no seu provedor de DNS. O Caddy emite o certificado sozinho.</span></li>
-      <li><span class="box">✓</span><span><b>Preencher o conteúdo — os textos-modelo vêm com marcadores <code>[ENTRE COLCHETES]</code> para você completar.</b> Antes de divulgar, preencha em <b>dois lugares no painel</b>: (1) o <b>roteiro da SoFIA</b> e as <b>imagens de grade/preços</b> (🤖 SoFIA → Configuração); (2) as <b>mensagens do robô</b> no WhatsApp — confirmação, follow-up etc. (💬 WhatsApp → Configuração). E, no <b>.env do formulário (no VPS)</b>, defina o <b>telefone da recepção</b> (<code>ZEE_STUDIO_PHONE</code>) e o <b>link do painel</b> (<code>PAINEL_URL</code>) da unidade (Fase 5). Sem isso, os textos saem com os colchetes no lugar do endereço/contatos. Também: usuários (Perfis) e os grupos do WhatsApp.</span></li>
-      <li><span class="box">✓</span><span><b>Login com Google (opcional)</b> — para entrar no painel com a conta Google em vez de senha. Crie um cliente OAuth no Google Cloud, libere o domínio do painel e preencha <code>GOOGLE_CLIENT_ID</code>, <code>GOOGLE_CLIENT_SECRET</code> e <code>PAINEL_ADMIN_EMAIL</code> no <code>Experimental/.env</code> (estão comentados lá). Só entram e-mails cadastrados em <b>Perfis</b>.</span></li>
-    </ul>
-    <div class="tip"><b>Não</b> copie a pasta <code>.wwebjs_auth</code> entre unidades
-      (cada número lê o próprio QR) e <b>não</b> reutilize <code>SOFIA_DIR</code>,
-      <code>FORM_SLOTS_TOKEN</code> ou <code>SOFIA_TOKEN</code> entre Studios.</div>
-    <div class="tip">Recursos <b>opcionais</b> (Instagram, planilha do Google, vigia/backup
-      por cron) e os <b>detalhes granulares</b> de cada etapa estão na
-      <b>referência detalhada</b> logo abaixo — use só o que precisar.</div>
-    <div class="tip">💳 <b>Cobrança de inadimplentes (pela SoFIA):</b> configure em
-      <b>🤖 SoFIA → Cobrança</b> — textos (recorrente com o <code>{link}</code> de
-      pagamento; boleto com o <code>{link}</code> do boleto; variável <code>{valor}</code>
-      disponível), <b>a partir de quantos dias</b> de atraso, <b>horário/dias</b> do envio
-      e o <b>toggle</b> Ativado/Desligado de cada mensagem. É enviada pelo
-      <b>número da SoFIA</b> (não o do robô), então a <b>SoFIA precisa estar no ar</b>
-      (<code>SEU-SLUG-sofia</code> conectado). Para testar sem enviar às alunas, use o
-      campo "Número para testes" + "Enviar teste (pela SoFIA)".</div>
-    <div class="tip">🎟️ <b>Limite de aulas experimentais por turma:</b> ajuste em
-      <b>🤖 SoFIA → Configuração → "Máx. experimentais por turma"</b>
-      (<b>0 = sem limite</b>, vale só a capacidade real da turma). O script já conecta o
-      formulário a esse controle (<code>SOFIA_EXP_LIMITE_FILE</code> no <code>.env</code>
-      do form aponta para o arquivo do painel), então a mudança vale sem reiniciar.</div>
-    <div class="tip">🚫 <b>Planos FREE — desmarcação por antecedência:</b> configure em
-      <b>💬 WhatsApp → Configuração</b> (card "Planos FREE"). As alunas desses planos
-      só podem marcar com <b>1 dia</b> de antecedência; o robô varre a grade a cada
-      <b>N horas</b>, <b>desmarca</b> (falta justificada) quem marcou com <b>2+ dias</b> e
-      <b>avisa no grupo da Equipe</b> (o mesmo "Grupo da equipe (professoras)"). Tudo é
-      editável no painel, <b>sem reiniciar</b>: o <b>toggle</b> Ativado/Desligado, o
-      <b>intervalo</b> (horas), a <b>janela</b> (dias), os <b>planos que entram</b>
-      (padrão <code>free, 3x, grupo 2</code> — só os FREE 3X; os FREE 5X ficam de fora)
-      e o <b>texto da mensagem</b> (variáveis <code>{studio}</code>, <code>{lista}</code>,
-      <code>{qtd}</code>, <code>{falhas}</code>). Usa a <b>API do EVO</b>
-      (<code>EVO_DNS</code>/<code>EVO_TOKEN</code>) — as mesmas credenciais do agendamento.
-      Desligável por unidade com <code>JOBS_OFF=free_antecedencia</code>. Para testar sem
-      desmarcar: <code>cd Experimental/src/agendamento_evo &amp;&amp; .venv/bin/python
-      run_free_antecedencia.py --dry</code>.</div>
   </section>
 
-  <!-- DUAS LOJAS NO MESMO SERVIDOR -->
+  <!-- 5. DUAS LOJAS -->
   <section id="duas-lojas">
-    <div class="phase"><span class="pn">Mesmo franqueado</span><h2>🏢 Duas lojas no mesmo servidor</h2></div>
-    <p>Dois Studios do mesmo dono podem dividir um VPS. Cada um é um <b>clone separado</b> do
-      repositório, com <code>--slug</code> e <code>--port</code> próprios — <b>isolamento total</b>
-      (dados, processos, painel e <code>.env</code>). O que pesa é o Chromium do WhatsApp
-      (2 lojas = 4 WhatsApps). Em regime normal cabe em 8&nbsp;GB; para os picos, faça os
-      2 ajustes abaixo.</p>
-
-    <div class="tip">💡 <b>Regra de ouro:</b> a loja 2 é uma instalação <b>completa e nova</b>, igual à
-      loja 1 — só que num <b>clone separado</b> e com <code>--slug</code>, <code>--port</code>,
-      <code>--domain</code>, branch do EVO, tokens e QRs <b>próprios</b>. <b>Nada</b> é reaproveitado
-      da loja 1. Siga os mesmos comandos abaixo (é o mesmo fluxo do topo da página, só trocando os valores).</div>
+    <div class="phase"><span class="pn">5</span><h2>🏢 Duas lojas no mesmo servidor</h2></div>
+    <p class="sec-head" style="color:var(--text-soft);max-width:70ch">Dois Studios do mesmo dono podem dividir uma VPS. A loja 2 é uma instalação <b>completa e nova</b>, num <b>clone separado</b>, com <code>--slug</code>, <code>--port</code> e <code>--domain</code> próprios. Nada é reaproveitado da loja 1. O que pesa é o navegador do WhatsApp (2 lojas = 4 WhatsApps): use <b>8&nbsp;GB</b> e o swap do passo B.</p>
 
     <div class="stepblock">
-      <h3><span class="num">A</span> Instalar a 2ª loja com o <code>--tudo</code> (na mesma VPS)</h3>
-      <p>É o <b>mesmo comando do topo da página</b>, só que num clone separado e com os valores da
-        loja 2. Troque <code>lagosul2</code> pelo apelido, <code>NN</code> pelo <b>branch do EVO da
-        loja 2</b> (na URL do EVO: <code>…/app/&lt;tenant&gt;/<b>NN</b>/…</code>) e o subdomínio pelo seu.</p>
+      <h3><span class="num">A</span> Instalar a loja 2 com o <code>--tudo</code></h3>
+      <p>Troque <code>lagosul2</code> pelo apelido, <code>NN</code> pelo <b>branch do EVO da loja 2</b> e o subdomínio pelo seu.</p>
       <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS · root · loja 2</span></div>
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS · loja 2</span></div>
 <pre class="term-body"><span class="c"># 1) Clone SEPARADO — repare no nome da pasta ao final</span>
 cd ~ &amp;&amp; git clone https://github.com/rrabadan86/SF-Chat_Experimental-Mensagens.git <b>slimfit-lagosul2</b>
 cd <b>slimfit-lagosul2</b>/Experimental
 
-<span class="c"># 2) Instala a loja 2 inteira num comando.</span>
-<span class="c">#    SEM --install-deps (Node, Chromium, pm2 e Caddy já estão no servidor da loja 1)</span>
+<span class="c"># 2) Instala a loja 2 inteira. SEM --install-deps (o servidor já tem tudo da loja 1)</span>
 bash setup-novo-studio.sh --tudo \
   --slug <b>lagosul2</b> --studio <b>"Studio SlimFit Lago Sul 2"</b> \
   --evo-tenant <b>slimfit</b> --evo-branch <b>NN</b> \
   --port <b>8081</b> \
   --domain <b>painel-lagosul2.duckdns.org</b> \
-  --evo-email <b>LOGIN-DO-ROBO-NO-EVO</b></pre>
-      </div>
-      <p>Ele <b>pergunta</b> os segredos da loja 2 (EVO, chave da IA, grupo da equipe) e faz
-        <b>sozinho</b> o que antes era manual na 2ª loja:</p>
-      <ul style="margin:6px 0 10px;padding-left:18px;line-height:1.55">
-        <li><b>Processos próprios</b>: <code>lagosul2-painel</code>, <code>-exp</code>, <code>-sofia</code> e <code>-form</code>.</li>
-        <li><b>Formulário próprio</b> em <code>~/sf-form-lagosul2</code>, na porta do painel <b>+ 10</b> (<code>8091</code>), servido em <code>/agendamentoexperimental</code> do domínio da loja 2.</li>
-        <li><b>Dados da SoFIA</b> em <code>~/sofia-data-lagosul2</code>, <b>tokens novos</b> e <b>tópico de alertas</b> próprio (nada herdado da loja 1).</li>
-        <li><b>HTTPS</b>: <b>acrescenta</b> o bloco da loja 2 no <code>/etc/caddy/Caddyfile</code>, sem mexer no da loja 1.</li>
-        <li><b>Backup diário</b> agendado por loja (as duas convivem no mesmo cron).</li>
-      </ul>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">depois do --tudo · loja 2</span></div>
-<pre class="term-body"><span class="c"># 3) Escalonar a loja 2 (no .env DA LOJA 2) — evita as duas lojas baterem no EVO juntas</span>
+  --evo-email <b>LOGIN-DO-ROBO-NO-EVO</b>
+
+<span class="c"># 3) Escalonar a loja 2 (no .env DA LOJA 2) para as duas não baterem no EVO juntas</span>
 nano .env
-<span class="c">#    FORM_SLOTS_MINUTO=15            ← grade da loja 2 em :15 e :45 (loja 1 fica em :00 e :30)</span>
+<span class="c">#    FORM_SLOTS_MINUTO=15            ← grade da loja 2 em :15 e :45 (loja 1: :00 e :30)</span>
 <span class="c">#    GRADE_FIXAS_CRON=47 5 * * *     ← grade fixa da loja 2 às 05:47 (loja 1: 05:40)</span>
 pm2 restart <b>lagosul2</b>-exp
 
-<span class="c"># 4) DNS: aponte painel-lagosul2 para o MESMO IPv4 da VPS (curl -s4 ifconfig.me)</span>
-
-<span class="c"># 5) Escaneie os 2 QRs da loja 2, cada um no número certo, e salve a lista do pm2</span>
-pm2 logs <b>lagosul2</b>-exp       <span class="c"># QR do robô (ou pela aba WhatsApp do painel da loja 2)</span>
-pm2 logs <b>lagosul2</b>-sofia     <span class="c"># QR da SoFIA</span>
-pm2 save
-
-<span class="c"># 6) IDs da aula experimental no EVO da loja 2 (passo 5 do topo) — sempre com tenant/branch</span>
-bash setup-novo-studio.sh --slug <b>lagosul2</b> --evo-tenant <b>slimfit</b> --evo-branch <b>NN</b> --evo-ids</pre>
+<span class="c"># 4) DNS da loja 2 → o MESMO IPv4 da VPS · 5) QRs da loja 2 no painel dela · depois:</span>
+pm2 save</pre>
       </div>
-      <div class="tip">⚠️ <b>Portas:</b> a loja 1 usa <code>8080</code> (painel) e <code>8090</code> (formulário);
-        a loja 2, <code>8081</code> e <code>8091</code>. <b>Não</b> use <code>--port 8090</code> na loja 2 —
-        bate com o formulário da loja 1.</div>
-      <div class="tip">⚠️ <b><code>FORM_SLOTS_MINUTO</code> é 15, não 30:</b> o robô envia a grade no minuto
-        escolhido <b>e 30 min depois</b>. Com loja 1 = 0 e loja 2 = 30, as duas mandam em :00 e :30 —
-        exatamente juntas. Com <b>15</b>, a loja 2 fica em :15 e :45.</div>
-      <div class="tip">Depois, faça na loja 2 o mesmo pós-instalação da loja 1: trocar os textos
-        (passo 6 do topo), criar o segmento <b>"Vencimento de Contrato Semanal"</b> no EVO da loja 2 e,
-        se houver MFA no EVO, o <code>EVO_TOTP_SECRET</code> da loja 2.</div>
+      <p>O script cuida sozinho do resto da loja 2: processos <code>lagosul2-*</code>, formulário em <code>~/sf-form-lagosul2</code> na porta do painel <b>+ 10</b> (<code>8091</code>), dados da SoFIA, tokens e tópico de alertas próprios, bloco do HTTPS <b>acrescentado</b> no Caddy (sem mexer no da loja 1) e backup diário próprio. Depois, faça na loja 2 a seção <a href="#pos">Configurar antes de divulgar</a> inteira — inclusive os IDs do EVO e o segmento de renovações <b>no EVO da loja 2</b>.</p>
+      <div class="tip">⚠️ <b>Portas:</b> loja 1 = <code>8080</code> (painel) e <code>8090</code> (formulário); loja 2 = <code>8081</code> e <code>8091</code>. <b>Não</b> use <code>--port 8090</code> na loja 2 — bate com o formulário da loja 1.</div>
+      <div class="tip">⚠️ <b><code>FORM_SLOTS_MINUTO</code> é 15, não 30:</b> o robô envia a grade no minuto escolhido <b>e 30 min depois</b>. Com loja 1 = 0 e loja 2 = 30, as duas mandariam juntas em :00 e :30 e estourariam o limite de 40 pedidos/min do EVO (a grade some das duas).</div>
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">B</span> Adicionar swap (rede de segurança de memória)</h3>
-      <p><b>Uma vez só, no servidor</b> (não é por loja). Cria 4&nbsp;GB de swap para segurar picos de memória:</p>
+      <h3><span class="num">B</span> Swap (uma vez só, no servidor)</h3>
+      <p>Uma reserva de memória para os picos — não é por loja:</p>
       <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS · root · uma vez</span></div>
-<pre class="term-body"><span class="p">sudo</span> fallocate -l 4G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab   <span class="c"># mantém após reboot</span>
-free -h                                                       <span class="c"># confere a linha "Swap"</span></pre>
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS · uma vez</span></div>
+<pre class="term-body">fallocate -l 4G /swapfile &amp;&amp; chmod 600 /swapfile &amp;&amp; mkswap /swapfile &amp;&amp; swapon /swapfile
+echo '/swapfile none swap sw 0 0' | tee -a /etc/fstab     <span class="c"># mantém após reboot</span>
+free -h                                                  <span class="c"># confere a linha "Swap"</span></pre>
       </div>
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">C</span> Escalonar os horários da 2ª loja</h3>
-      <p>Para as duas lojas não rasparem o EVO nem dispararem ao mesmo tempo, dê um
-        <b>desencontro de alguns minutos</b> nos horários da loja 2 (no painel dela: aba
-        <b>WhatsApp → Configuração</b>, e a hora do comparecimento em <b>SoFIA → Configuração</b>).
-        Ex.: se a loja 1 confirma às <code>08:30</code>, deixe a loja 2 às <code>08:40</code>.
-        Vale para confirmações, follow-ups, faltas e o resumo.</p>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">D</span> Checklist da 2ª loja (o que muda em relação à 1ª)</h3>
-      <ul class="chk">
-        <li><span class="box">✓</span><span><b>Clone separado</b> (ex.: <code>~/slimfit-lagosul2</code>) — não reaproveite o da loja 1.</span></li>
-        <li><span class="box">✓</span><span><b><code>--slug</code> diferente</b> (ex.: <code>lagosul2</code>) → processos <code>lagosul2-painel/-exp/-sofia</code>.</span></li>
-        <li><span class="box">✓</span><span><b><code>--port</code> diferente</b> (ex.: <code>8081</code>) — a loja 1 fica na 8080.</span></li>
-        <li><span class="box">✓</span><span><b><code>--domain</code> próprio</b> (ex.: <code>painel-lagosul2.SEU-DOMINIO</code>) — subdomínio e HTTPS separados.</span></li>
-        <li><span class="box">✓</span><span><b>EVO da loja 2</b> no <code>.env</code> (DNS/token/ids da unidade 2) e <code>ZEE_STUDIO_PHONE</code> da loja 2.</span></li>
-        <li><span class="box">✓</span><span><b><code>FORM_SLOTS_MINUTO</code> diferente</b> no <code>.env</code> (loja 1 = <code>0</code>, loja 2 = <code>15</code> — <b>não</b> 30, que cai nos mesmos minutos) e <code>GRADE_FIXAS_CRON=47 5 * * *</code> na loja 2 — <b>escalona o envio da grade</b> para as duas lojas não estourarem juntas o <b>limite de 40 req/min do EVO</b> (senão a grade some das duas). Reiniciar <code>exp</code>.</span></li>
-        <li><span class="box">✓</span><span><b>Formulário próprio no VPS</b> — o <code>--tudo</code> já cria (<code>~/sf-form-lagosul2</code>, porta <code>8091</code>, sob o domínio do painel da loja 2, com o EVO e os tokens da loja 2). Só confira os <b>ids da experimental</b> e o <code>ZEE_STUDIO_PHONE</code> da loja 2 no <code>.env</code> dele.</span></li>
-        <li><span class="box">✓</span><span><b>2 WhatsApps novos</b> (robô + SoFIA da loja 2) — QRs próprios; <b>nunca</b> copie o <code>.wwebjs_auth</code>.</span></li>
-        <li><span class="box">✓</span><span><b>Não</b> precisa de <code>--install-deps</code> de novo (Node/Chromium/pm2 já estão no servidor).</span></li>
-      </ul>
-      <div class="tip">A <code>ANTHROPIC_API_KEY</code> pode ser a mesma do franqueado nas duas lojas
-        (o <b>Custo da IA</b> é medido por painel, então dá pra separar depois), ou uma por loja
-        se quiser contas totalmente separadas.</div>
+      <h3><span class="num">C</span> Desencontrar os horários dos envios</h3>
+      <p>No painel da loja 2 (<b>💬 WhatsApp → Configuração</b>), deixe os envios alguns minutos depois dos da loja 1 — ex.: loja 1 confirma às <code>08:30</code>, loja 2 às <code>08:40</code>. Vale para confirmações, follow-ups, faltas e resumo. A <code>ANTHROPIC_API_KEY</code> pode ser a mesma nas duas lojas (o <b>Custo IA</b> é medido por painel).</p>
     </div>
   </section>
 
-  <!-- REFERÊNCIA DETALHADA (MANUAL) -->
-  <section>
-    <div class="sec-head">
-      <span class="eyebrow">Referência detalhada — manual</span>
-      <h2>Passo a passo completo (e recursos opcionais)</h2>
-    </div>
-    <p>⚠️ <b>Você quase nunca precisa disto.</b> O instalador <code>--tudo</code> (acima) já
-      faz <b>todas</b> as fases de instalação (servidor, robô, SoFIA, formulário, HTTPS).
-      As <b>Fases</b> abaixo são só <b>referência manual/granular</b> para <b>entender por
-      dentro</b> ou configurar <b>recursos opcionais</b> que o script não liga sozinho —
-      principalmente a <b>Fase 6</b> (Instagram) e a <b>Fase 9.5</b> (ajustes no painel).
-      Se você usou o script, pule direto para o que precisar.</p>
-  </section>
-
-  <!-- FASE 1 -->
-  <section>
-    <div class="phase"><span class="pn">Fase 1</span><h2>Preparar o servidor</h2></div>
+  <!-- 6. ATUALIZAR E MANTER -->
+  <section id="manter">
+    <div class="phase"><span class="pn">6</span><h2>Atualizar e manter</h2></div>
 
     <div class="stepblock">
-      <h3><span class="num">1.1</span> Acessar, ajustar fuso e atualizar</h3>
-      <p>Conecte no servidor do cliente por SSH e deixe tudo em dia. O fuso de Brasília mantém os horários dos jobs certos.</p>
+      <h3>A regra de ouro: o que reiniciar</h3>
+      <div class="regra">
+        <div class="ok"><b>&lt;slug&gt;-painel</b>Telas do painel e páginas públicas (Slim Club, cadastro). Reinicie à vontade: <b>o WhatsApp não cai</b>.</div>
+        <div class="cuidado"><b>&lt;slug&gt;-exp</b>O robô e o WhatsApp do Studio. Só reinicie quando a mudança for no robô (jobs, envios) e <b>fora dos horários de envio</b> — ele reconecta sozinho, mas é o momento em que a sessão pode cair.</div>
+        <div class="cuidado"><b>&lt;slug&gt;-sofia</b>A SoFIA e o WhatsApp dela. Mesmo cuidado do robô.</div>
+        <div class="ok"><b>&lt;slug&gt;-form</b>O formulário. Reiniciar não afeta os WhatsApps.</div>
+      </div>
+      <p style="color:var(--text-soft);font-size:.95rem">Cada atualização diz quais processos reiniciar (veja o <a href="#novidades">histórico</a>). Na dúvida, reinicie só o painel e, se precisar, o robô depois, com calma.</p>
+    </div>
+
+    <div class="stepblock">
+      <h3><span class="num">6.1</span> Atualizar uma loja</h3>
       <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">no seu PC → servidor do cliente</span></div>
-<pre class="term-body"><span class="c"># conecte no servidor (troque pelo IP do cliente)</span>
-<span class="p">ssh</span> root@<b>IP-DO-CLIENTE</b>
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS · atualizar</span></div>
+<pre class="term-body"><span class="c"># código (sempre pela main — todas as lojas atualizam por ela)</span>
+cd ~/SF-Chat_Experimental-Mensagens &amp;&amp; git fetch origin main &amp;&amp; git reset --hard FETCH_HEAD
+pm2 restart <b>SEU-SLUG</b>-painel                  <span class="c"># + SEU-SLUG-exp / -sofia se a atualização pedir</span>
 
-<span class="c"># fuso de Brasília + atualizações + git</span>
-timedatectl set-timezone America/Sao_Paulo
-apt update && apt upgrade -y
-apt install -y git</pre>
+<span class="c"># formulário (repositório próprio)</span>
+cd ~/sf-form-<b>SEU-SLUG</b> &amp;&amp; git fetch origin main &amp;&amp; git reset --hard FETCH_HEAD
+pm2 restart <b>SEU-SLUG</b>-form                    <span class="c"># páginas de texto (manual, implantação) nem precisam</span></pre>
       </div>
+      <div class="tip">O <code>reset --hard</code> só mexe no código: o que foi editado no painel (<code>data/</code>), os <code>.env</code> e as sessões do WhatsApp ficam intactos (estão fora do Git). Se uma atualização trouxer dependência nova, ela avisa para rodar <code>npm install</code> na pasta <code>Experimental</code>.</div>
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">1.2</span> Node 20 + ferramentas de build</h3>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body">curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt install -y nodejs build-essential python3
-node -v   <span class="c"># deve mostrar v20.x</span></pre>
-      </div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">1.3</span> Tela virtual (Xvfb) + bibliotecas do navegador</h3>
-      <p>O EVO (Angular) é instável em modo headless puro. A configuração validada roda com <b>tela virtual (Xvfb)</b>. Instale o Xvfb e as libs do Chromium.</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body">apt install -y xvfb \
-  ca-certificates fonts-liberation libasound2t64 libatk-bridge2.0-0t64 \
-  libatk1.0-0t64 libc6 libcairo2 libcups2t64 libdbus-1-3 libexpat1 \
-  libfontconfig1 libgbm1 libglib2.0-0t64 libgtk-3-0t64 libnspr4 libnss3 \
-  libpango-1.0-0 libx11-6 libxcomposite1 libxdamage1 libxext6 libxfixes3 \
-  libxrandr2 libxkbcommon0 xdg-utils wget</pre>
-      </div>
-      <div class="tip"><b>Ubuntu mais antigo?</b> Se algum pacote com sufixo <code>t64</code> não for encontrado, instale a versão sem o sufixo (ex.: <code>libasound2</code>). Os nomes variam por versão do Ubuntu.</div>
-    </div>
-  </section>
-
-  <!-- FASE 2 -->
-  <section>
-    <div class="phase"><span class="pn">Fase 2</span><h2>Instalar o robô</h2></div>
-
-    <div class="stepblock">
-      <h3><span class="num">2.1</span> Clonar o código e instalar dependências</h3>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body">cd ~
-git clone https://github.com/rrabadan86/SF-Chat_Experimental-Mensagens.git
-cd SF-Chat_Experimental-Mensagens
-git checkout main            <span class="c"># branch de deploy de loja NOVA (estavel, tudo mesclado)</span>
-cd Experimental
-npm install                  <span class="c"># baixa o Chromium do Puppeteer (uns minutos)</span></pre>
-      </div>
-      <div class="tip">🔄 <b>O <code>setup-novo-studio.sh</code> já atualiza a branch sozinho</b> (<code>git pull --ff-only</code>) ao rodar — então a loja nova instala sempre com as últimas correções. Se preferir travar numa versão, use <code>--no-git-pull</code>.</div>
-      <div class="tip">🌿 <b>Qual branch usar (fluxo do projeto):</b>
-        <ul style="margin:6px 0 0">
-          <li><b>Loja nova →</b> use o <code>main</code> (acima). Ele recebe, de tempos em tempos, tudo o que foi validado em produção — então uma instalação do zero já nasce completa.</li>
-          <li><b>Unidades já no ar (ex.: Setor Bueno, Lago Sul) →</b> rodam a branch de trabalho <code>claude/slimfit-official-repo-q71zdd</code> e se atualizam com <code>git pull</code> nela. Mesmo código do <code>main</code>; não precisa migrar.</li>
-        </ul>
-        Em resumo: o desenvolvimento acontece na branch de trabalho e, quando amadurece, é mesclado no <code>main</code> (via Pull Request) para as lojas novas. As unidades existentes seguem na branch de trabalho normalmente.</div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">2.2</span> Criar o <code>.env</code> a partir do modelo</h3>
-      <p>Copie o modelo e preencha com os dados da ficha da unidade. É aqui que a unidade ganha a própria identidade — <b>sem tocar em código</b>.</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body">cp .env.example .env
-nano .env                    <span class="c"># preencha; salve com Ctrl+O, Enter, Ctrl+X</span></pre>
-      </div>
-      <div class="fieldnote">
-        <div class="fnh">Os campos que mudam por unidade</div>
-        <table>
-          <tr><td>STUDIO_NOME</td><td>Nome do Studio como aparece para a aluna. Ex.: <b>Studio SlimFit Jardim Goiás</b>.</td></tr>
-          <tr><td>EVO_URL</td><td>Endereço do <b>tenant</b> da unidade: <b>https://&lt;tenant&gt;.w12app.com.br</b> (ex.: <code>https://slimfit.w12app.com.br</code>). O SPA redireciona sozinho para o <code>evo5</code> e o domínio seguro é capturado depois — <b>não</b> ponha <code>evo5</code> aqui, senão a sessão cai no login. Pelo script, já vem montado pelo <code>--evo-tenant</code>.</td></tr>
-          <tr><td>EVO_EMAIL / EVO_PASSWORD</td><td>Login do EVO da unidade.</td></tr>
-          <tr><td>EVO_EXPERIMENTAL_PATH</td><td>Troque o <b>número da filial</b> no caminho pelo da unidade.</td></tr>
-          <tr><td>HEADLESS</td><td>Deixe <b>false</b> — a instalação roda com Xvfb (tela virtual).</td></tr>
-          <tr><td>GRUPO_EQUIPE</td><td>Nome exato do grupo da equipe no WhatsApp. <b>Opcional</b> — dá para definir/alterar depois no painel (WhatsApp → Configuração → “👥 Grupos do WhatsApp”).</td></tr>
-          <tr><td>CIRCUITO_GRUPO</td><td>Nome exato do grupo do Circuito no WhatsApp. <b>Opcional</b> — também editável no painel, em “👥 Grupos do WhatsApp”.</td></tr>
-          <tr><td>SHEETS_ID / SHEETS_ABA / GOOGLE_SA_KEY</td><td>Planilha de aniversários (ver passo 2.4).</td></tr>
-          <tr><td>NTFY_TOPIC</td><td>Tópico exclusivo de alertas da unidade (nome secreto).</td></tr>
-          <tr><td>AUDIO_MAP</td><td>JSON professora→arquivo de áudio (ver passo 2.3).</td></tr>
-          <tr><td>FORM_OUTBOX_TOKEN</td><td>Token secreto — o <b>mesmo</b> valor aqui e no <code>.env</code> do formulário (no VPS).</td></tr>
-        </table>
-      </div>
-      <div class="tip">O <code>.env</code> nunca vai para o GitHub (está no <code>.gitignore</code>). Ele fica só no servidor.</div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">2.3</span> Colocar os áudios das professoras</h3>
-      <p>Coloque os arquivos de áudio na pasta <code>audios/</code> e ligue cada professora ao seu arquivo no <code>AUDIO_MAP</code> do <code>.env</code>. A chave é o nome da professora <b>como aparece no EVO</b> (minúsculo).</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">no seu PC → servidor</span></div>
-<pre class="term-body"><span class="c"># envie os audios do seu PC para o servidor do cliente</span>
-scp *.ogg root@<b>IP-DO-CLIENTE</b>:~/SF-Chat_Experimental-Mensagens/Experimental/audios/
-
-<span class="c"># no .env, mapeie professora -> arquivo (sem extensao):</span>
-<span class="c"># AUDIO_MAP={"ana":"A-Ana-Pos","carla":"A-Carla-Pos"}</span></pre>
-      </div>
-      <div class="tip"><b>Formato do áudio:</b> nota de voz em <code>.ogg</code> (Opus). Se o cliente mandar MP3, converta antes com o mesmo comando que usamos na sua unidade (remove metadados que travam a reprodução).</div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">2.4</span> Chave do Google + compartilhar a planilha</h3>
-      <p>Só se a unidade usar a planilha de aniversários. Envie a chave da conta de serviço e compartilhe a planilha com o e-mail dela.</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">no seu PC → servidor</span></div>
-<pre class="term-body"><span class="c"># envie a chave JSON da conta de servico</span>
-scp google-sa.json root@<b>IP-DO-CLIENTE</b>:~/SF-Chat_Experimental-Mensagens/Experimental/</pre>
-      </div>
-      <div class="tip">Abra a planilha do cliente → <b>Compartilhar</b> → cole o <b>e-mail da conta de serviço</b> (está dentro do <code>google-sa.json</code>, campo <code>client_email</code>) como <b>Editor</b>. Sem isso, o robô lê mas não escreve.</div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">2.5</span> 2FA do EVO (autenticação em duas etapas)</h3>
-      <p>A partir de <b>30/10/2026</b> o EVO passa a <b>exigir 2FA no login</b>. Como o robô loga sozinho (e-mail + senha), ele precisa saber resolver esse segundo passo. Há duas frentes, nesta ordem — e <b>enquanto você não configurar nada, tudo continua igual</b> (o robô não tenta preencher 2FA).</p>
-      <div class="tip">💡 <b>Use um usuário do EVO exclusivo do robô</b> (de preferência com um <b>e-mail só dele</b>). Assim o 2FA do robô fica separado do seu acesso pessoal e ninguém precisa compartilhar caixa de e-mail.</div>
-
-      <p style="margin-top:12px"><b>Plano A (principal, automático) — AUTENTICADOR/TOTP.</b> É o que resolve tudo sozinho, inclusive os jobs de madrugada. No cadastro do MFA do usuário do robô, o EVO mostra um QR e, atrás dele, uma <b>chave secreta</b> (base32). Em vez de escanear com o celular, capture essa chave num app autenticador (<b>2FAS</b> ou <b>Aegis</b>) e cole no <code>.env</code>:</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">Experimental/.env</span></div>
-<pre class="term-body"><span class="c"># a "chave secreta" (base32) que aparece atras do QR do MFA</span>
-EVO_TOTP_SECRET=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</pre>
-      </div>
-      <p>Reinicie o robô para valer: <code>pm2 restart SEU-SLUG-exp --update-env</code>. Pronto — o robô gera o código de 6 dígitos <b>offline</b> (o mesmo que o app mostraria) e digita sozinho quando o EVO pedir.</p>
-      <div class="tip">⚠️ A chave é um <b>segredo</b>: vai <b>direto no <code>.env</code></b> do servidor, <b>nunca</b> no chat, em e-mail ou no Git. Capture-a pelo app 2FAS/Aegis (ou <code>zbarimg</code> local) — <b>não</b> use sites aleatórios de "ler QR".</div>
-
-      <p style="margin-top:12px"><b>Plano B (rede de segurança, humano) — CÓDIGO PELO PAINEL.</b> Às vezes o EVO manda o código por <b>e-mail</b> em vez do autenticador (ex.: "dispositivo novo/suspeito"). Nesse caso o robô <b>não chuta</b> um código errado: ele <b>avisa no seu celular</b> (ntfy) e mostra um campo no painel, em <b>WhatsApp → Configuração</b> (logo abaixo do "Número para testes"): <b>🔐 Código do EVO (2FA)</b>. A recepção abre o e-mail do usuário do robô, copia o código e digita ali — o robô recebe e conclui o login.</p>
-      <div class="fieldnote">
-        <div class="fnh">Ajustes do plano B no <code>.env</code> (opcionais)</div>
-        <table>
-          <tr><td>EVO_2FA_PAINEL</td><td><code>true</code> liga o campo do painel <b>mesmo sem TOTP</b>. Com <code>EVO_TOTP_SECRET</code> preenchido, o plano B já vem ligado junto — não precisa desta linha.</td></tr>
-          <tr><td>EVO_2FA_ESPERA_MS</td><td>Quanto o robô espera alguém digitar no painel antes de desistir. Padrão <code>240000</code> (4 min).</td></tr>
-        </table>
-      </div>
-      <div class="tip">🌙 O campo do painel só ajuda quando <b>tem gente por perto</b> para digitar. Por isso o <b>autenticador (Plano A) é o principal</b>: os jobs automáticos de madrugada não têm quem digite o código — só o TOTP os resolve sozinho. Deixe o Plano A configurado e trate o Plano B como socorro.</div>
-    </div>
-  </section>
-
-  <!-- FASE 3 -->
-  <section>
-    <div class="phase"><span class="pn">Fase 3</span><h2>Conectar e testar</h2></div>
-
-    <div class="stepblock">
-      <h3><span class="num">3.1</span> Escanear o QR do WhatsApp da unidade</h3>
-      <p>Rode a conexão inicial. Um QR aparece no terminal — quem estiver com o celular do Studio escaneia.</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body">cd ~/SF-Chat_Experimental-Mensagens/Experimental
-xvfb-run -a node src/run-now.js whatsapp</pre>
-      </div>
-      <div class="tip">No celular do Studio: <b>WhatsApp → Aparelhos conectados → Conectar um aparelho</b> e aponte para o QR no terminal. Conectou? A sessão fica salva. Encerre com <code>Ctrl+C</code>.</div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">3.2</span> Confirmar a linha dentro do grupo da equipe</h3>
-      <p>Garanta que a <b>linha do Studio</b> (a que você acabou de conectar) está <b>dentro do grupo da equipe</b> — senão os avisos internos não saem. Confira também que o nome do grupo no <code>.env</code> bate exatamente.</p>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">3.3</span> Testar sem e com envio</h3>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body"><span class="c"># 1) so leitura do EVO (nao envia nada)</span>
-xvfb-run -a node src/run-now.js scrape
-
-<span class="c"># 2) uma mensagem de teste para um numero seu</span>
-xvfb-run -a node src/run-now.js whatsapp <b>5562XXXXXXXXX</b> 08:00 Teste
-
-<span class="c"># 3) o job da manha inteiro, agora (envia de verdade!)</span>
-xvfb-run -a node src/run-now.js morning</pre>
-      </div>
-      <div class="tip">Confirme: login no EVO ok, as experimentais aparecem na listagem, e a mensagem de teste chega no WhatsApp.</div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">3.4</span> Configurar os alertas (ntfy)</h3>
-      <p>O cliente instala o app <b>ntfy</b> (grátis) e se inscreve no tópico que você definiu no <code>.env</code> (<code>NTFY_TOPIC</code>). Faça um alerta de teste na frente dele.</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body"><span class="c"># dispara um alerta de teste no topico da unidade</span>
-curl -d "Instalacao concluida — teste de alerta" ntfy.sh/<b>SEU_NTFY_TOPIC</b></pre>
-      </div>
-    </div>
-  </section>
-
-  <!-- FASE 4 -->
-  <section>
-    <div class="phase"><span class="pn">Fase 4</span><h2>Deixar rodando 24/7</h2></div>
-
-    <div class="tip">📛 <b>Nome dos processos no PM2.</b> Se você subiu tudo pelo <b>script</b> (<code>setup-novo-studio.sh --start</code>), os processos se chamam <code>SEU-SLUG-exp</code>, <code>SEU-SLUG-painel</code> e <code>SEU-SLUG-sofia</code> — ex.: com <code>--slug lagosul1</code> viram <code>lagosul1-exp</code>, <code>lagosul1-painel</code>, <code>lagosul1-sofia</code>. Os exemplos manuais abaixo usam <code>slimfit-exp</code> / <code>slimfit-painel</code> / <code>sofia-listener</code> (a unidade original, instalada à mão): <b>troque pelo seu nome</b> nos comandos <code>pm2</code>. E o script já faz esta Fase 4 sozinho — o passo manual é só para quem instala sem ele.</div>
-
-    <div class="stepblock">
-      <h3><span class="num">4.1</span> Subir com o PM2 (e voltar sozinho após reboot)</h3>
-      <p>O agendador roda sob o PM2 via o wrapper <code>scheduler-vps.sh</code> (que já embrulha em <code>xvfb-run</code>).</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body">npm install -g pm2
-cd ~/SF-Chat_Experimental-Mensagens/Experimental
-
-pm2 start ./scheduler-vps.sh --name <b>slimfit-exp</b> --interpreter bash --time
-pm2 save
-pm2 startup systemd -u root --hp /root
-<span class="c"># ↑ copie e rode a linha que ele imprimir (registra no boot)</span></pre>
-      </div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">4.2</span> Verificação final</h3>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body">pm2 status                       <span class="c"># slimfit-exp = online</span>
-timedatectl                      <span class="c"># America/Sao_Paulo</span>
-pm2 logs slimfit-exp --lines 50  <span class="c"># sem erros</span></pre>
-      </div>
-      <div class="tip">Deixe rodar até o próximo horário agendado e confirme no <code>pm2 logs</code> que o job disparou.</div>
-    </div>
-  </section>
-
-  <!-- FASE 5 -->
-  <section>
-    <div class="phase"><span class="pn">Fase 5</span><h2>Formulário de agendamento no próprio VPS (subpasta)</h2></div>
-    <p class="sec-head" style="color:var(--text-soft);max-width:72ch">O formulário roda <b>no mesmo VPS</b> do robô, como um processo à parte, e é servido <b>sob a subpasta</b> <code>/agendamentoexperimental</code> do <b>mesmo domínio do painel</b> (ex.: <code>https://painel-lagosul1.duckdns.org/agendamentoexperimental</code>). Ele é o <b>coração do agendamento</b> em duas frentes: o <b>link público</b> que a aluna preenche sozinha <b>e</b> o endereço que a <b>SoFIA</b> usa para agendar pela conversa (<code>/api/book-sofia</code>). Se você vende o link online <b>ou</b> a SoFIA, esta fase é <b>obrigatória</b>. É um <b>deploy por unidade</b> (cada loja tem o seu, com o EVO e os tokens dela).</p>
-
-    <div class="tip">🔁 <b>Mudou em relação ao modelo antigo (Render).</b> Antes o formulário rodava fora, na Render (plano grátis que "dormia" e cujo disco era efêmero). Agora ele roda <b>no próprio VPS</b>, atrás do <b>Caddy</b>, na mesma máquina — <b>não dorme</b>, não depende de serviço externo e não custa nada a mais. Se você tinha um serviço na Render, pode desativá-lo depois que esta fase estiver no ar.</div>
-
-    <div class="tip">⚡ <b>Instalou pelo script? Esta fase já foi feita.</b> O <code>setup-novo-studio.sh</code> <b>clona, cria a venv, instala as dependências e sobe o formulário</b> (gunicorn como <code>&lt;slug&gt;-form</code>) sozinho — monta o <code>.env</code> dele a partir do <code>Experimental/.env</code>/<code>ChatBot/.env</code> (EVO + os três tokens), gera o bloco do Caddy com a subpasta e, com <code>--domain</code>, já aponta <code>FORM_CLOUD_URL</code>/<code>SOFIA_BOOK_URL</code> para a URL nova. A porta é a do painel + 10 (ou <code>--form-port</code>). Os passos manuais abaixo são só para quem instala <b>sem</b> o script — e para <b>conferir/preencher a identidade da landing</b> no <code>.env</code> do form (<code>FORM_ENDERECO</code>, <code>FORM_MAPS_URL</code>, <code>FORM_WHATSAPP</code>), que o script deixa em branco.</div>
-
-    <div class="tip">📋 <b>Antes de começar</b>, tenha em mãos: o <b>EVO da unidade</b> (<code>EVO_DNS</code>, <code>EVO_TOKEN</code> e os ids da aula da <b>Fase 3</b>); os <b>três tokens</b> que o <code>setup</code> gerou no <code>Experimental/.env</code>/<code>ChatBot/.env</code> da VPS — <code>FORM_SLOTS_TOKEN</code>, <code>FORM_OUTBOX_TOKEN</code> e <code>SOFIA_TOKEN</code> (você vai colar os <b>mesmos valores</b> no <code>.env</code> do formulário); e o <b>domínio do painel</b> desta unidade (Fase 7), já que o formulário fica sob a subpasta dele.</div>
-
-    <div class="stepblock">
-      <h3><span class="num">5.1</span> Clonar o formulário no VPS</h3>
-      <p>O formulário é um projeto <b>separado</b> do robô (repositório próprio: <code>sf-formularioexperimental</code>). Clone-o numa pasta própria no VPS e crie um <b>venv</b> com as dependências. Use uma pasta por unidade (ex.: <code>~/sf-form-lagosul1</code>).</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS — clonar + venv</span></div>
-<pre class="term-body">cd ~
-git clone https://github.com/rrabadan86/sf-formularioexperimental.git sf-form-lagosul1
-cd sf-form-lagosul1
-git checkout <b>main</b>                      <span class="c"># branch de produção do formulário</span>
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt</pre>
-      </div>
-      <div class="tip">Duas lojas no mesmo VPS? Um clone por loja (<code>sf-form-lagosul1</code>, <code>sf-form-lagosul2</code>), cada um com o seu <code>.env</code> e a sua porta.</div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">5.2</span> Criar o <code>.env</code> do formulário</h3>
-      <p>Na pasta do formulário, crie um arquivo <code>.env</code>. Ele leva o <b>EVO da unidade</b> (a API que marca a aula), os <b>três tokens</b> (idênticos aos da VPS — é o que liga o formulário ao robô e à SoFIA), o <b>prefixo da subpasta</b> e a <b>identidade da unidade</b>. Os campos de EVO e tokens são os <b>mesmos valores</b> que já estão no <code>Experimental/.env</code>/<code>ChatBot/.env</code>.</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">~/sf-form-lagosul1/.env</span></div>
-<pre class="term-body"><span class="c"># ---- EVO da unidade (API — marcar a aula) — MESMOS valores do Experimental/.env ----</span>
-EVO_BASE_URL=https://evo-integracao-api.w12app.com.br
-EVO_DNS=<b>...</b>
-EVO_TOKEN=<b>...</b>
-EVO_BRANCH_ID=<b>...</b>
-EVO_ACTIVITY_ID=<b>...</b>          <span class="c"># id da aula (Fase 3, --evo-ids)</span>
-EVO_SERVICE_ID=<b>...</b>           <span class="c"># ⚠️ troque pelo id da SUA unidade (o modelo é do Bueno)</span>
-
-<span class="c"># ---- Tokens (IDÊNTICOS aos da VPS) ----</span>
-FORM_SLOTS_TOKEN=<b>...</b>         <span class="c"># = Experimental/.env</span>
-FORM_OUTBOX_TOKEN=<b>...</b>        <span class="c"># = Experimental/.env</span>
-SOFIA_TOKEN=<b>...</b>              <span class="c"># = ChatBot/.env (autoriza /api/book-sofia)</span>
-
-<span class="c"># ---- Servir sob a subpasta /agendamentoexperimental ----</span>
-FORM_URL_PREFIX=/agendamentoexperimental
-
-<span class="c"># ---- Identidade da unidade (a cara da página + contatos certos) ----</span>
-FORM_UNIDADE=<b>Lago Sul</b>
-FORM_ENDERECO=<b>QI 5, Lago Sul, Brasília-DF</b>
-FORM_MAPS_URL=<b>https://maps.app.goo.gl/...</b>
-FORM_WHATSAPP=<b>5561999998888</b>          <span class="c"># só dígitos, com DDI</span>
-ZEE_STUDIO_PHONE=<b>5561999998888</b>        <span class="c"># recepção: alerta de turma lotada</span>
-PAINEL_URL=<b>https://painel-lagosul1.duckdns.org</b></pre>
-      </div>
-      <div class="call danger" style="margin-top:12px">
-        <div class="ic">!</div>
-        <div>
-          <h3>Sem preencher a identidade, cai no Setor Bueno</h3>
-          <p><code>FORM_UNIDADE</code>, <code>FORM_ENDERECO</code>, <code>ZEE_STUDIO_PHONE</code> e <code>PAINEL_URL</code> sem valor apontam para a unidade <b>original</b> — a aluna recebe o endereço e os contatos do Setor Bueno. Preencha os quatro. A <b>mensagem de confirmação</b> quem manda é o <b>painel</b> (💬 WhatsApp → Configuração); o <code>ZEE_CONFIRM_TEMPLATE</code> é só reserva.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">5.3</span> Subir o formulário no PM2 (gunicorn)</h3>
-      <p>O formulário sobe como um processo PM2 próprio, escutando <b>só no localhost</b> numa porta dedicada (o Caddy faz o HTTPS por cima, no passo 5.4). Use uma <b>porta por unidade</b>, diferente da porta do painel — ex.: painel <code>8080</code> → formulário <code>8090</code> (2ª loja: painel <code>8081</code> → formulário <code>8091</code>).</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS — subir o formulário</span></div>
-<pre class="term-body">cd ~/sf-form-lagosul1
-pm2 start .venv/bin/gunicorn --name <b>lagosul1-form</b> --time -- \
-    formulario_web.app:app --workers 1 --threads 8 --timeout 120 \
-    --bind 127.0.0.1:<b>8090</b>
-pm2 save
-
-<span class="c"># responde no localhost?</span>
-curl -sI http://127.0.0.1:8090/health | head -1        <span class="c"># HTTP/1.1 200</span></pre>
-      </div>
-      <div class="tip">O nome do processo segue o <b>slug</b> da unidade (<code>&lt;slug&gt;-form</code>), igual aos outros (<code>&lt;slug&gt;-exp</code>, <code>&lt;slug&gt;-painel</code>, <code>&lt;slug&gt;-sofia</code>). Para atualizar o formulário depois: <code>cd ~/sf-form-lagosul1 &amp;&amp; git pull &amp;&amp; pm2 restart lagosul1-form</code>.</div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">5.4</span> Servir sob <code>/agendamentoexperimental</code> no Caddy</h3>
-      <p>No bloco do painel desta unidade (Fase 7.3), acrescente um <code>handle_path</code> que manda a subpasta para o formulário e um <code>handle</code> que joga o resto para o painel. O <code>header_up X-Forwarded-Prefix</code> é o que faz os links absolutos do formulário funcionarem debaixo da subpasta.</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">/etc/caddy/Caddyfile — bloco desta unidade</span></div>
-<pre class="term-body">painel-lagosul1.duckdns.org {
-    <span class="c"># formulário sob a subpasta (porta do passo 5.3)</span>
-    handle_path /agendamentoexperimental* {
-        reverse_proxy 127.0.0.1:<b>8090</b> {
-            header_up X-Forwarded-Prefix /agendamentoexperimental
-        }
-    }
-    <span class="c"># todo o resto vai para o painel (porta do Experimental/.env)</span>
-    handle {
-        reverse_proxy 127.0.0.1:<b>8080</b>
-    }
-}</pre>
-      </div>
-      <p>Recarregue o Caddy e teste pela URL pública (subpasta):</p>
+      <h3><span class="num">6.2</span> Rodar um job agora (com o robô ligado)</h3>
+      <p>Para reenviar algo que falhou, sem parar o robô nem abrir um segundo WhatsApp: grave o pedido e o robô roda na hora.</p>
       <div class="term">
         <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS</span></div>
-<pre class="term-body">sudo systemctl reload caddy
-
-<span class="c"># a home do formulário responde sob a subpasta?</span>
-curl -sI https://painel-lagosul1.duckdns.org/agendamentoexperimental/ | head -1   <span class="c"># 200</span>
-
-<span class="c"># o endpoint da SoFIA existe? (sem token deve recusar 401, e tudo bem)</span>
-curl -sI https://painel-lagosul1.duckdns.org/agendamentoexperimental/api/book-sofia | head -1</pre>
-      </div>
-      <div class="tip">💡 Já tinha um bloco simples <code>painel-… { reverse_proxy 127.0.0.1:8080 }</code> (do <code>--domain</code> da Fase 7)? Substitua-o por este, com o <code>handle_path</code> + <code>handle</code> — o catch-all <code>handle</code> mantém o painel funcionando igual.</div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">5.5</span> Ligar as pontes no VPS (formulário ↔ robô ↔ SoFIA)</h3>
-      <p>Aponte os <code>.env</code> do robô e da SoFIA para a URL da <b>subpasta</b>. São <b>duas linhas</b>, em <b>dois arquivos</b>:</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">Experimental/.env</span></div>
-<pre class="term-body">FORM_CLOUD_URL=https://<b>painel-lagosul1.duckdns.org/agendamentoexperimental</b>
-<span class="c"># FORM_SLOTS_TOKEN e FORM_OUTBOX_TOKEN já estão aqui (iguais aos do .env do formulário)</span></pre>
-      </div>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">ChatBot/.env</span></div>
-<pre class="term-body">SOFIA_BOOK_URL=https://<b>painel-lagosul1.duckdns.org/agendamentoexperimental</b>/api/book-sofia
-<span class="c"># SOFIA_TOKEN já está aqui (igual ao do .env do formulário)</span></pre>
-      </div>
-      <p>Reinicie o robô e a SoFIA para pegarem os endereços: <code>pm2 restart lagosul1-exp lagosul1-sofia --update-env</code>. A ponte roda a cada minuto e puxa as marcações para a fila de envio; a SoFIA passa a agendar direto pelo formulário.</p>
-      <div class="tip">💡 O <code>--check</code> (passo 5 do guia rápido, no topo) confere justamente isto: que <code>FORM_CLOUD_URL</code> e <code>SOFIA_BOOK_URL</code> apontam para o <b>mesmo</b> formulário e que os três tokens não ficaram no exemplo <code>SEU-PAINEL</code>. Rode-o antes do <code>--start</code>.</div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">5.6</span> Manutenção — e saindo da Render</h3>
-      <ul class="chk">
-        <li><span class="box">✓</span><span><b>Não dorme e não perde a grade.</b> Rodando no próprio VPS, o formulário fica sempre no ar (sem os <b>30–50 s</b> de "acordar" do plano grátis da Render) e o disco é <b>persistente</b> — a grade enviada não some a cada reinício. O robô continua reenviando a grade automaticamente se precisar.</span></li>
-        <li><span class="box">✓</span><span><b>Atualizar o formulário:</b> <code>cd ~/sf-form-lagosul1 &amp;&amp; git pull &amp;&amp; pm2 restart lagosul1-form</code>. Se mexeu no <code>.env</code>, o restart já relê (o formulário usa <code>python-dotenv</code>).</span></li>
-        <li><span class="box">✓</span><span><b>Se você vinha da Render:</b> depois que a subpasta estiver no ar e os <code>.env</code> apontando para ela (passo 5.5), pode <b>desativar/apagar</b> o Web Service antigo na Render — ele não é mais usado. Confira antes que a SoFIA e o link público estão agendando pela URL nova.</span></li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- FASE 6 · INSTAGRAM -->
-  <section>
-    <div class="phase"><span class="pn">Fase 6</span><h2>Instagram — boas-vindas (opcional)</h2></div>
-
-    <div class="stepblock">
-      <p>O Instagram trata o IP de servidor (datacenter) como robô e bloqueia. Por isso são <b>duas peças</b>, que resolvem coisas diferentes:</p>
-      <ul style="margin:8px 0 0;padding-left:18px;color:var(--text-soft);font-size:.95rem;line-height:1.5">
-        <li><b>Cookies</b> = QUEM você é (sessão já logada, sem digitar senha → não dispara 2FA/checkpoint).</li>
-        <li><b>Proxy residencial/móvel do Brasil</b> = DE ONDE você acessa (um IP de "gente de verdade", não de datacenter).</li>
-      </ul>
-      <div class="tip">⚠️ Sem o proxy, mandar DMs do servidor <b>bloqueia a conta</b> (aprendido na prática). Regra de ouro: proxy BR + <b>volume baixo</b> (<code>IG_MAX_DIA=5</code>, subindo aos poucos) + só <b>seguidoras novas</b>.</div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">6.1</span> Exportar os cookies (no PC do cliente)</h3>
-      <p>Num navegador <b>logado no Instagram do Studio</b>: instale a extensão <b>Cookie-Editor</b> (grátis), abra <code>instagram.com</code>, clique na extensão → <b>Export</b> → <b>Export as JSON</b> (copia para a área de transferência).</p>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">6.2</span> Colar os cookies no servidor</h3>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
 <pre class="term-body">cd ~/SF-Chat_Experimental-Mensagens/Experimental
-nano instagram-cookies.json   <span class="c"># cole o JSON, Ctrl+O, Enter, Ctrl+X</span>
+echo '{"job":"<b>aniversariantes</b>"}' &gt; data/rodar-job.json
+pm2 logs <b>SEU-SLUG</b>-exp --lines 0                 <span class="c"># acompanhe; Ctrl+C para sair (não para o robô)</span>
 
-<span class="c"># confere se tem o sessionid</span>
-python3 -c "import json;d=json.load(open('instagram-cookies.json'));print(len(d),'cookies; sessionid?',any(c['name']=='sessionid' for c in d))"</pre>
+<span class="c"># contratos a vencer de um mês específico:</span>
+echo '{"job":"renovacoesMesGrupo","mes":11}' &gt; data/rodar-job.json</pre>
       </div>
-      <div class="tip">Esse arquivo tem o <code>sessionid</code> (acesso à conta) — já está no <code>.gitignore</code>, nunca vai para o GitHub. Fica só no servidor.</div>
+      <p style="color:var(--text-soft);font-size:.93rem">Chaves: <code>confirmacaoHoje</code>, <code>confirmacaoAmanha</code>, <code>followupMorning</code>, <code>followupAfternoon</code>, <code>noShowMorning</code>, <code>noShowAfternoon</code>, <code>aniversariantes</code>, <code>aniversarioEx</code>, <code>renovacao</code>, <code>renovacoesMesGrupo</code>, <code>resumoDia</code>, <code>ausentes</code>, <code>planilha</code>, <code>inadimplentes</code>, <code>freeAntecedencia</code>. Se outro job estiver rodando, ele espera e tenta de novo a cada 30&nbsp;s.</p>
     </div>
 
     <div class="stepblock">
-      <h3><span class="num">6.3</span> Proxy residencial/móvel (Brasil)</h3>
-      <p>Contrate um <b>proxy móvel do Brasil</b> (ex.: DataImpulse, ~US$ 5) no modo <b>Fixo/sticky</b>. Ele te dá <code>host:porta:usuário:senha</code>. Confirme que sai do Brasil e coloque no <code>.env</code>.</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body"><span class="c"># testa o proxy (tem que dizer "Brazil")</span>
-curl -x "http://<b>USUARIO</b>:<b>SENHA</b>@<b>HOST</b>:<b>PORTA</b>" http://ip-api.com/json ; echo
-
-<span class="c"># no .env:</span>
-IG_PROXY=<b>HOST:PORTA</b>
-IG_PROXY_USER=<b>USUARIO</b>
-IG_PROXY_PASS=<b>SENHA</b></pre>
-      </div>
-      <div class="tip">O robô já baixa <b>sem imagens</b> pelo proxy (economiza dados). 5 GB duram vários meses no nosso volume.</div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">6.4</span> Testar leitura e um envio</h3>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body"><span class="c"># 1) so leitura (lista os seguidores)</span>
-HEADLESS=true node src/instagram-seguidores.js <b>--user=usuario_do_studio</b>
-
-<span class="c"># 2) um envio de teste para um @ seu</span>
-xvfb-run -a node src/instagram-boasvindas.js <b>--teste=seu_instagram</b></pre>
-      </div>
-      <div class="tip">Leu os seguidores e a DM de teste chegou? Então a sessão e o IP estão ok. Se pedir login/checkpoint, os cookies expiraram (reexporte) ou o IP foi bloqueado (aí só proxy residencial resolve).</div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">6.5</span> Ligar o job</h3>
-      <p>No <code>.env</code>, ligue o Instagram e defina o perfil e o limite diário (o <code>IG_PROXY</code> já foi posto no 6.3). O job roda sozinho às <b>07:00</b> e só dá boas-vindas a <b>quem passou a seguir</b>.</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">.env</span></div>
-<pre class="term-body">IG_ENABLED=true
-IG_USERNAME=<b>usuario_do_studio</b>
-IG_MAX_DIA=5</pre>
-      </div>
-      <div class="tip">Reinicie com <code>pm2 restart slimfit-exp</code>. Os cookies expiram com o tempo — quando isso acontecer, o alerta no ntfy avisa e é só reexportar. Depois de ter o painel (Fase 7), dá para <b>reimportar os cookies pela aba Instagram</b> (cola o JSON), sem scp nem SSH — e testar com um DM.</div>
-      <div class="tip">Depois de instalado o painel (Fase 7), o <b>liga/desliga</b> e o <b>limite/dia</b> passam a ser ajustáveis na aba <b>Instagram</b> — sem mexer no <code>.env</code> nem reiniciar (fica em <code>data/instagram-config.json</code>; o <code>.env</code> vira só o padrão inicial).</div>
-
-      <h3 style="margin-top:28px"><span class="num">6.5</span> Instagram OFICIAL (Graph API da Meta) — recomendado</h3>
-      <p>A via <b>oficial</b> substitui a automação por cookie: quando alguém <b>comenta uma palavra-chave</b> num post/reel, <b>toca num Ice Breaker</b> ou <b>manda DM</b>, o app responde por <b>DM com o link do formulário</b>. É <b>estável e sem risco de bloqueio</b> (não usa senha/cookie/proxy) porque usa a API oficial e webhooks. O painel (aba <b>Instagram</b>) tem o card “Instagram oficial” com liga/desliga, palavras-chave, a mensagem do DM e os Ice Breakers.</p>
-      <div class="tip"><b>Pré-requisitos na Meta</b> (uma vez por unidade): (1) app com os produtos <b>Graph API do Instagram</b> + <b>Messenger</b>; (2) conta <b>profissional</b> do Instagram ligada a uma <b>Página</b> do Facebook; (3) <b>Verificação do Negócio</b> (Central de Segurança); (4) <b>App Review</b> — pedir <b>acesso avançado</b> do <code>instagram_manage_messages</code> (com justificativa + um screencast do fluxo) e então virar o app para <b>Ao vivo</b>. Sem esse acesso avançado, o envio de DM fica travado com o erro <code>(#3) ...capability</code> (funciona só em teste/roles).</div>
-      <p>No <code>.env</code>, preencha o bloco <b>Instagram OFICIAL</b> (todas as chaves <code>IG_*</code> ali documentadas) e, na Meta, configure o <b>webhook</b>:</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">.env + Webhook</span></div>
-<pre class="term-body">IG_APP_ID=...        IG_APP_SECRET=...     IG_PAGE_ID=...
-IG_PAGE_TOKEN=...    IG_VERIFY_TOKEN=<b>senha_que_voce_define</b>
-IG_FORM_URL=https://SEU-PAINEL/agendamentoexperimental
-
-<span class="c"># Na Meta → Webhook (produto Instagram/Messenger):</span>
-<span class="c">#   URL de retorno = https://SEU-PAINEL/ig/webhook</span>
-<span class="c">#   Token de verificação = o MESMO IG_VERIFY_TOKEN</span>
-<span class="c">#   Campos: comments, messages, messaging_postbacks</span></pre>
-      </div>
-      <div class="tip"><b>Conferir se ficou de pé</b> (sem SSH): a aba <b>Instagram</b> mostra <span style="color:var(--ok,#1a7f37)">✅ Conectado: @suaconta · Página …</span>. No servidor, <code>pm2 logs slimfit-painel | grep ig-api</code> mostra <code>[ig-api] pronto ✅ ...</code> no boot. Teste do webhook: abrir <code>https://SEU-PAINEL/ig/webhook</code> deve responder <code>forbidden</code> (é o esperado sem parâmetros — prova que está público). Enquanto o app estiver em <b>Desenvolvimento</b>, a Meta só entrega eventos de quem tem papel no app; com o app <b>Ao vivo</b> passa a valer para qualquer pessoa.</div>
+      <h3><span class="num">6.3</span> Acompanhar</h3>
+      <ul class="chk">
+        <li><span class="box">✓</span><span><b>No painel</b>: <b>💬 WhatsApp → Log</b> mostra o que saiu no dia e as execuções que <b>falharam</b> (⚠️ “nada enviado”); a página <b>Saúde</b> mostra WhatsApp, EVO/2FA, disco e último backup.</span></li>
+        <li><span class="box">✓</span><span><b>No servidor</b>: <code>pm2 status</code> (tudo <i>online</i>) e <code>pm2 logs SEU-SLUG-exp --lines 100</code>.</span></li>
+        <li><span class="box">✓</span><span><b>Backup</b>: diário às 03:10, em <code>Experimental/backups/</code> (últimas 14 cópias de <code>data/</code>). Teste manual: <code>node src/backup-dados.js</code>.</span></li>
+      </ul>
     </div>
   </section>
 
-  <!-- FASE 7 -->
-  <section>
-    <div class="phase"><span class="pn">Fase 7</span><h2>Painel do Studio (opcional)</h2></div>
-    <p class="sec-head" style="color:var(--text-soft);max-width:70ch">Uma tela com <b>login por usuário</b> e as abas: <b>📈 Formulário</b> (funil do formulário: acessos, agendamentos, conversão e o <b>gerador de links por origem</b>), <b>💬 WhatsApp</b> — com <b>Configuração</b> (conexão/QR e desconectar, textos + hora/dias de cada envio), <b>Agendamento</b> (mensagens pontuais) e <b>Log</b> (o que o robô enviou no dia) —, <b>📸 Instagram</b> (liga/pausa, limite/dia, mensagem e horário das boas-vindas), <b>🤖 SoFIA</b> — com <b>Configuração</b>, <b>Conversas</b> (ler/responder e assumir), <b>Contatos</b> (CRM com tags, Interações e Automação por tag) e <b>Campanhas</b> (envio em massa por tag; ver <b>Fase 9</b>) — e <b>👤 Perfis</b> (só o admin: cria usuários e define quais telas cada um vê). Os textos gravam em <code>data/mensagens.json</code>/<code>data/horarios.json</code> e valem no próximo envio sem reiniciar (só mudança de horário reinicia o robô).</p>
+  <!-- 7. PROBLEMAS -->
+  <section id="problemas">
+    <div class="phase"><span class="pn">7</span><h2>Quando algo dá errado</h2></div>
+    <p class="sec-head" style="color:var(--text-soft);max-width:70ch">Os casos que já aconteceram em loja de verdade, com o diagnóstico e a solução. Toque para abrir.</p>
 
-    <div class="stepblock">
-      <h3><span class="num">7.1</span> Definir login e subir o painel</h3>
-      <p>Defina o <b>admin</b> (usuário e <b>senha forte</b>) no <code>.env</code> e suba o painel sob o PM2. O login é por <b>formulário</b> (cookie de sessão); o admin do <code>.env</code> é o super-usuário — entra sempre, vê tudo e cria os demais usuários na aba <b>Perfis</b>. Ele escuta só no <code>localhost</code> (o acesso externo vem pelo HTTPS do passo 7.3).</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body"><span class="c"># no .env (senha longa, com letras e numeros):</span>
-<span class="c"># PAINEL_USER=dono   PAINEL_SENHA=uma-senha-bem-forte   PAINEL_PORT=8080</span>
-cd ~/SF-Chat_Experimental-Mensagens/Experimental
-pm2 start src/painel-mensagens.js --name <b>slimfit-painel</b> --time
-pm2 save
-curl -s http://127.0.0.1:8080/login | head -c 60   <span class="c"># deve vir HTML da tela de login</span></pre>
+    <details class="fold">
+      <summary>📵 O WhatsApp do robô caiu e pede QR</summary>
+      <div class="in">
+        <p><b>Reconectar:</b> no painel, aba 💬 WhatsApp, escaneie o QR <b>uma vez só</b>. Antes, no celular, desconecte os aparelhos antigos em <b>Aparelhos conectados</b>.</p>
+        <ul>
+          <li><b>“Não foi possível conectar o dispositivo. Tente novamente mais tarde.”</b> — bloqueio temporário do WhatsApp por excesso de tentativas. <b>Pare de tentar por 2–3 horas</b> e não reinicie o robô; depois escaneie uma vez.</li>
+          <li><b>QR não lê:</b> use <b>Conectar por código</b> na mesma tela (código de 8 letras em <i>Aparelhos conectados → Conectar com número de telefone</i>). O código também aparece em <code>pm2 logs SEU-SLUG-exp</code>.</li>
+          <li><b>No log aparece <code>Desconectado: LOGOUT</code></b> — o WhatsApp encerrou a sessão: o aparelho foi removido no celular ou o número foi aberto em outro lugar ao mesmo tempo. Use um número dedicado ao robô.</li>
+        </ul>
+        <p><b>Cai a cada reinício?</b> O pm2 está matando o robô antes de ele salvar a sessão. Confira:</p>
+        <div class="term" style="margin:6px 0 10px"><div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS</span></div>
+<pre class="term-body">pm2 describe SEU-SLUG-exp | grep -i "kill"      <span class="c"># tem que ser 15000</span></pre></div>
+        <p>Se não for 15000, recrie o processo (vai pedir QR uma última vez — faça com o celular por perto):</p>
+        <div class="term" style="margin:6px 0 0"><div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS</span></div>
+<pre class="term-body">cd ~/SF-Chat_Experimental-Mensagens/Experimental
+pm2 delete SEU-SLUG-exp &amp;&amp; pm2 start ./scheduler-vps.sh --name SEU-SLUG-exp --interpreter bash --time --kill-timeout 15000 &amp;&amp; pm2 save</pre></div>
       </div>
-      <div class="tip">Trocou a senha do admin depois? Aplique com <code>pm2 restart slimfit-painel --update-env</code>. Para <b>outros usuários</b> (recepção, etc.), entre como admin → aba <b>👤 Perfis</b> → crie o usuário com senha e marque só as telas que ele pode ver (ex.: só <b>Conversas</b> da SoFIA). Vale na hora, sem reiniciar; as senhas ficam com hash em <code>data/usuarios.json</code> (fora do Git).</div>
-    </div>
+    </details>
 
-    <div class="stepblock">
-      <h3><span class="num">7.2</span> Subdomínio grátis (DuckDNS) — passo a passo</h3>
-      <p>Para o painel ter um endereço e HTTPS você precisa de um domínio. Sem comprar nada, o <b>DuckDNS</b> te dá um subdomínio grátis (<code>algo.duckdns.org</code>) apontando para o IP da VPS. Faça <b>uma vez por painel</b> (cada loja pode ter o seu, ex.: <code>painel-lagosul1.duckdns.org</code>).</p>
-
-      <div class="stepblock" style="margin-top:6px">
-        <h3 style="font-size:1rem"><span class="num">a</span> Descobrir o IPv4 da VPS</h3>
-        <p>Rode <b>dentro da VPS</b> (por SSH) — é o IP <b>do servidor</b>, não o do seu PC:</p>
-        <div class="term">
-          <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body">curl -s -4 ifconfig.me ; echo        <span class="c"># ex.: 203.0.113.45 — anote</span></pre>
-        </div>
+    <details class="fold">
+      <summary>🤖 A SoFIA pede QR ou travou em “Iniciando…”</summary>
+      <div class="in">
+        <p>Quase sempre <code>pm2 restart SEU-SLUG-sofia</code> resolve. Se insistir, limpe <b>só o login</b> dela (conversas, tags e roteiro não são tocados) e escaneie de novo:</p>
+        <div class="term" style="margin:6px 0 0"><div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS</span></div>
+<pre class="term-body">pm2 stop SEU-SLUG-sofia
+rm -rf ~/sofia-data-SEU-SLUG/.wwebjs_auth ~/sofia-data-SEU-SLUG/.wwebjs_cache
+pm2 start SEU-SLUG-sofia</pre></div>
       </div>
+    </details>
 
-      <div class="stepblock">
-        <h3 style="font-size:1rem"><span class="num">b</span> Criar a conta e o subdomínio</h3>
-        <ul class="chk">
-          <li><span class="box">✓</span><span>Abra <b>duckdns.org</b> e clique em <b>Sign in</b> — entre com <b>Google</b>, <b>GitHub</b> ou <b>Reddit</b> (não precisa criar senha).</span></li>
-          <li><span class="box">✓</span><span>No campo <b>sub domain</b>, digite o nome que quer (ex.: <code>painel-lagosul1</code>) e clique em <b>add domain</b>. Fica <code>painel-lagosul1.duckdns.org</code>.</span></li>
-          <li><span class="box">✓</span><span>No topo da página há um <b>token</b> (uma chave longa). <b>Copie e guarde</b> — é ele que autoriza atualizar o IP (passo <b>d</b>).</span></li>
+    <details class="fold">
+      <summary>🔐 Job falhou com <code>Waiting failed: 30000ms</code> (login do EVO)</summary>
+      <div class="in">
+        <ul>
+          <li><b>2FA</b>: o EVO pediu código. Configure o autenticador (<a href="#opcionais">2FA do EVO</a>); quando o código vem por e-mail, o painel mostra o campo <b>🔐 Código do EVO</b> em 💬 WhatsApp → Configuração.</li>
+          <li><b>Senha</b> trocada ou conta travada por tentativas: atualize em <b>SoFIA → Configuração → 🔑 Credenciais da unidade</b> e destrave a conta no EVO.</li>
+          <li>Para reenviar depois de corrigir: <a href="#manter">rodar um job agora</a>.</li>
         </ul>
       </div>
+    </details>
 
-      <div class="stepblock">
-        <h3 style="font-size:1rem"><span class="num">c</span> Apontar para a VPS</h3>
-        <p>Na linha do seu domínio, no campo <b>current ip</b>, cole o <b>IPv4 da VPS</b> (passo <b>a</b>) e clique em <b>update ip</b>.</p>
+    <details class="fold">
+      <summary>📄 Renovação ou “contratos a vencer” não saiu (ou veio vazio)</summary>
+      <div class="in">
+        <ul>
+          <li><b>“Menu da Segmentação não encontrado”</b> — falta o segmento <b>“Vencimento de Contrato Semanal”</b> no EVO da loja (ou foi renomeado). Veja <a href="#pos">Configurar antes de divulgar</a>.</li>
+          <li><b>“Não consegui aplicar o período no filtro do EVO”</b> — o filtro não apareceu nas 3 tentativas. A tela fica salva em <code>data/renovacoes-mes-debug.png</code> / <code>renovacao-debug.png</code>. Reenvie com <code>{"job":"renovacoesMesGrupo","mes":11}</code>.</li>
+        </ul>
+        <div class="term" style="margin:6px 0 0"><div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS · o que aconteceu</span></div>
+<pre class="term-body">grep -h "Contratos a vencer no EVO\|Filtro de período\|não encontrad\|contrato(s) a vencer" ~/.pm2/logs/SEU-SLUG-exp-out*.log | tail -8</pre></div>
       </div>
+    </details>
 
-      <div class="stepblock">
-        <h3 style="font-size:1rem"><span class="num">d</span> (Recomendado) Manter o IP sempre certo, sozinho</h3>
-        <p>Se o IP da VPS mudar algum dia, o painel some. Um <b>cron a cada 5 min</b> reavisa o DuckDNS do IP atual — é a forma oficial e à prova de futuro. Troque <b>SEU-SUBDOMINIO</b> e <b>SEU-TOKEN</b> pelos seus:</p>
-        <div class="term">
-          <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body"><span class="c"># cria o atualizador</span>
-mkdir -p ~/duckdns
-cat > ~/duckdns/duck.sh <<'SH'
-echo url="https://www.duckdns.org/update?domains=<b>SEU-SUBDOMINIO</b>&token=<b>SEU-TOKEN</b>&ip=" \
-  | curl -k -o ~/duckdns/duck.log -K -
+    <details class="fold">
+      <summary>🌐 O painel não abre ou fica “não seguro”</summary>
+      <div class="in">
+        <ul>
+          <li><b>DNS</b>: <code>getent hosts SEU-DOMINIO</code> tem que dar o IPv4 da VPS. Errado? Corrija o <i>current ip</i> no DuckDNS (cuidado: <code>curl ifconfig.me</code> às vezes devolve IPv6 — use <code>curl -s4</code>).</li>
+          <li><b>Portas</b>: 80 e 443 abertas no firewall do provedor. <code>ss -tlnp | grep -E ':80 |:443 '</code> tem que mostrar o caddy.</li>
+          <li><b>Certificado</b>: <code>journalctl -u caddy -n 50 --no-pager | grep -iE "certificate|challenge|error"</code>.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="fold">
+      <summary>📅 O formulário fica em “Preparando os horários…”</summary>
+      <div class="in">
+        <p>A grade vem do EVO. Confira <code>EVO_BRANCH_ID</code>/<code>EVO_SERVICE_ID</code> no <code>.env</code> do formulário (o modelo vem com <code>128</code>, que é do Bueno) e se a unidade tem a grade da experimental cadastrada no EVO. Teste: <code>cd Experimental/src/agendamento_evo &amp;&amp; python3 push_slots.py</code> — <code>0 horários</code> = falta grade no EVO. Duas lojas na mesma conta do EVO? Confira o <code>FORM_SLOTS_MINUTO</code> (<a href="#duas-lojas">loja 2 = 15</a>).</p>
+      </div>
+    </details>
+
+    <details class="fold">
+      <summary>🕒 O horário do log está 3 horas adiantado</summary>
+      <div class="in">
+        <p>O fuso foi ajustado depois de o pm2 subir. Os envios saem na hora certa (os agendamentos usam o fuso de Brasília); só o log fica errado. Corrija <b>num momento calmo</b>, porque reinicia todos os processos:</p>
+        <div class="term" style="margin:6px 0 0"><div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS</span></div>
+<pre class="term-body">timedatectl set-timezone America/Sao_Paulo &amp;&amp; date
+pm2 save &amp;&amp; pm2 update</pre></div>
+      </div>
+    </details>
+
+    <details class="fold">
+      <summary>🔁 O painel manda reiniciar o processo de outra loja (<code>slimfit-exp</code>)</summary>
+      <div class="in">
+        <p>Falta <code>PM2_SLUG=SEU-SLUG</code> no <code>Experimental/.env</code> (instalações pelo script já têm). Acrescente e rode <code>pm2 restart SEU-SLUG-painel --update-env</code>.</p>
+      </div>
+    </details>
+
+    <details class="fold">
+      <summary>🤝 Aluna não consegue entrar no Slim Club</summary>
+      <div class="in">
+        <p>O Slim Club confere o <b>telefone</b> nos contatos com a tag <b>0. Aluna</b> (ou <b>0. Equipe</b>), que vem do EVO. Se o EVO tem um telefone antigo ou <b>o mesmo número em várias alunas</b> (o da loja, por exemplo), ela não entra — ou entra a pessoa errada. Corrija o celular no cadastro dela no EVO (aba <b>Cadastro</b>, todos os campos de telefone). Na sincronização seguinte (ou com <code>{"job":"planilha"}</code>) ela passa a entrar.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- 8. OPCIONAIS -->
+  <section id="opcionais">
+    <div class="phase"><span class="pn">8</span><h2>Recursos opcionais</h2></div>
+    <p class="sec-head" style="color:var(--text-soft);max-width:70ch">Só ligue o que a loja for usar.</p>
+
+    <details class="fold">
+      <summary>🔐 2FA do EVO (verificação em duas etapas)</summary>
+      <div class="in">
+        <p>Use um <b>usuário do EVO só do robô</b>, com e-mail próprio.</p>
+        <p><b>Principal — autenticador (TOTP), resolve sozinho, inclusive de madrugada.</b> No cadastro do 2FA desse usuário, o EVO mostra um QR com uma <b>chave secreta</b> (base32). Capture a chave num app autenticador (2FAS ou Aegis) e cole no <code>Experimental/.env</code>: <code>EVO_TOTP_SECRET=XXXXXXXX…</code>. Depois: <code>pm2 restart SEU-SLUG-exp --update-env</code>. A chave é um segredo: nunca em chat, e-mail ou site de “ler QR”.</p>
+        <p><b>Reserva — código pelo painel.</b> Quando o EVO manda o código por <b>e-mail</b>, o robô avisa no celular e mostra o campo <b>🔐 Código do EVO (2FA)</b> em 💬 WhatsApp → Configuração; alguém digita o código ali. Com o TOTP configurado, essa reserva já vem ligada (sem TOTP: <code>EVO_2FA_PAINEL=true</code>). Espera padrão: 4 min (<code>EVO_2FA_ESPERA_MS</code>).</p>
+      </div>
+    </details>
+
+    <details class="fold">
+      <summary>📸 Instagram oficial (API da Meta) — recomendado</summary>
+      <div class="in">
+        <p>Quem <b>comenta uma palavra-chave</b>, <b>toca num Ice Breaker</b> ou <b>manda DM</b> recebe por DM o link do formulário. Usa a API oficial: <b>sem risco de bloqueio</b>. Tudo se ajusta na aba <b>📸 Instagram</b> do painel.</p>
+        <ul>
+          <li><b>Na Meta (uma vez por loja)</b>: app com <b>Graph API do Instagram</b> + <b>Messenger</b>; conta profissional ligada a uma Página; <b>Verificação do Negócio</b>; <b>App Review</b> pedindo acesso avançado a <code>instagram_manage_messages</code> e app <b>Ao vivo</b> (sem isso o DM falha com <code>(#3) …capability</code>).</li>
+          <li><b>No <code>.env</code></b>: <code>IG_APP_ID</code>, <code>IG_APP_SECRET</code>, <code>IG_PAGE_ID</code>, <code>IG_PAGE_TOKEN</code>, <code>IG_VERIFY_TOKEN</code> (você inventa), <code>IG_FORM_URL=https://SEU-PAINEL/agendamentoexperimental</code>. Reinicie o painel.</li>
+          <li><b>Webhook na Meta</b>: URL <code>https://SEU-PAINEL/ig/webhook</code>, o mesmo <code>IG_VERIFY_TOKEN</code>, campos <code>comments</code>, <code>messages</code>, <code>messaging_postbacks</code>. A aba Instagram mostra ✅ Conectado.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="fold">
+      <summary>📸 Instagram por cookie (boas-vindas a quem seguiu) — antigo</summary>
+      <div class="in">
+        <p>Manda boas-vindas por DM a quem <b>passou a seguir</b>, usando a sessão do navegador. Precisa de <b>proxy móvel do Brasil</b> — sem ele, o Instagram bloqueia a conta. Volume baixo (<code>IG_MAX_DIA=5</code>).</p>
+        <ol>
+          <li>No PC logado no Instagram do Studio: extensão <b>Cookie-Editor</b> → Export as JSON.</li>
+          <li>No painel, aba <b>📸 Instagram</b>, cole os cookies e envie um DM de teste.</li>
+          <li>Proxy (ex.: DataImpulse, modo fixo) no <code>.env</code>: <code>IG_PROXY=HOST:PORTA</code>, <code>IG_PROXY_USER</code>, <code>IG_PROXY_PASS</code>. Teste: <code>curl -x "http://USUARIO:SENHA@HOST:PORTA" http://ip-api.com/json</code> (tem que dizer Brazil).</li>
+          <li>Ligue na aba Instagram (liga/desliga e limite por dia ficam ali). Os cookies expiram: o alerta avisa e é só colar de novo.</li>
+        </ol>
+      </div>
+    </details>
+
+    <details class="fold">
+      <summary>🎤 Transcrição de áudio na SoFIA</summary>
+      <div class="in">
+        <p>Para a SoFIA entender áudios das alunas. Em <b>SoFIA → Configuração → 🔑 Credenciais da unidade → Transcrição</b>, escolha o provedor e cole a chave — o painel grava o resto sozinho. Depois marque <b>🎤 Transcrever áudios</b> e clique em <b>🔄 Reiniciar SoFIA</b>.</p>
+        <ul>
+          <li><b>Groq</b> (costuma sair de graça): <code>console.groq.com</code> → API Keys → Create (começa com <code>gsk_</code>).</li>
+          <li><b>OpenAI</b> (paga por minuto, ~US$ 0,006/min): <code>platform.openai.com</code> → crédito em Billing → API keys (começa com <code>sk-</code>).</li>
+        </ul>
+        <p>Sem chave, a SoFIA pede para a aluna escrever.</p>
+      </div>
+    </details>
+
+    <details class="fold">
+      <summary>📊 Planilha de aniversários (Google)</summary>
+      <div class="in">
+        <p>Copie a chave da conta de serviço para <code>Experimental/google-sa.json</code>, compartilhe a planilha com o <code>client_email</code> de dentro dela como <b>Editor</b> e preencha <code>SHEETS_ID</code>/<code>SHEETS_ABA</code> no <code>.env</code>. Sem <code>SHEETS_ID</code>, a planilha fica desligada (as tags automáticas de alunas funcionam do mesmo jeito).</p>
+      </div>
+    </details>
+
+    <details class="fold">
+      <summary>🔑 Login com Google no painel</summary>
+      <div class="in">
+        <p>Crie um cliente OAuth no Google Cloud, libere o domínio do painel e preencha <code>GOOGLE_CLIENT_ID</code>, <code>GOOGLE_CLIENT_SECRET</code> e <code>PAINEL_ADMIN_EMAIL</code> no <code>Experimental/.env</code> (já estão comentados lá). Só entram e-mails cadastrados em <b>Perfis</b>.</p>
+      </div>
+    </details>
+
+    <details class="fold">
+      <summary>🌐 Domínio que se atualiza sozinho (DuckDNS)</summary>
+      <div class="in">
+        <p>Se o IP da VPS mudar, o painel some. Um cron a cada 5 min avisa o DuckDNS do IP atual:</p>
+        <div class="term" style="margin:6px 0 0"><div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS</span></div>
+<pre class="term-body">mkdir -p ~/duckdns &amp;&amp; cat &gt; ~/duckdns/duck.sh &lt;&lt;'SH'
+echo url="https://www.duckdns.org/update?domains=<b>SEU-SUBDOMINIO</b>&amp;token=<b>SEU-TOKEN</b>&amp;ip=" | curl -k -o ~/duckdns/duck.log -K -
 SH
-chmod +x ~/duckdns/duck.sh
-~/duckdns/duck.sh ; cat ~/duckdns/duck.log   <span class="c"># deve escrever: OK</span>
+chmod +x ~/duckdns/duck.sh &amp;&amp; ~/duckdns/duck.sh &amp;&amp; cat ~/duckdns/duck.log   <span class="c"># OK</span>
+( crontab -l 2&gt;/dev/null; echo "*/5 * * * * ~/duckdns/duck.sh &gt;/dev/null 2&gt;&amp;1" ) | crontab -</pre></div>
+      </div>
+    </details>
 
-<span class="c"># agenda a cada 5 minutos</span>
-( crontab -l 2>/dev/null; echo "*/5 * * * * ~/duckdns/duck.sh >/dev/null 2>&1" ) | crontab -</pre>
+    <details class="fold">
+      <summary>⚙️ Ajustes por loja no <code>.env</code></summary>
+      <div class="in">
+        <div class="fieldnote" style="margin:0">
+          <table>
+            <tr><td>JOBS_OFF</td><td>Desliga jobs na loja, ex.: <code>presentes,circuito,free_antecedencia</code>. O painel mostra o que está desligado.</td></tr>
+            <tr><td>RENOVACAO_DIAS_ANTES</td><td>Antecedência do aviso de renovação (padrão <b>7</b>; o Lago Sul usa 30).</td></tr>
+            <tr><td>FORM_SLOTS_MINUTO</td><td>Minuto do envio da grade (padrão 0). Loja 2 no mesmo servidor: <b>15</b>.</td></tr>
+            <tr><td>GRADE_FIXAS_CRON</td><td>Horário da grade fixa (padrão 05:40). Loja 2: <code>47 5 * * *</code>.</td></tr>
+            <tr><td>AGENDADOS_INTERVALO_MIN/MAX</td><td>Intervalo (s) entre as mensagens pontuais agendadas no painel (padrão 20–40).</td></tr>
+            <tr><td>BACKUP_MANTER</td><td>Cópias de backup guardadas (padrão 14).</td></tr>
+            <tr><td>WATCHDOG_WA_MIN</td><td>Minutos de WhatsApp caído antes de o vigia avisar (padrão 30).</td></tr>
+          </table>
         </div>
-        <div class="tip">Deixar o <code>ip=</code> <b>vazio</b> (como acima) faz o DuckDNS usar o IP de quem chamou — ou seja, o da própria VPS. Simples e certeiro.</div>
+        <p style="margin-top:10px">Depois de mudar o <code>.env</code>: <code>pm2 restart SEU-SLUG-exp --update-env</code> (fora do horário de envios). Quase todo o resto — textos, horários, limites da SoFIA, cobrança, planos FREE, tags, Slim Club — se ajusta <b>pelo painel</b>, sem reiniciar.</p>
       </div>
-
-      <div class="stepblock">
-        <h3 style="font-size:1rem"><span class="num">e</span> Conferir que propagou</h3>
-        <div class="term">
-          <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body">getent hosts <b>painel-lagosul1</b>.duckdns.org   <span class="c"># tem que mostrar o MESMO IPv4 da VPS</span></pre>
-        </div>
-        <div class="tip">Bateu o IP? Então o domínio está pronto. Agora o Caddy (passo 7.3) emite o HTTPS por cima. Se ainda não bateu, espere 1–2 min e rode de novo (propagação de DNS).</div>
-      </div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">7.3</span> HTTPS automático com o Caddy</h3>
-      <p>O Caddy emite o certificado (Let's Encrypt) sozinho e encaminha o subdomínio para o painel no <code>localhost</code>.</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body"><span class="c"># instala o Caddy</span>
-apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
-apt update && apt install -y caddy
-
-<span class="c"># /etc/caddy/Caddyfile  (troque pelo seu subdominio):</span>
-<span class="c"># painel-unidade.duckdns.org {</span>
-<span class="c">#     reverse_proxy 127.0.0.1:8080</span>
-<span class="c"># }</span>
-systemctl reload caddy</pre>
-      </div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">7.4</span> Abrir portas e acessar</h3>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body">ufw allow 80
-ufw allow 443
-<span class="c"># tambem libere 80 e 443 no firewall do painel da Hostinger (se houver)</span>
-curl -sI https://painel-unidade.duckdns.org | head -3   <span class="c"># HTTP/2 401 = ok (pede login)</span></pre>
-      </div>
-      <div class="call danger" style="margin-top:12px">
-        <div class="ic">!</div>
-        <div>
-          <h3>Só publique com senha forte e HTTPS</h3>
-          <p>O painel fica na internet: use uma <b>senha longa</b> (não uma data/PIN) e nunca exponha a porta 8080 direto — sempre atrás do Caddy. Se o certificado não sair, quase sempre é a <b>porta 80 bloqueada no firewall da Hostinger</b> (o Let's Encrypt precisa dela). Diagnóstico: <code>journalctl -u caddy --no-pager | tail -25</code>.</p>
-        </div>
-      </div>
-      <div class="tip">Pronto: abra <b>https://painel-unidade.duckdns.org</b> no celular ou PC, faça login e edite. As mudanças valem no próximo envio.</div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">7.5</span> Envios agendados (aba "Agendar envios")</h3>
-      <p>A segunda aba do painel agenda mensagens pontuais. O robô dispara os pendentes do dia às <b>10:45</b> (manhã) e <b>15:45</b> (tarde) — já ligados no scheduler. Se houver várias no mesmo turno, envia uma de cada vez, com intervalo aleatório entre elas (padrão 20-40s, ajustável no <code>.env</code>).</p>
-      <div class="fieldnote">
-        <div class="fnh">.env (opcional) · intervalo entre envios agendados</div>
-        <table>
-          <tr><td>AGENDADOS_INTERVALO_MIN</td><td>Segundos mínimos entre um envio e o próximo (padrão <b>20</b>).</td></tr>
-          <tr><td>AGENDADOS_INTERVALO_MAX</td><td>Segundos máximos (padrão <b>40</b>). O robô sorteia um valor nessa faixa.</td></tr>
-        </table>
-      </div>
-      <div class="tip">Guardado em <code>data/agendamentos.json</code> (+ pasta <code>data/agendamentos-fotos/</code>). Teste manual: <code>pm2 stop slimfit-exp</code> → <code>xvfb-run -a node src/enviar-agendados.js --turno=tarde --enviar</code> → <code>pm2 start slimfit-exp</code> (a conexão do WhatsApp é única, então pare o robô antes de rodar o script na mão).</div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">7.6</span> Abas Hoje, Instagram e teste de mensagem</h3>
-      <p><b>Hoje</b> mostra os envios do dia (total, enviados, falhas e por tipo) lidos de <code>data/atividade.json</code> — sem precisar de <code>pm2 logs</code>. Na aba <b>Mensagens</b>, cada texto tem <b>Pré-visualizar</b> (como a aluna vê) e <b>Enviar teste</b> (dispara de verdade para um número que você informa; o painel grava o pedido em <code>data/teste-envio.json</code> e o robô, que tem a sessão, envia). A aba <b>Instagram</b> concentra tudo do IG: ligar/pausar (sem reiniciar), <b>limite por dia</b>, a mensagem e o horário — o liga/desliga e o limite ficam em <code>data/instagram-config.json</code>. Ali também dá para <b>reimportar os cookies</b> (cole o JSON exportado do navegador — evita o scp dos passos 6.1/6.2) e <b>enviar um DM de teste</b> para um @usuário: se o DM sai, o cookie está válido; se não, avisa para reimportar.</p>
-      <div class="tip">Nada disso reinicia o robô, exceto <b>salvar horários</b> (o painel roda <code>pm2 restart slimfit-exp</code> por você). <b>Qualquer</b> mensagem tem a opção <b>Enviar com foto</b>: o flyer fica em <code>data/mensagens-fotos/</code> e é enviado como legenda junto do texto (nas de grupo, mantendo a @menção).</div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">7.7</span> Indicadores do formulário (aba "Indicadores")</h3>
-      <p>Funil do formulário sem SSH: <b>pessoas</b> (visitantes únicos, por cookie — vários F5 da mesma pessoa contam como 1), <b>aberturas</b> (acessos), <b>agendamentos</b> e a <b>conversão por pessoa</b>, por período, com horários/dias de pico e horários de aula mais escolhidos. <b>Robôs de pré-visualização de link</b> (facebookexternalhit, WhatsApp, etc.) são filtrados por User-Agent e não contam. O formulário (no VPS) registra os eventos; o robô <b>puxa a cada 2 min</b> (reusa <code>FORM_CLOUD_URL</code> + <code>FORM_OUTBOX_TOKEN</code>, os mesmos da ponte de confirmações) e grava em <code>data/indicadores.json</code> — dia/hora carimbados no fuso de São Paulo no VPS.</p>
-      <div class="tip">Para saber a <b>origem</b> dos acessos, use um link etiquetado por canal: <code>…/?origem=instagram</code>, <code>…/?origem=whatsapp</code>, <code>…/?origem=ads</code>. Sem etiqueta, o acesso entra como “(sem etiqueta)”. Os números começam a contar a partir da instalação (não há histórico retroativo).</div>
-    </div>
+    </details>
   </section>
 
-  <!-- FASE 8 — VIGIA + BACKUP -->
-  <section>
-    <div class="phase"><span class="pn">Fase 8</span><h2>Vigia e backup (cron)</h2></div>
-    <p class="sec-head" style="color:var(--text-soft);max-width:70ch">Dois scripts leves rodados pelo <b>cron do sistema</b> (fora do PM2): um <b>vigia</b> que avisa no ntfy se o robô/painel caírem — o caso que nada mais pega, porque um processo morto não consegue se avisar — e um <b>backup</b> diário da pasta <code>data/</code> (suas edições do painel, que só vivem na VPS).</p>
-    <div class="tip">🔄 <b>O <code>--start</code> do script já agenda o BACKUP sozinho</b> (a linha "backup diário" abaixo, marcada como <code># sf-backup:&lt;slug&gt;</code> no crontab — idempotente e por unidade) e ainda roda um backup inicial. Então, em instalação nova, você só precisa acrescentar o <b>vigia</b> (watchdog). Em unidade <b>já instalada</b> que ficou sem backup (a página <b>Saúde → Servidor</b> avisa), cole a linha do backup abaixo <b>ou</b> rode o <code>--start</code> de novo.</div>
-
-    <div class="stepblock">
-      <h3><span class="num">8.1</span> Agendar no crontab</h3>
-      <p>Descubra os caminhos com <code>which node</code> e <code>which pm2</code> e use-os. Depois <code>crontab -e</code> e cole:</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">crontab -e</span></div>
-<pre class="term-body"><span class="c"># deixa o pm2 achavel pelo cron (use a pasta do 'which pm2')</span>
-PATH=/usr/local/bin:/usr/bin:/bin
-
-<span class="c"># vigia a cada 5 min — avisa se o robo/painel cair (e quando voltar)</span>
-*/5 * * * * cd ~/SF-Chat_Experimental-Mensagens/Experimental &amp;&amp; /usr/bin/node src/watchdog.js &gt;&gt; logs/watchdog.log 2&gt;&amp;1
-
-<span class="c"># backup diario da pasta data/ as 03:10 (guarda as ultimas 14 copias)</span>
-10 3 * * * cd ~/SF-Chat_Experimental-Mensagens/Experimental &amp;&amp; /usr/bin/node src/backup-dados.js &gt;&gt; logs/backup.log 2&gt;&amp;1</pre>
-      </div>
-      <div class="tip">Teste na hora: <code>node src/backup-dados.js</code> (cria <code>backups/data-….tar.gz</code>) e <code>node src/watchdog.js</code> (deve dizer “✅ tudo ok”). O vigia usa o mesmo <code>NTFY_TOPIC</code> dos alertas. Ajustes opcionais no <code>.env</code>: <code>BACKUP_MANTER</code> (nº de cópias, padrão 14), <code>WATCHDOG_WA_MIN</code> (minutos de WhatsApp caído antes de avisar, padrão 30).</div>
-    </div>
-  </section>
-
-  <!-- FASE 9 — SOFIA (CHATBOT COM IA) -->
-  <section>
-    <div class="phase"><span class="pn">Fase 9</span><h2>🤖 SoFIA — a atendente com IA</h2></div>
-
-    <div class="call danger" style="margin:0 0 16px">
-      <div class="ic">!</div>
-      <div>
-        <h3>O roteiro padrão é da unidade ORIGINAL — reescreva antes de divulgar</h3>
-        <p>O roteiro padrão da SoFIA já vem <b>limpo dos dados da unidade original</b>: os campos que mudam por unidade aparecem como <b>marcadores</b> — <code>[NOME/CIDADE DA UNIDADE]</code>, <code>[ENDEREÇO DA UNIDADE]</code>, <code>[E-MAIL DA UNIDADE]</code>, <code>[LINK DO WHATSAPP DA RECEPÇÃO]</code>, <code>[LINK DO INSTAGRAM]</code>, <code>[LINK DO FORMULÁRIO]</code> e <code>[VALOR DE ENTRADA]</code>. <b>Antes de conectar o WhatsApp e divulgar</b>, entre no painel (<b>🤖 SoFIA → Configuração → roteiro</b>) e <b>preencha TODOS</b> esses marcadores com os dados da sua unidade — senão a SoFIA responde com os colchetes no lugar do endereço/contatos. Faça o mesmo com as <b>imagens de grade e preços</b> (mídias da SoFIA — também vêm em branco) e com as <b>mensagens do robô</b> no WhatsApp (💬 WhatsApp → Configuração). A <b>grade de horários</b> a SoFIA já puxa sozinha do <b>EVO</b> (cada unidade usa a sua, sem configurar) — a variável <code>SOFIA_GRADE</code> é só uma reserva opcional.</p>
-      </div>
-    </div>
-
-    <p class="sec-head" style="color:var(--text-soft);max-width:70ch"><b>Peça central do sistema</b> (o script <code>setup-novo-studio.sh</code> já sobe o processo <code>${slug}-sofia</code> junto com o robô e o painel — esta fase é a referência manual, caso instale sem o script). A Sofia atende as leads no WhatsApp e agenda a aula experimental sozinha, usando uma IA da Anthropic (Claude). Ela roda em um processo próprio (<code>sofia-listener</code>) e usa um <b>número de WhatsApp exclusivo</b>, diferente do robô de mensagens. Tudo o que ela fala e faz é editável pela aba <b>🤖 Sofia</b> do painel — incluindo o <b>modelo de IA</b>, o <b>follow-up</b> de leads que esfriaram, a <b>lista de bloqueio</b> e a <b>transcrição de áudio</b> (opcional).</p>
-
-    <div class="stepblock">
-      <h3><span class="num">9.1</span> Instalar as dependências</h3>
-      <p>O código da Sofia fica na pasta <code>ChatBot/</code> do mesmo repositório.</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body">cd ~/SF-Chat_Experimental-Mensagens/ChatBot
-npm install</pre>
-      </div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">9.2</span> Configurar o <code>.env</code> da Sofia</h3>
-      <p>No <code>.env</code> dentro de <code>ChatBot/</code>:</p>
-      <div class="fieldnote">
-        <div class="fnh">ChatBot/.env</div>
-        <table>
-          <tr><td>ANTHROPIC_API_KEY</td><td>Chave da IA (Claude). É o que <b>tem custo por conversa</b> — separado do servidor.</td></tr>
-          <tr><td>SOFIA_TOKEN</td><td>Senha compartilhada com o formulário (no VPS). Precisa ser <b>idêntica</b> ao <code>SOFIA_TOKEN</code> do <code>.env</code> do formulário — é o que autoriza a Sofia a agendar no EVO.</td></tr>
-          <tr><td>SOFIA_BOOK_URL</td><td>Endpoint do formulário que agenda — o form no VPS, sob a subpasta: <code>https://SEU-PAINEL/agendamentoexperimental/api/book-sofia</code>.</td></tr>
-          <tr><td>NTFY_TOPIC</td><td>Opcional — <b>mesmo tópico</b> dos alertas do robô. Com ele, a SoFIA avisa no celular quando a sessão dela <b>cair (precisa de QR)</b>, quando <b>travar</b> (a verificação de conexão reinicia sozinha) e quando uma <b>campanha auto-pausa</b> por falhas.</td></tr>
-          <tr><td>CHROMIUM_PATH</td><td>Opcional — caminho do Chromium, se o padrão não for encontrado (mesmo do robô).</td></tr>
-          <tr><td>SOFIA_DIR</td><td>Opcional (recomendado) — pasta <b>fora do repositório</b> onde ficam o prompt e o estado da Sofia (ex.: <code>/root/sofia-data</code>). Assim o <code>git pull</code> nunca sobrescreve o prompt editado no painel. Defina o <b>mesmo</b> valor no <code>.env</code> do painel (<code>Experimental/.env</code>) e no da Sofia; mova os arquivos <code>sofia-*</code> e a <code>.wwebjs_auth</code> para lá.</td></tr>
-          <tr><td>TRANSCRICAO_API_KEY</td><td>Opcional — liga a <b>transcrição de áudio</b> (fala→texto). <b>Melhor configurar pelo painel</b> (🔑 Credenciais da unidade → Transcrição): escolhe o <b>provedor</b> (OpenAI/Groq), cola a chave e o painel grava a chave + <code>TRANSCRICAO_URL</code> + <code>TRANSCRICAO_MODELO</code> sozinho. <b>Groq</b> costuma sair de graça; <b>OpenAI</b> é paga por minuto de áudio.</td></tr>
-        </table>
-      </div>
-      <div class="tip">O ritmo de digitação, a pausa do atendimento humano, o <b>modelo de IA</b>, o <b>follow-up</b>, o liga/desliga da <b>transcrição</b> e o roteiro dela <b>não</b> ficam no <code>.env</code> — são editáveis no <b>painel</b> (aba 🤖 Sofia). Modelo e transcrição valem <b>ao reiniciar o <code>sofia-listener</code></b>; o resto vale na hora.</div>
-      <div class="tip">🔑 <b>As duas chaves são editáveis pelo painel</b> (só admin), sem abrir o <code>.env</code> no servidor: <b>SoFIA → Configuração → 🔑 Credenciais da unidade</b> tem os campos <b>"Chave da IA (Anthropic)"</b> (a <code>ANTHROPIC_API_KEY</code>) e <b>"Chave de transcrição (OpenAI ou Groq)"</b> (a <code>TRANSCRICAO_API_KEY</code>). Depois de colar e salvar, clique em <b>🔄 Reiniciar SoFIA</b> (na <i>Conexão do WhatsApp</i>) para valer. Na primeira instalação você ainda coloca a da IA no <code>.env</code> (a SoFIA precisa dela para subir); a de transcrição pode entrar direto pelo painel. Só o <code>TRANSCRICAO_URL</code>/<code>TRANSCRICAO_MODELO</code> (usados com o Groq) continuam apenas no <code>.env</code>.</div>
-
-      <div class="call info">
-        <div class="ic">🎤</div>
-        <div>
-          <h3>Como obter a chave de transcrição (áudio → texto)</h3>
-          <p>A transcrição precisa de uma chave de um serviço de fala→texto. Você pode usar a <b>OpenAI</b> (Whisper — padrão, não precisa mexer em mais nada) ou a <b>Groq</b> (costuma sair mais barato/rápido, mas exige duas variáveis extras no <code>.env</code>). Escolha <b>uma</b>:</p>
-          <p style="margin:10px 0 4px"><b>Opção A — OpenAI (Whisper) · recomendada pela simplicidade</b></p>
-          <ol style="margin:0 0 6px;padding-left:20px">
-            <li>Acesse <code>platform.openai.com</code> e entre (ou crie a conta).</li>
-            <li>Em <b>Billing</b>, adicione um crédito (a transcrição é paga <b>por minuto de áudio</b> — o Whisper fica em torno de US$ 0,006/min).</li>
-            <li>Vá em <b>API keys</b> → <b>Create new secret key</b> → <b>copie</b> a chave (começa com <code>sk-…</code>). Ela <b>só aparece uma vez</b> — guarde.</li>
-            <li>No painel (🔑 <b>Credenciais da unidade</b> → <i>Transcrição</i>), deixe o provedor em <b>OpenAI (Whisper)</b>, cole a chave e <b>Salvar</b>. O painel grava a URL/modelo certos <b>sozinho</b> — não mexe no <code>.env</code>.</li>
-          </ol>
-          <p style="margin:10px 0 4px"><b>Opção B — Groq (grátis para uso normal) · recomendada para custo zero</b></p>
-          <ol style="margin:0 0 6px;padding-left:20px">
-            <li>Acesse <code>console.groq.com</code> e entre.</li>
-            <li>Em <b>API Keys</b> → <b>Create API Key</b> → <b>copie</b> (começa com <code>gsk_…</code>).</li>
-            <li>No painel (🔑 <b>Credenciais da unidade</b> → <i>Transcrição</i>), escolha o provedor <b>Groq</b>, cole a <code>gsk_…</code> e <b>Salvar</b>. O painel grava a <b>URL e o modelo do Groq sozinho</b> — <b>não precisa mexer no <code>.env</code></b>.</li>
-          </ol>
-          <p style="margin:8px 0 0">Depois, marque <b>🎤 Transcrever áudios das alunas</b> e clique em <b>🔄 Reiniciar SoFIA</b>. Para <b>desligar</b>, deixe o campo da chave <b>em branco</b> e salve. Sem chave, a SoFIA pede educadamente para a aluna mandar por texto.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">9.3</span> Subir sob o PM2</h3>
-      <p>Assim ela sobe junto com o servidor e não morre ao fechar o terminal.</p>
-      <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body">cd ~/SF-Chat_Experimental-Mensagens/ChatBot
-pm2 start npm --name <b>sofia-listener</b> -- run listener
-pm2 save
-pm2 logs sofia-listener        <span class="c"># espere aparecer "PRONTA"</span></pre>
-      </div>
-      <div class="tip">Entre <code>autenticada</code> e <code>PRONTA</code> a conexão leva de 20 a 60 s (carrega as conversas) — normal.</div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">9.4</span> Conectar o WhatsApp próprio da Sofia</h3>
-      <p>Na <b>primeira vez</b> (ou quando a sessão cair), a Sofia mostra um <b>QR</b>. Escaneie com o celular do <b>número dela</b> (não o do robô): no painel, aba <b>🤖 Sofia</b> → o QR aparece e atualiza sozinho; ou no terminal, pelo <code>pm2 logs sofia-listener</code>.</p>
-      <div class="call danger" style="margin-top:12px">
-        <div class="ic">!</div>
-        <div>
-          <h3>O QR é um login — trate como senha</h3>
-          <p>O QR conecta a conta de WhatsApp da Sofia. Ele é gerado <b>localmente</b> (nunca enviado para sites de QR externos). Não compartilhe o print. A sessão fica guardada em <code>&lt;SOFIA_DIR&gt;/.wwebjs_auth</code> — com <code>SOFIA_DIR</code> definido, ex.: <code>/root/sofia-data/.wwebjs_auth</code> (sem ela, cai em <code>ChatBot/.wwebjs_auth</code>); fora do Git.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="stepblock">
-      <h3><span class="num">9.5</span> Ajustar tudo pelo painel</h3>
-      <p>Na aba <b>🤖 SoFIA</b> do painel (sub-aba <b>Configuração</b>) você edita o <b>roteiro</b> (o que ela fala), <b>liga/desliga</b>, e ajusta num grid: <b>tempo de sessão</b> (memória), <b>agrupar mensagens</b> (espera alguns segundos e responde tudo junto), <b>verificação de conexão</b> (health-check — reinicia sozinha se travar), <b>máx. de experimentais por turma</b>, <b>pausa</b> ao responder pelo celular, o <b>ritmo</b> de digitação e as <b>imagens</b> (grade/preços); e pode <b>desconectar</b> o WhatsApp dela por ali. As outras sub-abas: <b>Conversas</b> (ler/responder, assumir o controle, <b>bloquear</b> e <b>encerrar</b> — 🔒 fecha na hora, a Sofia recomeça do zero e o follow-up não incomoda), <b>Contatos</b> (CRM: importar e <b>exportar CSV</b>, etiquetar, <b>Interações</b> — histórico com resumo por atendimento — e <b>Automação por tag</b> — gatilhos que etiquetam e avisam sozinhos) e <b>Campanhas</b> (envio em massa por tag, com variações da IA, limites, foto e <code>{nome}</code>). Ainda na Configuração fica o aviso <b>“precisa de humano”</b> (avisa um número e destaca a conversa quando a aluna pede atendente). A <b>Presença da experimental</b> — um job semanal que <b>lê a presença no EVO e troca as tags</b> de quem estava como “agendou” (compareceu → “fez aula”, faltou → “sem presença”), com opção de <b>cadastrar quem veio por outro canal</b> para as campanhas e <b>dia/hora editáveis</b> — <b>agora fica na sub-aba Tags</b> (mudar o horário reinicia o <code>slimfit-exp</code> para reagendar). As sub-abas <b>Funil</b> (conversão: conversas → agendamentos) e <b>Custo IA</b> (gasto por período e <b>por conversa</b>, com alerta de gasto diário) completam a visão. O resto vale na hora, sem reiniciar.</p>
-      <div class="tip">O roteiro e as imagens ficam em <code>ChatBot/sofia-prompt.txt</code>, <code>sofia-extracao.txt</code> e <code>sofia-midias.txt</code> — <b>editados pelo painel</b> e fora do Git (o conteúdo base fica nos <code>*.default.txt</code> versionados; se o arquivo vivo sumir, é recriado dele). Por isso o <code>git pull</code> nunca conflita com o que você editou no painel.</div>
-      <div class="tip"><b>Automação por tag — objeção de valor vs. sem interesse</b> (sub-aba <b>Tags</b>): configure as tags de IA para <b>não perder leads que recuam pelo preço</b>. Deixe <b>“FX - 0. Sem interesse”</b> com o <b>🔒 Encerrar a conversa</b> <b>marcado</b> (fecha e o follow-up para) e a instrução restrita a <b>desinteresse CLARO</b> (“não é pra mim”, “já treino em outro lugar”, “não me mande mais”) — <b>excluindo</b> objeção de preço. E tenha uma tag <b>aberta</b> (ex.: <b>“Preço”</b> ou <b>“Objeção de valor”</b>) com o <b>🔒 Encerrar DESmarcado</b> e a instrução: “recuou/adiou pelo PREÇO/VALOR (‘tá caro’, ‘não consigo assumir agora’, ‘vou pensar’, ‘depois entro em contato’) — não é desinteresse”. Assim a conversa <b>fica no funil</b> e o follow-up reengaja. O roteiro (<code>*.default.txt</code>) já vem com a <b>reancoragem em objeção de valor</b> nas seções PERSONALIZAÇÕES e FINALIZAÇÃO.</div>
-      <div class="tip"><b>Arquivos de execução da SoFIA</b> (todos em <code>ChatBot/</code>, gitignored — só vivem na VPS): <code>sofia-conversas.json</code> (inbox), <code>sofia-historico.json</code> (interações), <code>sofia-humano.json</code> (controle humano), <code>campanhas.json</code>, e as pontes com o painel — <code>sofia-agendou.jsonl</code>/<code>sofia-eventos.jsonl</code>/<code>sofia-avisos.jsonl</code> (automações) e os ajustes <code>sofia-sessao-horas.txt</code>, <code>sofia-health-min.txt</code>, <code>sofia-agrupar-seg.txt</code>, <code>sofia-modelo.json</code> (modelo de IA), <code>sofia-transcricao.txt</code> (liga/desliga da transcrição), <code>sofia-followup-cfg.json</code> (follow-up), <code>sofia-bloqueios.json</code> (lista de bloqueio) e <code>sofia-encerradas.json</code> (conversas encerradas à mão — cadeado). Com <code>SOFIA_DIR</code> definido, todos esses vivem nessa pasta (ex.: <code>/root/sofia-data</code>), fora do repositório. As tags/automações, o log de agendamentos do formulário, os canais de origem e a config da <b>Presença da experimental</b> ficam no lado do painel, em <code>data/tags-config.json</code>, <code>data/bookings.json</code>, <code>data/origens.json</code> e <code>data/comparecimento.json</code>. Após um <code>git pull</code> que mexa na SoFIA, reinicie: <code>pm2 restart sofia-listener --update-env</code>.</div>
-
-      <div class="tip">🆕 <b>Novidades recentes do painel</b> (já valem sem configurar nada — só <code>git pull</code> + reiniciar <code>painel</code>/<code>sofia-listener</code>):
-        <ul style="margin:6px 0 0;padding-left:18px">
+  <!-- 9. NOVIDADES -->
+  <section id="novidades">
+    <div class="phase"><span class="pn">9</span><h2>Histórico de novidades</h2></div>
+    <p class="sec-head" style="color:var(--text-soft);max-width:70ch">O que mudou no sistema, da mais recente para a mais antiga, com o que reiniciar em cada uma. Para trazer uma loja para a versão atual, veja <a href="#manter">Atualizar uma loja</a>.</p>
+    <details class="fold">
+      <summary>Ver todas as novidades</summary>
+      <div class="in">
+<ul style="margin:6px 0 0;padding-left:18px">
           <li>🤝 <b>Slim Club — clube de benefícios de alunas para alunas</b> (só <code>git pull</code> + reiniciar <code>&lt;slug&gt;-painel</code>; o WhatsApp não cai): novo menu <b>Slim Club</b> no painel. Páginas públicas no mesmo domínio do painel:
             <code>/SlimClubCadastro</code> (a aluna empresária cadastra o negócio),
             <code>/SlimClubCadastroExterno</code> (empresa parceira que não é de aluna) e
@@ -1305,59 +741,46 @@ pm2 logs sofia-listener        <span class="c"># espere aparecer "PRONTA"</span>
           <li>🤖 <b>SoFIA usa o Chromium do sistema</b> (instalação): o <code>ChatBot/.env</code> agora define <code>CHROMIUM_PATH</code> — sem isso a SoFIA caía no Chromium empacotado do puppeteer, que quebra por falta de libs (<code>libnspr4.so</code> → <code>Code: 127</code>) e entrava em loop de reconexão.</li>
         </ul>
       </div>
-    </div>
+    </details>
   </section>
 
-  <!-- MANUTENÇÃO -->
+  <!-- APÊNDICE + CHECKLIST -->
   <section>
-    <div class="sec-head">
-      <span class="eyebrow">Referência rápida</span>
-      <h2>Manutenção do dia a dia</h2>
-    </div>
-    <div class="term">
-      <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">servidor</span></div>
-<pre class="term-body"><span class="c"># acompanhar ao vivo</span>
-pm2 logs slimfit-exp
-
-<span class="c"># atualizar para a versao mais nova do codigo</span>
-cd ~/SF-Chat_Experimental-Mensagens && git pull
-cd Experimental && npm install && pm2 restart slimfit-exp
-
-<span class="c"># reiniciar / parar</span>
-pm2 restart slimfit-exp
-pm2 stop slimfit-exp</pre>
-    </div>
-    <div class="tip"><b>SoFIA pediu QR do nada ou travou em “Iniciando…”?</b> Quase sempre <code>pm2 restart sofia-listener</code> já resolve — ela se recupera sozinha. Se insistir, limpe <b>só o login</b> dela (conversas, etiquetas e roteiro <b>não</b> são tocados) e suba de novo. O login fica em <code>&lt;SOFIA_DIR&gt;/.wwebjs_auth</code> (ex.: <code>/root/sofia-data</code>):
-<pre class="term-body">pm2 stop sofia-listener
-rm -rf /root/sofia-data/.wwebjs_auth /root/sofia-data/.wwebjs_cache
-pm2 start sofia-listener</pre></div>
+    <div class="sec-head"><span class="eyebrow">Para entender por dentro</span><h2>O que o <code>--tudo</code> faz</h2>
+      <p>Não precisa repetir à mão — fica aqui para quem quiser entender ou diagnosticar.</p></div>
+    <ol style="color:var(--text-soft);font-size:.95rem;padding-left:20px;display:flex;flex-direction:column;gap:5px;margin:0">
+      <li>Atualiza o próprio código pelo Git (<code>git pull --ff-only</code>).</li>
+      <li>Com <code>--install-deps</code>: instala Node 20, pm2, tsx, Xvfb, Chromium e Python.</li>
+      <li>Instala as dependências do robô (<code>Experimental</code>) e da SoFIA (<code>ChatBot</code>).</li>
+      <li>Clona o formulário em <code>~/sf-form-&lt;slug&gt;</code> e cria o ambiente Python dele.</li>
+      <li>Gera os três <code>.env</code> (robô, SoFIA, formulário) com <b>segredos novos</b> e os tokens que ligam um ao outro; nunca sobrescreve um <code>.env</code> que já exista.</li>
+      <li>Pergunta as credenciais que faltam e confere tudo (<code>--check</code>).</li>
+      <li>Sobe os 4 processos no pm2 — robô e SoFIA com <code>--kill-timeout 15000</code>, para salvarem a sessão do WhatsApp ao reiniciar.</li>
+      <li>Instala o Caddy, se faltar, e escreve o bloco do domínio no <code>/etc/caddy/Caddyfile</code> (painel + formulário em <code>/agendamentoexperimental</code>) e recarrega o Caddy.</li>
+      <li>Agenda o backup diário e gera o primeiro.</li>
+    </ol>
+    <div class="tip">As fases também rodam separadas, se precisar refazer uma: <code>--check</code> (só confere os <code>.env</code>), <code>--start --domain …</code> (sobe os processos e o HTTPS), <code>--evo-ids</code>. Ajuda completa: <code>bash setup-novo-studio.sh --help</code>.</div>
   </section>
 
-  <!-- CHECKLIST FINAL -->
   <section>
-    <div class="sec-head">
-      <span class="eyebrow">Ligado e entregue</span>
-      <h2>Checklist final</h2>
-    </div>
+    <div class="sec-head"><span class="eyebrow">Ligado e entregue</span><h2>Checklist final</h2></div>
     <ul class="chk">
-      <li><span class="box">✓</span><span>Servidor preparado (Node, Xvfb, libs) e fuso em Brasília.</span></li>
-      <li><span class="box">✓</span><span><code>.env</code> preenchido com os dados da unidade; <b>STUDIO_NOME</b> e áudios conferidos.</span></li>
-      <li><span class="box">✓</span><span>WhatsApp da unidade conectado e <b>dentro do grupo da equipe</b>.</span></li>
-      <li><span class="box">✓</span><span>Testes <code>scrape</code> e <code>morning</code> ok; mensagem de teste recebida.</span></li>
-      <li><span class="box">✓</span><span>Alertas ntfy no celular do dono, com teste recebido.</span></li>
-      <li><span class="box">✓</span><span>PM2 <b>online</b> + autostart configurado.</span></li>
-      <li><span class="box">✓</span><span>(Se vendeu) formulário no VPS no ar (sob <code>/agendamentoexperimental</code>) e ponte ligada.</span></li>
-      <li><span class="box">✓</span><span>(Opcional) painel de mensagens no ar com <b>senha forte</b> e HTTPS (Fase 7).</span></li>
-      <li><span class="box">✓</span><span><b>SoFIA</b> no ar: <code>sofia-listener</code> online, WhatsApp <b>próprio</b> dela conectado e um agendamento de teste concluído (Fase 9).</span></li>
-      <li><span class="box">✓</span><span>Segmento <b>"Vencimento de Contrato Semanal"</b> criado no EVO e <code>renovacoes-mes-grupo.js --dry</code> trazendo a lista.</span></li>
-      <li><span class="box">✓</span><span>(Se vendeu) <b>Slim Club</b>: permissão no perfil da recepção, tag automática <b>"0. Aluna"</b> ligada e um cadastro de teste aprovado (carteira + QR conferidos).</span></li>
-      <li><span class="box">✓</span><span>Manual entregue e recepção treinada. Acompanhe os primeiros dias.</span></li>
+      <li><span class="box">✓</span><span>Fuso em Brasília; <code>pm2 status</code> com os 4 processos <i>online</i>; <code>pm2 save</code> + <code>pm2 startup</code> feitos.</span></li>
+      <li><span class="box">✓</span><span>Painel abrindo em <code>https://</code> com a senha do admin guardada; usuários da recepção criados em Perfis.</span></li>
+      <li><span class="box">✓</span><span>WhatsApp do robô e da SoFIA conectados (números certos); robô dentro do grupo da equipe.</span></li>
+      <li><span class="box">✓</span><span>Formulário abrindo em <code>/agendamentoexperimental</code> com os horários e os dados da loja; IDs do EVO conferidos.</span></li>
+      <li><span class="box">✓</span><span>Todos os <code>[MARCADORES]</code> preenchidos: roteiro e imagens da SoFIA, mensagens do robô, <code>.env</code> do formulário.</span></li>
+      <li><span class="box">✓</span><span>Segmento “Vencimento de Contrato Semanal” no EVO e <code>renovacoes-mes-grupo.js --dry</code> trazendo a lista; 2FA configurado, se houver.</span></li>
+      <li><span class="box">✓</span><span>Jobs testados em <code>--dry</code>; alerta de teste recebido no ntfy; vigia no crontab.</span></li>
+      <li><span class="box">✓</span><span>(Se vendeu) Slim Club: tag automática de alunas ligada, permissão no perfil da recepção e um cadastro de teste aprovado (carteira + QR conferidos).</span></li>
+      <li><span class="box">✓</span><span>Manual entregue e recepção treinada. Acompanhe a aba Log nos primeiros dias.</span></li>
     </ul>
   </section>
 
   <footer>
     Runbook de instalação do robô SlimFit · uso interno para a rede de franquias.<br>
-    Baseado na configuração validada em produção (Xvfb + PM2). Clone do GitHub, nunca copie disco.
+    Sempre clone do GitHub e instale com o script — nunca copie o disco de outra loja.
   </footer>
 
 </main>
+
