@@ -205,14 +205,11 @@
       ⚠️ Nunca use <code>&lt; &gt;</code> nos valores (são redirecionamento no shell):
       <code>--evo-dns slimfit</code>, nunca <code>--evo-dns &lt;slimfit&gt;</code>.</div>
 
-    <div class="tip">🏢 <b>Duas lojas no mesmo servidor</b> (mesmo franqueado)? Funciona:
-      use <b>dois clones</b> do repositório, um por loja, cada um com <code>--slug</code>
-      e <code>--port</code> <b>diferentes</b>. Ex.: <code>~/slimfit-lagosul1</code> com
-      <code>--slug lagosul1 --port 8080</code> e <code>~/slimfit-lagosul2</code> com
-      <code>--slug lagosul2 --port 8081</code>. Cada loja fica <b>100% isolada</b> —
-      pasta de dados (<code>SOFIA_DIR</code>), processos PM2, painel (porta própria) e
-      <code>.env</code> separados. Cada painel ganha seu subdomínio no
-      <code>--start --domain</code>. <b>Nada é compartilhado entre as lojas.</b></div>
+    <div class="tip">🏢 <b>Duas lojas no mesmo servidor</b> (mesmo franqueado)? Funciona com o
+      mesmo <code>--tudo</code>: um <b>clone separado</b> do repositório por loja, cada um com
+      <code>--slug</code>, <code>--port</code> e <code>--domain</code> <b>próprios</b>. Cada loja fica
+      <b>100% isolada</b> (dados, processos PM2, painel, formulário e <code>.env</code>).
+      Comandos prontos em <a href="#duas-lojas"><b>Duas lojas no mesmo servidor</b></a>.</div>
 
     <div class="stepblock">
       <h3><span class="num">1</span> Clonar o repositório</h3>
@@ -246,7 +243,7 @@ cd SF-Chat_Experimental-Mensagens/Experimental</pre>
       <div class="tip">🔎 <b>tenant e branch do EVO</b>: na URL do EVO da unidade
         (<code>.../app/&lt;tenant&gt;/&lt;branch&gt;/...</code>). ⚠️ Sem passar, cai no padrão
         <code>slimfit/15</code> (Setor Bueno) e lê os dados da unidade <b>errada</b>.
-        <b>2ª loja no mesmo VPS:</b> use <code>--port 8081</code> e clone em outra pasta.</div>
+        <b>2ª loja no mesmo VPS:</b> veja <a href="#duas-lojas">Duas lojas no mesmo servidor</a>.</div>
       <div class="tip">🔑 Prefere não digitar a senha do EVO / chave da IA no terminal?
         Deixe em branco (Enter) e preencha depois no painel: <b>SoFIA → Configuração →
         🔑 Credenciais da unidade</b> (login do EVO, chave da IA), com botões de reiniciar.</div>
@@ -413,33 +410,61 @@ pm2 start <b>SEU-SLUG</b>-exp       <span class="c"># volta ao normal</span></pr
       da loja 1. Siga os mesmos comandos abaixo (é o mesmo fluxo do topo da página, só trocando os valores).</div>
 
     <div class="stepblock">
-      <h3><span class="num">A</span> Comandos da 2ª loja (na mesma VPS)</h3>
-      <p>Sequência completa. Troque <code>lagosul2</code> pelo apelido, <code>NN</code> pelo
-        <b>branch do EVO da loja 2</b> (veja na URL do EVO: <code>…/app/slimfit/<b>NN</b>/…</code>)
-        e o subdomínio pelo seu.</p>
+      <h3><span class="num">A</span> Instalar a 2ª loja com o <code>--tudo</code> (na mesma VPS)</h3>
+      <p>É o <b>mesmo comando do topo da página</b>, só que num clone separado e com os valores da
+        loja 2. Troque <code>lagosul2</code> pelo apelido, <code>NN</code> pelo <b>branch do EVO da
+        loja 2</b> (na URL do EVO: <code>…/app/&lt;tenant&gt;/<b>NN</b>/…</code>) e o subdomínio pelo seu.</p>
       <div class="term">
-        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS · root</span></div>
-<pre class="term-body"><span class="c"># 1) Clone SEPARADO — repare no nome da pasta diferente ao final</span>
-git clone https://github.com/rrabadan86/SF-Chat_Experimental-Mensagens.git <b>slimfit-lagosul2</b>
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS · root · loja 2</span></div>
+<pre class="term-body"><span class="c"># 1) Clone SEPARADO — repare no nome da pasta ao final</span>
+cd ~ &amp;&amp; git clone https://github.com/rrabadan86/SF-Chat_Experimental-Mensagens.git <b>slimfit-lagosul2</b>
 cd <b>slimfit-lagosul2</b>/Experimental
 
-<span class="c"># 2) Monta os .env com segredos aleatórios (slug + porta PRÓPRIOS; branch do EVO da loja 2)</span>
-<span class="c">#    NÃO precisa --install-deps de novo (Node/Chromium/pm2 já estão no servidor da loja 1)</span>
-bash setup-novo-studio.sh --slug <b>lagosul2</b> --studio <b>"Studio SlimFit Lago Sul 2"</b> \
-  --evo-tenant slimfit --evo-branch <b>NN</b> --port <b>8081</b>
-
-<span class="c"># 3) Preencha os segredos DA LOJA 2 direto no arquivo (tokens ÚNICOS, NTFY_TOPIC próprio,</span>
-<span class="c">#    e JOBS_OFF / EVO_TOTP_SECRET se for o caso). Nunca reaproveite os da loja 1.</span>
-nano .env
-
-<span class="c"># 4) Sobe os processos + HTTPS no subdomínio PRÓPRIO (cria lagosul2-exp/-painel/-sofia)</span>
-bash setup-novo-studio.sh --slug <b>lagosul2</b> --start --domain <b>painel-lagosul2.SEU-DOMINIO</b>
-
-<span class="c"># 5) Escaneie os 2 QRs da loja 2 (robô e SoFIA), cada um no número certo</span>
-pm2 logs <b>lagosul2</b>-exp</pre>
+<span class="c"># 2) Instala a loja 2 inteira num comando.</span>
+<span class="c">#    SEM --install-deps (Node, Chromium, pm2 e Caddy já estão no servidor da loja 1)</span>
+bash setup-novo-studio.sh --tudo \
+  --slug <b>lagosul2</b> --studio <b>"Studio SlimFit Lago Sul 2"</b> \
+  --evo-tenant <b>slimfit</b> --evo-branch <b>NN</b> \
+  --port <b>8081</b> \
+  --domain <b>painel-lagosul2.duckdns.org</b> \
+  --evo-email <b>LOGIN-DO-ROBO-NO-EVO</b></pre>
       </div>
-      <div class="tip">A porta padrão é <b>8080</b> (loja 1). A loja 2 <b>precisa</b> de outra
-        (<code>--port 8081</code>), senão os dois painéis brigam pela mesma porta.</div>
+      <p>Ele <b>pergunta</b> os segredos da loja 2 (EVO, chave da IA, grupo da equipe) e faz
+        <b>sozinho</b> o que antes era manual na 2ª loja:</p>
+      <ul style="margin:6px 0 10px;padding-left:18px;line-height:1.55">
+        <li><b>Processos próprios</b>: <code>lagosul2-painel</code>, <code>-exp</code>, <code>-sofia</code> e <code>-form</code>.</li>
+        <li><b>Formulário próprio</b> em <code>~/sf-form-lagosul2</code>, na porta do painel <b>+ 10</b> (<code>8091</code>), servido em <code>/agendamentoexperimental</code> do domínio da loja 2.</li>
+        <li><b>Dados da SoFIA</b> em <code>~/sofia-data-lagosul2</code>, <b>tokens novos</b> e <b>tópico de alertas</b> próprio (nada herdado da loja 1).</li>
+        <li><b>HTTPS</b>: <b>acrescenta</b> o bloco da loja 2 no <code>/etc/caddy/Caddyfile</code>, sem mexer no da loja 1.</li>
+        <li><b>Backup diário</b> agendado por loja (as duas convivem no mesmo cron).</li>
+      </ul>
+      <div class="term">
+        <div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">depois do --tudo · loja 2</span></div>
+<pre class="term-body"><span class="c"># 3) Escalonar a loja 2 (no .env DA LOJA 2) — evita as duas lojas baterem no EVO juntas</span>
+nano .env
+<span class="c">#    FORM_SLOTS_MINUTO=15            ← grade da loja 2 em :15 e :45 (loja 1 fica em :00 e :30)</span>
+<span class="c">#    GRADE_FIXAS_CRON=47 5 * * *     ← grade fixa da loja 2 às 05:47 (loja 1: 05:40)</span>
+pm2 restart <b>lagosul2</b>-exp
+
+<span class="c"># 4) DNS: aponte painel-lagosul2 para o MESMO IPv4 da VPS (curl -s4 ifconfig.me)</span>
+
+<span class="c"># 5) Escaneie os 2 QRs da loja 2, cada um no número certo, e salve a lista do pm2</span>
+pm2 logs <b>lagosul2</b>-exp       <span class="c"># QR do robô (ou pela aba WhatsApp do painel da loja 2)</span>
+pm2 logs <b>lagosul2</b>-sofia     <span class="c"># QR da SoFIA</span>
+pm2 save
+
+<span class="c"># 6) IDs da aula experimental no EVO da loja 2 (passo 5 do topo) — sempre com tenant/branch</span>
+bash setup-novo-studio.sh --slug <b>lagosul2</b> --evo-tenant <b>slimfit</b> --evo-branch <b>NN</b> --evo-ids</pre>
+      </div>
+      <div class="tip">⚠️ <b>Portas:</b> a loja 1 usa <code>8080</code> (painel) e <code>8090</code> (formulário);
+        a loja 2, <code>8081</code> e <code>8091</code>. <b>Não</b> use <code>--port 8090</code> na loja 2 —
+        bate com o formulário da loja 1.</div>
+      <div class="tip">⚠️ <b><code>FORM_SLOTS_MINUTO</code> é 15, não 30:</b> o robô envia a grade no minuto
+        escolhido <b>e 30 min depois</b>. Com loja 1 = 0 e loja 2 = 30, as duas mandam em :00 e :30 —
+        exatamente juntas. Com <b>15</b>, a loja 2 fica em :15 e :45.</div>
+      <div class="tip">Depois, faça na loja 2 o mesmo pós-instalação da loja 1: trocar os textos
+        (passo 6 do topo), criar o segmento <b>"Vencimento de Contrato Semanal"</b> no EVO da loja 2 e,
+        se houver MFA no EVO, o <code>EVO_TOTP_SECRET</code> da loja 2.</div>
     </div>
 
     <div class="stepblock">
@@ -473,8 +498,8 @@ free -h                                                       <span class="c"># 
         <li><span class="box">✓</span><span><b><code>--port</code> diferente</b> (ex.: <code>8081</code>) — a loja 1 fica na 8080.</span></li>
         <li><span class="box">✓</span><span><b><code>--domain</code> próprio</b> (ex.: <code>painel-lagosul2.SEU-DOMINIO</code>) — subdomínio e HTTPS separados.</span></li>
         <li><span class="box">✓</span><span><b>EVO da loja 2</b> no <code>.env</code> (DNS/token/ids da unidade 2) e <code>ZEE_STUDIO_PHONE</code> da loja 2.</span></li>
-        <li><span class="box">✓</span><span><b><code>FORM_SLOTS_MINUTO</code> diferente</b> no <code>.env</code> (ex.: loja 1 = <code>0</code>, loja 2 = <code>30</code>) — <b>escalona o envio da grade</b> para as duas lojas não estourarem juntas o <b>limite de 40 req/min do EVO</b> (senão a grade some das duas). Reiniciar <code>exp</code>.</span></li>
-        <li><span class="box">✓</span><span><b>Formulário próprio no VPS</b> (clone/porta/subpasta próprios, com o EVO e os tokens da loja 2 — ex.: porta <code>8091</code> sob o domínio do painel da loja 2).</span></li>
+        <li><span class="box">✓</span><span><b><code>FORM_SLOTS_MINUTO</code> diferente</b> no <code>.env</code> (loja 1 = <code>0</code>, loja 2 = <code>15</code> — <b>não</b> 30, que cai nos mesmos minutos) e <code>GRADE_FIXAS_CRON=47 5 * * *</code> na loja 2 — <b>escalona o envio da grade</b> para as duas lojas não estourarem juntas o <b>limite de 40 req/min do EVO</b> (senão a grade some das duas). Reiniciar <code>exp</code>.</span></li>
+        <li><span class="box">✓</span><span><b>Formulário próprio no VPS</b> — o <code>--tudo</code> já cria (<code>~/sf-form-lagosul2</code>, porta <code>8091</code>, sob o domínio do painel da loja 2, com o EVO e os tokens da loja 2). Só confira os <b>ids da experimental</b> e o <code>ZEE_STUDIO_PHONE</code> da loja 2 no <code>.env</code> dele.</span></li>
         <li><span class="box">✓</span><span><b>2 WhatsApps novos</b> (robô + SoFIA da loja 2) — QRs próprios; <b>nunca</b> copie o <code>.wwebjs_auth</code>.</span></li>
         <li><span class="box">✓</span><span><b>Não</b> precisa de <code>--install-deps</code> de novo (Node/Chromium/pm2 já estão no servidor).</span></li>
       </ul>
@@ -1271,7 +1296,7 @@ pm2 logs sofia-listener        <span class="c"># espere aparecer "PRONTA"</span>
           <li>🎟️ <b>Aula experimental vai até a última vaga real</b> (só <code>git pull</code> + reiniciar <code>exp</code>; formulário: <code>git pull</code> + reiniciar <code>&lt;slug&gt;-form</code> no VPS): foi <b>removida</b> a regra que <b>reservava as últimas vagas</b> da turma (o antigo teto <code>FORM_MAX_OCUPACAO</code>). Agora, se a turma tem <b>vaga de verdade</b> (matriculadas &lt; capacidade), a experimental pode marcar — não importa se a capacidade é 8, 9 ou 10. Vale para <b>SoFIA, Cadastro Express e formulário</b>. Turma <b>cheia</b> continua sem aparecer. O limite de <b>nº de experimentais por turma</b> (<code>EVO_MAX_EXPERIMENTAIS</code>, painel: <i>Máx. experimentais por turma</i>) <b>segue valendo</b>.</li>
           <li>🧾 <b>Log com a mensagem inteira</b> (reiniciar <code>painel</code>): no <b>WhatsApp → Log</b> ("Envios de hoje"), cada linha ganhou um <b>"＋ ver tudo"</b> que abre o <b>texto completo</b> enviado (antes mostrava só os primeiros ~80 caracteres). Usa <code>&lt;details&gt;</code> nativo (sem JS). Vale para os <b>novos envios</b> a partir da atualização.</li>
           <li>🩺 <b>Saúde do sistema mais completa</b> (reiniciar <code>painel</code>): a página <b>Saúde</b> agora também mostra o <b>EVO / 2FA</b> (se o autenticador está configurado ou se há <b>código pendente</b> para você digitar), a <b>grade no formulário</b> (se a versão do VPS está publicada), e um card <b>Servidor</b> com <b>disco livre</b> e <b>último backup</b> — tudo com semáforo 🟢🟡🔴.</li>
-          <li>⏱️ <b>Escalonar o envio da grade (2 lojas no mesmo VPS)</b> (<code>.env</code>, reiniciar <code>exp</code>): <code>FORM_SLOTS_MINUTO</code> define o <b>minuto</b> em que a unidade empurra a grade ao formulário. Com duas lojas na mesma conta EVO, use minutos <b>diferentes</b> (ex.: loja 1 = <code>0</code>, loja 2 = <code>30</code>) para não estourarem juntas o <b>limite de 40 req/min do EVO</b> — que fazia a grade sumir das duas. Também escalona o push do boot e a verificação inicial. Além disso, o POST da grade agora espera <b>60s</b> (aguenta o cold start do formulário free).</li>
+          <li>⏱️ <b>Escalonar o envio da grade (2 lojas no mesmo VPS)</b> (<code>.env</code>, reiniciar <code>exp</code>): <code>FORM_SLOTS_MINUTO</code> define o <b>minuto</b> em que a unidade empurra a grade ao formulário. Com duas lojas na mesma conta EVO, use minutos <b>diferentes</b> (loja 1 = <code>0</code> → envia em :00/:30; loja 2 = <code>15</code> → :15/:45 — <b>não</b> use 30, que cai nos mesmos minutos da loja 1) para não estourarem juntas o <b>limite de 40 req/min do EVO</b> — que fazia a grade sumir das duas. Também escalona o push do boot e a verificação inicial. Além disso, o POST da grade agora espera <b>60s</b> (aguenta o cold start do formulário free).</li>
           <li>🖼️ <b>Pré-visualização com o flyer</b> (reiniciar <code>painel</code>): ao clicar em <b>Pré-visualizar</b> numa mensagem com foto e "Enviar com foto" marcado, o painel mostra o <b>flyer junto do texto</b> — igual a aluna vai receber.</li>
           <li>🗄️ <b>Backup agendado na instalação</b> (script): o <code>setup-novo-studio.sh --start</code> agora <b>agenda o backup diário</b> dos dados (03:10) no cron e roda um backup inicial — nenhuma unidade nova nasce sem cópia de segurança. É por unidade (marca <code># sf-backup:&lt;slug&gt;</code>), então duas lojas no mesmo VPS convivem. A página <b>Saúde → Servidor</b> mostra o último backup.</li>
           <li>📅 <b>Cadastro Express funciona sem a SoFIA</b> (reiniciar <code>painel</code>): antes, o <b>Cadastro Express</b> dependia do processo da <b>SoFIA</b> para agendar no EVO (era a SoFIA que tirava o pedido da fila) — em unidade <b>sem SoFIA</b> ele ficava "processando" para sempre. Agora o <b>próprio painel</b> agenda, fazendo a <b>mesma chamada do formulário</b> (<code>/api/book-sofia</code>). Funciona <b>igual ao formulário</b>, sem SoFIA, IA ou QR. Onde a SoFIA <b>está</b> ligada (ex.: Bueno), convive normalmente — a captura da fila é atômica, então <b>nunca agenda em dobro</b>. O painel lê o <code>SOFIA_TOKEN</code>/URL do <code>ChatBot/.env</code> automaticamente.</li>
