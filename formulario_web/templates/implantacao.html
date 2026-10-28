@@ -491,11 +491,15 @@ echo '{"job":"renovacoesMesGrupo","mes":11}' &gt; data/rodar-job.json</pre>
         </ul>
         <p><b>Cai a cada reinício?</b> O pm2 está matando o robô antes de ele salvar a sessão. Confira:</p>
         <div class="term" style="margin:6px 0 10px"><div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS</span></div>
-<pre class="term-body">pm2 describe SEU-SLUG-exp | grep -i "kill"      <span class="c"># tem que ser 15000</span></pre></div>
-        <p>Se não for 15000, recrie o processo (vai pedir QR uma última vez — faça com o celular por perto):</p>
+<pre class="term-body">pm2 jlist | node -e 'let s="";process.stdin.on("data",d=&gt;s+=d).on("end",()=&gt;{for(const p of JSON.parse(s))console.log(p.name, p.pm2_env.kill_timeout)})'
+<span class="c"># SEU-SLUG-exp e SEU-SLUG-sofia têm que mostrar 15000</span></pre></div>
+        <p>Se não for 15000, recrie os processos (podem pedir QR uma última vez — faça com os celulares por perto):</p>
         <div class="term" style="margin:6px 0 0"><div class="term-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="lbl">VPS</span></div>
 <pre class="term-body">cd ~/SF-Chat_Experimental-Mensagens/Experimental
-pm2 delete SEU-SLUG-exp &amp;&amp; pm2 start ./scheduler-vps.sh --name SEU-SLUG-exp --interpreter bash --time --kill-timeout 15000 &amp;&amp; pm2 save</pre></div>
+pm2 delete SEU-SLUG-exp &amp;&amp; pm2 start ./scheduler-vps.sh --name SEU-SLUG-exp --interpreter bash --time --kill-timeout 15000
+cd ../ChatBot
+pm2 delete SEU-SLUG-sofia &amp;&amp; pm2 start npm --name SEU-SLUG-sofia --time --kill-timeout 15000 -- run listener
+pm2 save</pre></div>
       </div>
     </details>
 
