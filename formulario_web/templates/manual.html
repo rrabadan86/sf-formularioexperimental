@@ -160,8 +160,8 @@
   .engine .tagline{color:var(--teal);font-weight:600;font-size:.92rem;margin-bottom:14px}
   .engine p{color:var(--muted);font-size:.98rem}
   .engine ul{list-style:none;padding:0;margin:16px 0 0;display:flex;flex-direction:column;gap:9px}
-  .engine li{display:flex;gap:9px;font-size:.94rem}
-  .engine li .ck{flex:none;color:var(--teal);font-weight:800}
+  .engine li{position:relative;padding-left:19px;font-size:.94rem}
+  .engine li .ck{position:absolute;left:0;top:0;color:var(--teal);font-weight:800}
   @media(max-width:800px){.engines{grid-template-columns:1fr}}
 
   /* feature rows */
@@ -170,8 +170,9 @@
   .feat .txt h3{font-size:clamp(1.5rem,3.2vw,2.1rem);font-weight:800;margin-bottom:13px}
   .feat .txt p{color:var(--muted);font-size:1.04rem;margin-bottom:18px}
   .feat ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
-  .feat li{display:flex;gap:10px;align-items:flex-start;font-size:.97rem}
-  .feat li .ck{flex:none;width:22px;height:22px;border-radius:50%;background:var(--teal-soft);color:var(--teal);display:grid;place-items:center;font-size:.8rem;font-weight:800;margin-top:1px}
+  /* bloco com o ✓ posicionado: texto com <b> no meio continua uma frase só (com flex, cada trecho virava uma coluna) */
+  .feat li{position:relative;padding-left:32px;font-size:.97rem}
+  .feat li .ck{position:absolute;left:0;top:1px;width:22px;height:22px;border-radius:50%;background:var(--teal-soft);color:var(--teal);display:grid;place-items:center;font-size:.8rem;font-weight:800}
   @media(max-width:800px){.feat{grid-template-columns:1fr;gap:26px;padding:36px 0}.feat.rev .txt{order:0}}
 
   /* cost mock */
@@ -302,6 +303,7 @@
       <a href="#motores">O sistema</a>
       <a href="#dia">O dia do robô</a>
       <a href="#sofia">SoFIA</a>
+      <a href="#captacao">Captação</a>
       <a href="#painel">Painel</a>
       <a href="#preco">Investimento</a>
     </div>
@@ -314,8 +316,8 @@
   <div class="wrap">
     <div class="eyebrow">Automação de WhatsApp para estúdios</div>
     <h1>Seu Studio no WhatsApp,<br><span class="grad">no automático.</span></h1>
-    <p class="sub">Um robô que confirma aulas, recupera faltas, faz follow-up, avisa renovações e cuida
-      da retenção — mais a <b>SoFIA</b>, a atendente com IA que conversa e agenda sozinha. 24 horas por dia,
+    <p class="sub">Um robô que confirma aulas, recupera faltas, faz follow-up, cobra quem atrasou e avisa renovações
+      — mais a <b>SoFIA</b>, a atendente com IA que conversa e agenda sozinha. 24 horas por dia,
       sem depender de ninguém na recepção.</p>
     <div class="cta">
       <a href="#preco" class="btn btn-primary">Ver o investimento →</a>
@@ -411,7 +413,9 @@
           <li><span class="ck">›</span> Recupera faltas (no-show) com convite para remarcar</li>
           <li><span class="ck">›</span> Follow-up pós-aula com áudio da professora</li>
           <li><span class="ck">›</span> Avisa renovação de contrato 7 dias antes</li>
+          <li><span class="ck">›</span> Lê quem está em atraso no EVO e prepara a cobrança</li>
           <li><span class="ck">›</span> Aniversários, ausentes, Circuito e resumos da equipe</li>
+          <li><span class="ck">›</span> Se o EVO travar, tenta de novo sozinho — sem mandar em dobro</li>
         </ul>
       </div>
       <div class="engine reveal">
@@ -425,6 +429,7 @@
           <li><span class="ck">›</span> Etiqueta o funil sozinha e faz campanhas por tag</li>
           <li><span class="ck">›</span> Você assume a conversa quando quiser</li>
           <li><span class="ck">›</span> Entende áudios e retoma quem esfriou</li>
+          <li><span class="ck">›</span> Envia a cobrança e avisa a recepção quando uma aluna escreve</li>
         </ul>
       </div>
     </div>
@@ -437,33 +442,46 @@
     <div class="sec-head reveal">
       <div class="eyebrow">O dia do robô</div>
       <h2>Do amanhecer ao fim da noite, sem falhar.</h2>
-      <p>Cada tarefa roda no horário certo, no fuso de Brasília. Verde = mensagem para a aluna · âmbar = aviso no grupo da equipe.</p>
+      <p>Cada tarefa roda no horário certo, no fuso de Brasília — e você muda os horários no painel. Verde = mensagem para a aluna · âmbar = equipe, grupo ou painel.</p>
     </div>
     <div class="shot reveal" style="max-width:760px;margin:0 auto">
-      <div class="shot-bar"><i></i><i></i><i></i><span class="tt">Linha do tempo · seg–sáb</span></div>
+      <div class="shot-bar"><i></i><i></i><i></i><span class="tt">Linha do tempo · horários padrão (seg–sáb)</span></div>
       <div class="tl-shot">
+        <div class="tlrow"><div class="hr">05:40</div><div class="body g"><div class="ttl">Grade de matrículas <span class="tlmini g">painel</span></div><div class="ds">Lê no EVO quem ocupa cada horário fixo e atualiza a tela Grade do painel.</div></div></div>
         <div class="tlrow"><div class="hr">08:00</div><div class="body g"><div class="ttl">Parabéns às aniversariantes <span class="tlmini g">grupo</span></div><div class="ds">Marca a aniversariante nos grupos e manda os parabéns.</div></div></div>
         <div class="tlrow"><div class="hr">08:03</div><div class="body"><div class="ttl">Parabéns às ex-alunas <span class="tlmini a">aluna</span></div><div class="ds">Mensagem direta de aniversário para quem já foi aluna — convite carinhoso para voltar.</div></div></div>
-        <div class="tlrow"><div class="hr">08:30</div><div class="body"><div class="ttl">Confirmação — aula de hoje <span class="tlmini a">aluna</span></div><div class="ds">Confirma a experimental agendada para hoje.</div></div></div>
-        <div class="tlrow"><div class="hr">10:30</div><div class="body"><div class="ttl">Follow-up pós-aula <span class="tlmini a">aluna</span></div><div class="ds">Áudio da professora + convite para a matrícula.</div></div></div>
-        <div class="tlrow"><div class="hr">11:30</div><div class="body"><div class="ttl">Recupera faltas <span class="tlmini a">aluna</span></div><div class="ds">Convite carinhoso para remarcar quem faltou.</div></div></div>
-        <div class="tlrow"><div class="hr">12:00</div><div class="body"><div class="ttl">Cobrança de inadimplentes <span class="tlmini a">aluna</span></div><div class="ds">Link de pagamento (cartão) ou boleto + PIX para quem está em atraso — pela SoFIA.</div></div></div>
+        <div class="tlrow"><div class="hr">08:30</div><div class="body"><div class="ttl">Confirmação — aula de hoje <span class="tlmini a">aluna</span></div><div class="ds">Confirma a experimental agendada para hoje à tarde e à noite.</div></div></div>
+        <div class="tlrow"><div class="hr">10:20</div><div class="body"><div class="ttl">Cobrança de inadimplentes <span class="tlmini a">aluna</span></div><div class="ds">Link de pagamento (cartão), boleto ou PIX para quem está em atraso — enviada pela SoFIA. Horário e dias no painel.</div></div></div>
+        <div class="tlrow"><div class="hr">10:30</div><div class="body"><div class="ttl">Follow-up pós-aula · manhã <span class="tlmini a">aluna</span></div><div class="ds">Para quem fez a experimental ontem de manhã: áudio da professora + convite para a matrícula.</div></div></div>
+        <div class="tlrow"><div class="hr">10:45</div><div class="body"><div class="ttl">Envios agendados · manhã <span class="tlmini a">aluna</span></div><div class="ds">As mensagens que a equipe programou no painel para hoje de manhã.</div></div></div>
+        <div class="tlrow"><div class="hr">11:30</div><div class="body"><div class="ttl">Recupera faltas · manhã <span class="tlmini a">aluna</span></div><div class="ds">Convite carinhoso para remarcar quem faltou na aula da manhã.</div></div></div>
         <div class="tlrow"><div class="hr">14:00</div><div class="body"><div class="ttl">Planilha de aniversários <span class="tlmini a">planilha</span></div><div class="ds">Sincroniza as alunas ativas e os aniversários do EVO para a sua planilha do Google.</div></div></div>
         <div class="tlrow"><div class="hr">14:30</div><div class="body"><div class="ttl">Renovação de contrato <span class="tlmini a">aluna</span></div><div class="ds">Avisa quem vence em 7 dias e convida a renovar.</div></div></div>
-        <div class="tlrow"><div class="hr">15:30</div><div class="body"><div class="ttl">Confirmação — aula de amanhã <span class="tlmini a">aluna</span></div><div class="ds">Confirma a experimental de amanhã.</div></div></div>
-        <div class="tlrow"><div class="hr">16:00</div><div class="body"><div class="ttl">Presença da experimental <span class="tlmini a">funil</span></div><div class="ds">Lê a presença no EVO e fecha o funil trocando as tags.</div></div></div>
-        <div class="tlrow"><div class="hr">19:45</div><div class="body g"><div class="ttl">Resumo do dia <span class="tlmini g">grupo</span></div><div class="ds">Panorama do dia para a equipe, em blocos.</div></div></div>
+        <div class="tlrow"><div class="hr">15:30</div><div class="body"><div class="ttl">Confirmação — aula de amanhã <span class="tlmini a">aluna</span></div><div class="ds">Confirma a experimental de amanhã cedo (até 11:30).</div></div></div>
+        <div class="tlrow"><div class="hr">15:45</div><div class="body"><div class="ttl">Envios agendados · tarde <span class="tlmini a">aluna</span></div><div class="ds">As mensagens programadas para o turno da tarde.</div></div></div>
+        <div class="tlrow"><div class="hr">16:00</div><div class="body"><div class="ttl">Follow-up pós-aula · tarde <span class="tlmini a">aluna</span></div><div class="ds">Mesmo follow-up para quem fez a experimental ontem à tarde ou à noite.</div></div></div>
+        <div class="tlrow"><div class="hr">19:30</div><div class="body"><div class="ttl">Recupera faltas · tarde e noite <span class="tlmini a">aluna</span></div><div class="ds">Convite para remarcar quem faltou nas aulas da tarde e da noite.</div></div></div>
+        <div class="tlrow"><div class="hr">19:45</div><div class="body g"><div class="ttl">Resumo do dia <span class="tlmini g">grupo</span></div><div class="ds">Panorama do dia para a equipe: reposições, experimentais (fizeram/faltaram) e fechamentos.</div></div></div>
         <div class="tlrow"><div class="hr">a cada 6h</div><div class="body g"><div class="ttl">Planos FREE — desmarcação <span class="tlmini g">equipe</span></div><div class="ds">Desmarca quem tem plano FREE e marcou cedo demais (2+ dias) e avisa a equipe. Intervalo configurável no painel.</div></div></div>
       </div>
     </div>
-    <p style="text-align:center;color:var(--faint);font-size:.86rem;margin-top:16px">…e ainda ponte do formulário a cada 1 min, agendamento automático a cada 5 min e confirmações a cada 15 min.</p>
+    <p style="text-align:center;color:var(--faint);font-size:.86rem;margin-top:16px">…e o dia todo: agendamentos do formulário chegam em 1 min, a confirmação de quem acabou de agendar sai em até 15 min e os horários livres do formulário são atualizados a cada 30 min.</p>
     <div class="reveal" style="max-width:720px;margin:18px auto 0;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 20px;box-shadow:var(--shadow-sm)">
       <div style="font-family:var(--ff-disp);font-weight:800;margin-bottom:10px">E ainda, fora do dia a dia</div>
       <div style="display:grid;gap:9px;font-size:.92rem;color:var(--muted)">
-        <div>📅 <b style="color:var(--teal-deep)">Segunda</b> · Alunas <b>ausentes há +10 dias</b> no grupo da equipe · <b>presentes de tempo de casa</b></div>
+        <div>📅 <b style="color:var(--teal-deep)">Segunda</b> · Alunas <b>ausentes há +10 dias</b> e <b>presentes de tempo de casa</b> pendentes, no grupo da equipe</div>
+        <div>📅 <b style="color:var(--teal-deep)">Quarta e sexta</b> · <b>Circuito</b> — convocatória (com a professora) e lembrete</div>
         <div>📅 <b style="color:var(--teal-deep)">Sexta</b> · <b>Resumo da semana</b> no grupo da equipe</div>
-        <div>📅 <b style="color:var(--teal-deep)">Todo dia 28</b> · <b>Aniversariantes do próximo mês</b> e <b>contratos a vencer no próximo mês</b> nos grupos</div>
-        <div>📅 <b style="color:var(--teal-deep)">Quarta e sexta</b> · <b>Circuito</b> — convocatória e lembrete</div>
+        <div>📅 <b style="color:var(--teal-deep)">Sábado</b> · <b>Presença da experimental</b> — lê no EVO quem compareceu e fecha o funil trocando as tags (pode rodar a cada poucas horas)</div>
+        <div>📅 <b style="color:var(--teal-deep)">Todo dia 28</b> · <b>Aniversariantes</b> e <b>contratos a vencer</b> do próximo mês, no grupo da equipe</div>
+      </div>
+    </div>
+    <div class="reveal" style="max-width:720px;margin:14px auto 0;background:var(--teal-soft);border:1px solid var(--teal-line);border-radius:16px;padding:16px 20px">
+      <div style="font-family:var(--ff-disp);font-weight:800;margin-bottom:10px">🛡️ E se algo der errado?</div>
+      <div style="display:grid;gap:8px;font-size:.92rem;color:var(--muted)">
+        <div>🔁 O EVO travou ou demorou? O robô <b>tenta de novo sozinho</b> (depois de 2 e de 5 min) — e só repete se <b>nada</b> tiver saído, para nunca mandar em dobro.</div>
+        <div>⏳ Duas tarefas no mesmo horário? A segunda <b>espera a vez</b> e roda em seguida, em vez de ser pulada.</div>
+        <div>🔔 Não deu mesmo? Você recebe um <b>alerta no celular</b> e a falha fica registrada no Log, para reenviar com um comando.</div>
       </div>
     </div>
   </div>
@@ -522,6 +540,7 @@
           <li><span class="ck">✓</span> Move quem <b>compareceu</b> na experimental.</li>
           <li><span class="ck">✓</span> Filtra e exporta <b>4.000+ contatos</b> por etiqueta.</li>
           <li><span class="ck">✓</span> O follow-up <b>não incomoda</b> quem marcou <b>“sem interesse”</b>.</li>
+          <li><span class="ck">✓</span> <b>Automação por tag:</b> palavra-chave, intenção, campanha ou qualquer mensagem — com aviso no WhatsApp de quem você escolher.</li>
         </ul>
       </div>
       <div class="shot">
@@ -541,6 +560,7 @@
         <span style="font-size:.72rem;font-weight:800;color:var(--ok,#1a7f37);background:var(--ok-soft,#e8f5ec);border:1px solid #a7d8b4;border-radius:999px;padding:2px 10px">✅ ativo</span>
       </div>
       <p style="margin:10px 0 0">Quem já é <b>aluna do Studio</b> é tratada diferente de um lead. No <b>horário da recepção</b> (que você define), a SoFIA fica <b>calada</b> para as alunas — quem responde é a recepcionista. <b>Fora desse horário</b>, ela cobre: cumprimenta pelo nome, <b>sem apresentação nem tabela de preços</b>, e ajuda com o que a aluna precisa. Configurável em <b>SoFIA → Configuração → 🎓 Alunas contratadas</b> (etiqueta da aluna, janela da recepção e WhatsApp de aviso).</p>
+      <p style="margin:8px 0 0">E a recepção não perde nada: com a automação de tag <b>“só para quem já tem a tag 0. Aluna”</b>, cada vez que uma aluna escreve, a recepção recebe no WhatsApp <b>o nome e a mensagem dela</b> — e a conversa ganha a marca <b>“🔔 Recepção avisada”</b>.</p>
     </div>
 
     <div class="reveal" style="margin:28px 0;padding:22px 24px;border:1px solid var(--teal-line,#cfe6e2);border-radius:16px;background:var(--teal-soft,#f0f7f6)">
@@ -548,8 +568,8 @@
         <span style="font-size:1.1rem;font-weight:800">💳 Cobrança de inadimplentes</span>
         <span style="font-size:.72rem;font-weight:800;color:var(--ok,#1a7f37);background:var(--ok-soft,#e8f5ec);border:1px solid #a7d8b4;border-radius:999px;padding:2px 10px">✅ ativo</span>
       </div>
-      <p style="margin:10px 0 0">A <b>SoFIA</b> cobra — pelo número dela — quem está com a mensalidade <b>vencida</b>. Para quem paga no <b>cartão (recorrente)</b>, manda o <b>link de pagamento</b>; para quem é <b>boleto</b>, manda o <b>boleto</b> (e avisa quando <b>vence hoje</b>), com a <b>chave PIX</b> e o <b>valor</b>. Reenvia <b>todo dia até pagar</b> (no máximo 1×/dia) e só marca como avisada quando o envio é <b>confirmado</b>.</p>
-      <p style="margin:8px 0 0;font-size:.85rem;color:var(--faint,#8a8f98)">Configurável em <b>SoFIA → Cobrança</b>: textos, a partir de quantos dias de atraso, horário e o liga/desliga de cada mensagem. A SoFIA precisa estar conectada.</p>
+      <p style="margin:10px 0 0">A <b>SoFIA</b> cobra — pelo número dela — quem está com a mensalidade <b>vencida</b>. Para quem paga no <b>cartão (recorrente)</b>, manda o <b>link de pagamento</b>; para quem é <b>boleto</b>, manda o <b>boleto</b> (e avisa quando <b>vence hoje</b>); para parcela <b>sem boleto</b> (saldo devedor), manda o <b>valor e a chave PIX</b>. Lê <b>todas as páginas</b> da lista de devedores, reenvia nos dias escolhidos <b>até pagar</b> (no máximo 1×/dia) e só marca como avisada quando o envio é <b>confirmado</b>. Cada cobrança aparece no <b>Log</b> e na conversa da aluna.</p>
+      <p style="margin:8px 0 0;font-size:.85rem;color:var(--faint,#8a8f98)">Configurável em <b>SoFIA → Cobrança</b>: textos, a partir de quantos dias de atraso, horário, dias da semana e o liga/desliga de cada mensagem. A SoFIA precisa estar conectada.</p>
     </div>
 
     <div class="reveal" style="margin:28px 0;padding:22px 24px;border:1px solid var(--teal-line,#cfe6e2);border-radius:16px;background:var(--teal-soft,#f0f7f6)">
@@ -615,6 +635,72 @@
   </div>
 </section>
 
+<!-- CAPTAÇÃO E RELACIONAMENTO -->
+<section id="captacao" style="background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Captação e relacionamento</div>
+      <h2>Mais gente entrando. Mais motivo para ficar.</h2>
+      <p>Além das rotinas do dia, o painel traz ferramentas para encher a lista de interessadas e fortalecer a comunidade de alunas.</p>
+    </div>
+
+    <div class="feat reveal" style="border-bottom:1px solid var(--line-soft)">
+      <div class="txt">
+        <h3>Formulários de campanha, montados por você.</h3>
+        <p>Black Friday, evento, lista VIP: você cria o formulário no painel, divulga o link e acompanha quem se interessou — sem planilha à mão.</p>
+        <ul>
+          <li><span class="ck">✓</span> Perguntas do seu jeito: resposta curta, escolha única, várias opções, data, e-mail.</li>
+          <li><span class="ck">✓</span> <b>Flyer de capa</b> e visual claro ou <b>escuro</b> (preto e vermelho, para Black Friday).</li>
+          <li><span class="ck">✓</span> <b>Aberturas, pessoas e conversão</b> — e de onde vieram (Instagram, WhatsApp…).</li>
+          <li><span class="ck">✓</span> Quem responde entra nos Contatos <b>com uma tag</b> — e recebe a oferta numa campanha da SoFIA.</li>
+          <li><span class="ck">✓</span> Lista com WhatsApp clicável e <b>planilha</b> para baixar.</li>
+        </ul>
+      </div>
+      <div class="shot">
+        <div class="shot-bar"><i></i><i></i><i></i><span class="tt">Formulário · Black Friday</span></div>
+        <div class="tiles">
+          <div class="tile"><div class="big ink">312</div><div class="cap">aberturas</div></div>
+          <div class="tile"><div class="big ink">208</div><div class="cap">pessoas</div></div>
+          <div class="tile"><div class="big ink">67</div><div class="cap">respostas</div></div>
+          <div class="tile"><div class="big">32%</div><div class="cap">conversão</div></div>
+        </div>
+        <div class="typerow"><span>📸</span><span class="nm">instagram</span><span style="color:var(--faint)">· 140 pessoas</span><span class="vv">49 respostas</span></div>
+        <div class="typerow"><span>💬</span><span class="nm">whatsapp</span><span style="color:var(--faint)">· 68 pessoas</span><span class="vv">18 respostas</span></div>
+        <div class="typerow"><span>🏷️</span><span class="nm">Tag nos contatos</span><span class="vv" style="color:var(--coral)">Black Friday</span></div>
+      </div>
+    </div>
+
+    <div class="feat rev reveal" style="border-bottom:1px solid var(--line-soft)">
+      <div class="txt">
+        <h3>Slim Club: o clube de vantagens das alunas.</h3>
+        <p>Alunas empresárias cadastram o próprio negócio com um desconto real para as colegas. A recepção aprova, e todas veem a lista entrando com o telefone do cadastro.</p>
+        <ul>
+          <li><span class="ck">✓</span> Cadastro pelo link — de alunas e de <b>empresas parceiras</b> (com logo).</li>
+          <li><span class="ck">✓</span> A recepção <b>valida</b> cada anúncio antes de ir ao ar; a dona pode editar ou excluir o dela.</li>
+          <li><span class="ck">✓</span> <b>Carteirinha digital</b> e <b>código de conferência</b> de 6 dígitos para o negócio confirmar o uso.</li>
+          <li><span class="ck">✓</span> 👍 recomendação de quem usou e 👎 reclamação que só a recepção vê.</li>
+          <li><span class="ck">✓</span> Só entra quem tem a tag de aluna — saiu do Studio, sai do clube.</li>
+        </ul>
+      </div>
+      <div class="shot">
+        <div class="shot-bar"><i></i><i></i><i></i><span class="tt">Slim Club · listagem das alunas</span></div>
+        <div>
+          <div class="ct"><div class="av" style="background:#b06d84">BE</div><div><div class="nm">Bella Estética</div><div class="ph">Beleza · 👍 12</div></div><span class="tg tag coral">15% off</span></div>
+          <div class="ct"><div class="av" style="background:#3f6f9f">NC</div><div><div class="nm">Nutri Camila</div><div class="ph">Saúde · 👍 8</div></div><span class="tg tag coral">1ª consulta grátis</span></div>
+          <div class="ct"><div class="av" style="background:#4a8f88">CA</div><div><div class="nm">Café do Lago</div><div class="ph">Empresa parceira</div></div><span class="tg tag">10% off</span></div>
+          <div class="ct" style="border:0"><div class="av" style="background:#8a6db0">MK</div><div><div class="nm">Ateliê Mika</div><div class="ph">Moda · 👍 5</div></div><span class="tg tag coral">20% off</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fgrid" style="margin-top:34px">
+      <div class="fcard reveal"><div class="ic">🗓️</div><h4>Envios agendados</h4><p>Programe uma mensagem (texto ou foto com legenda) para um dia e turno — o robô envia no horário, sem ninguém lembrar.</p></div>
+      <div class="fcard reveal"><div class="ic">📲</div><h4>Formulário de agendamento</h4><p>A lead escolhe dia e horário com <b>vaga real</b> e já fica agendada no EVO. Links por origem mostram de onde vem cada agendamento.</p></div>
+      <div class="fcard reveal"><div class="ic">🏪</div><h4>Cadastro Express</h4><p>A recepção cadastra a lead e agenda a experimental no EVO em segundos, direto do painel — sem abrir o EVO.</p></div>
+    </div>
+  </div>
+</section>
+
 <!-- ANTES x DEPOIS -->
 <section id="antesdepois">
   <div class="wrap">
@@ -634,6 +720,7 @@
           <li><span class="ck" style="color:var(--coral)">✕</span><span>A mensalidade vence e alguém <b>precisa lembrar</b> de cobrar.</span></li>
           <li><span class="ck" style="color:var(--coral)">✕</span><span>O contrato vence e você percebe <b>tarde demais</b>.</span></li>
           <li><span class="ck" style="color:var(--coral)">✕</span><span>Pergunta de madrugada fica <b>sem resposta</b>.</span></li>
+          <li><span class="ck" style="color:var(--coral)">✕</span><span>Interessadas da promoção ficam <b>anotadas no papel</b>.</span></li>
         </ul>
       </div>
       <div class="engine reveal" style="border-color:var(--teal-line);background:var(--teal-soft)">
@@ -646,6 +733,7 @@
           <li><span class="ck">✓</span><span>A cobrança <b>sai sozinha</b> e reenvia até pagar.</span></li>
           <li><span class="ck">✓</span><span>O aviso de renovação sai <b>7 dias antes</b>.</span></li>
           <li><span class="ck">✓</span><span>A SoFIA atende <b>a qualquer hora</b>, todo dia.</span></li>
+          <li><span class="ck">✓</span><span>A lista sai do <b>formulário</b>, já com tag para a campanha.</span></li>
         </ul>
       </div>
     </div>
@@ -664,8 +752,8 @@
     <div class="shot reveal" style="max-width:760px;margin:0 auto 26px">
       <div class="shot-bar"><i></i><i></i><i></i><span class="tt">Painel do Studio · Saúde</span></div>
       <div class="ptabs">
-        <span class="ptab">📈 Formulário</span><span class="ptab">💬 WhatsApp</span>
-        <span class="ptab on">🤖 SoFIA</span><span class="ptab">👤 Perfis</span><span class="ptab">🩺 Saúde</span>
+        <span class="ptab on">🤖 SoFIA</span><span class="ptab">💬 WhatsApp</span>
+        <span class="ptab">📈 Formulário</span><span class="ptab">📋 Grade</span><span class="ptab">🤝 Slim Club</span><span class="ptab">👤 Perfis</span><span class="ptab">🩺 Saúde</span>
       </div>
       <div class="phealth">
         <div class="hc"><span class="d ok"></span> Robô — no ar</div>
@@ -674,11 +762,15 @@
       </div>
     </div>
     <div class="fgrid">
-      <div class="fcard reveal"><div class="ic">📈</div><h4>Funil de agendamento</h4><p>Quantas pessoas visitaram, quantas agendaram, conversão por canal e horários de pico.</p></div>
-      <div class="fcard reveal"><div class="ic">💬</div><h4>WhatsApp do robô</h4><p>Conexão por QR, textos de cada mensagem, horários e o log de tudo que saiu no dia.</p></div>
-      <div class="fcard reveal"><div class="ic">👤</div><h4>Perfis e sessões</h4><p>Cria usuários e escolhe as telas de cada um (login também pelo Google). Vê as <b>sessões ativas</b>, <b>encerra</b> qualquer uma e define <b>quantos dias</b> a sessão dura.</p></div>
+      <div class="fcard reveal"><div class="ic">🤖</div><h4>SoFIA</h4><p>Conversas ao vivo, contatos e tags, campanhas, funil, cobrança e o custo da IA em reais — e a conexão do WhatsApp dela.</p></div>
+      <div class="fcard reveal"><div class="ic">💬</div><h4>WhatsApp do robô</h4><p>Conexão por QR, o texto de cada mensagem, horários, envios agendados e o <b>Log</b> de tudo que saiu no dia — inclusive cobranças e avisos.</p></div>
+      <div class="fcard reveal"><div class="ic">📈</div><h4>Formulário</h4><p>Funil do agendamento online (visitas, agendamentos, conversão por canal) e os <b>formulários de campanha</b>.</p></div>
+      <div class="fcard reveal"><div class="ic">📋</div><h4>Grade de matrículas</h4><p>Quem ocupa cada horário fixo da semana, atualizado todo dia pelo EVO — para ver onde ainda cabe aluna.</p></div>
+      <div class="fcard reveal"><div class="ic">🤝</div><h4>Slim Club</h4><p>Aprova cadastros e alterações, vê recomendações, reclamações e excluídos, e configura o clube.</p></div>
+      <div class="fcard reveal"><div class="ic">👤</div><h4>Perfis e sessões</h4><p>Cria usuários e escolhe as telas de cada um (login também pelo Google). Vê as <b>sessões ativas</b>, encerra qualquer uma e registra quem fez o quê.</p></div>
       <div class="fcard reveal"><div class="ic">🩺</div><h4>Página de saúde</h4><p>Robô, SoFIA e formulário — verde, amarelo ou vermelho, num lugar só.</p></div>
-      <div class="fcard reveal"><div class="ic">🔔</div><h4>Alertas no celular</h4><p>Se algo sai do ar ou o WhatsApp cai, um vigia externo te avisa na hora — e quando volta.</p></div>
+      <div class="fcard reveal"><div class="ic">🔔</div><h4>Alertas no celular</h4><p>Se algo sai do ar, o WhatsApp cai ou uma tarefa falha, você é avisado na hora — e quando volta.</p></div>
+      <div class="fcard reveal"><div class="ic">🔐</div><h4>Privacidade (LGPD)</h4><p>Política de privacidade pública, pronta para o Google, a Meta e os formulários — com o nome da sua unidade.</p></div>
     </div>
   </div>
 </section>
