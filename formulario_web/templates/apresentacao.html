@@ -1,0 +1,440 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roteiro de Apresentação</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="https://slimfitbrasil.com.br/wp-content/uploads/2025/09/cropped-Untitled-1-32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="https://slimfitbrasil.com.br/wp-content/uploads/2025/09/cropped-Untitled-1-192x192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#F4F6F6; --surface:#FFFFFF; --surface-2:#F0F4F3; --border:#E4E9E8;
+    --text:#14201E; --text-soft:#556764; --muted:#8A9997;
+    --accent:#0E6E6B; --accent-2:#0A4F4C; --accent-soft:#E4F1F0;
+    --teal:#EC6A5E; --teal-soft:#FCECE9;
+    --amber:#A9711A; --amber-soft:#F6EAD6;
+    --term-bg:#0E1A18; --term-text:#EAF3F1; --term-muted:#7F938F; --term-accent:#3BB3A8; --term-green:#7DDF9E;
+    --shadow:0 1px 2px rgba(12,60,58,.05),0 6px 22px rgba(12,60,58,.07);
+    --radius:15px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0C1312; --surface:#131E1C; --surface-2:#0F1918; --border:#22302E;
+      --text:#EEF4F3; --text-soft:#A4B4B2; --muted:#6F817F;
+      --accent:#3BB3A8; --accent-2:#7FD8CE; --accent-soft:#123230;
+      --teal:#F18B7F; --teal-soft:#2A1A17;
+      --amber:#E1A945; --amber-soft:#332610;
+      --term-bg:#08100F; --term-text:#EAF3F1; --term-muted:#6F817F; --term-accent:#3BB3A8; --term-green:#7DDF9E;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0C1312; --surface:#131E1C; --surface-2:#0F1918; --border:#22302E;
+    --text:#EEF4F3; --text-soft:#A4B4B2; --muted:#6F817F;
+    --accent:#3BB3A8; --accent-2:#7FD8CE; --accent-soft:#123230;
+    --teal:#F18B7F; --teal-soft:#2A1A17;
+    --amber:#E1A945; --amber-soft:#332610;
+    --term-bg:#08100F; --term-text:#EAF3F1; --term-muted:#6F817F; --term-accent:#3BB3A8; --term-green:#7DDF9E;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  /* Trava a rolagem horizontal: se algum conteúdo passar da largura da tela,
+     a página não "desloca" pro lado (era o que jogava tudo p/ a esquerda). */
+  html,body{overflow-x:clip; max-width:100%}
+  img,svg,video{max-width:100%; height:auto}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    font-size:17px; line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:900px; margin:0 auto; padding:0 22px}
+  h1,h2,h3{font-family:"Manrope",system-ui,sans-serif; font-weight:700; text-wrap:balance; margin:0}
+  a{color:var(--accent)}
+  code,.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+  .eyebrow{font-family:"JetBrains Mono",monospace; font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted)}
+  :not(pre) > code{background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:.08em .4em;font-size:.85em;color:var(--accent)}
+
+  /* HERO */
+  header.hero{
+    background:
+      radial-gradient(120% 140% at 88% -20%, var(--accent-soft) 0%, transparent 55%),
+      radial-gradient(120% 120% at 0% 0%, var(--teal-soft) 0%, transparent 45%);
+    border-bottom:1px solid var(--border);
+  }
+  .hero-in{padding:50px 0 42px}
+  .brand{display:flex; align-items:center; gap:10px; font-family:"Manrope",sans-serif; font-weight:800; font-size:1.1rem; letter-spacing:-.01em}
+  .brand .brand-logo{height:28px; width:auto; display:block}
+  .brand .fit{color:var(--teal)}
+  .brand .reg{font-size:.72em; color:var(--muted); font-weight:600}
+  h1{font-size:clamp(2rem,5.5vw,3.1rem); line-height:1.04; font-weight:800; letter-spacing:-.02em; margin:.5em 0 .3em; max-width:18ch}
+  h1 .accent{color:var(--accent)}
+  .lede{font-size:1.1rem; color:var(--text-soft); max-width:62ch; margin:0}
+  .facts{display:flex;flex-wrap:wrap;gap:9px;margin-top:22px}
+  .fact{font-size:.84rem;font-family:"JetBrains Mono",monospace;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:6px 13px;box-shadow:var(--shadow);color:var(--text-soft)}
+  .fact b{color:var(--text);font-weight:700}
+
+  section{padding:44px 0}
+  section + section{border-top:1px solid var(--border)}
+  .sec-head{margin-bottom:22px}
+  .sec-head h2{font-size:clamp(1.4rem,3.4vw,1.95rem); letter-spacing:-.015em}
+  .sec-head p{color:var(--text-soft); margin:.5em 0 0; max-width:66ch}
+
+  /* callout */
+  .call{display:flex;gap:14px;border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
+  .call.danger{background:var(--amber-soft);border:1px solid color-mix(in srgb,var(--amber) 34%,transparent)}
+  .call.info{background:var(--teal-soft);border:1px solid color-mix(in srgb,var(--teal) 30%,transparent)}
+  .call .ic{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-weight:800;color:#fff}
+  .call.danger .ic{background:var(--amber)}
+  .call.info .ic{background:var(--teal)}
+  .call h3{font-size:1.02rem;margin-bottom:5px}
+  .call p{margin:0;color:var(--text-soft);font-size:.94rem}
+  .call ul{margin:8px 0 0;padding-left:18px;color:var(--text-soft);font-size:.93rem;display:flex;flex-direction:column;gap:5px}
+  .call b{color:var(--text);font-weight:600}
+
+  /* phase */
+  .phase{display:flex;align-items:center;gap:13px;margin:8px 0 20px}
+  .phase .pn{flex:none;font-family:"JetBrains Mono",monospace;font-weight:700;font-size:.72rem;letter-spacing:.1em;color:#fff;background:var(--accent);padding:6px 12px;border-radius:8px;text-transform:uppercase}
+  .phase h2{font-size:1.5rem;letter-spacing:-.015em}
+
+  .stepblock{margin:0 0 22px}
+  .stepblock > h3{font-size:1.08rem;display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+  .stepblock > h3 .num{font-family:"JetBrains Mono",monospace;font-size:.8rem;color:var(--accent);font-weight:700}
+  .stepblock > p{margin:0 0 12px;color:var(--text-soft);font-size:.95rem;max-width:64ch}
+
+  .tip{font-size:.9rem;color:var(--text-soft);background:var(--surface);border-left:3px solid var(--teal);border-radius:0 10px 10px 0;padding:10px 14px;margin:10px 0}
+  .tip b{color:var(--text);font-weight:600}
+
+  /* checklist */
+  .chk{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px}
+  .chk li{display:flex;gap:11px;align-items:flex-start;font-size:.95rem;color:var(--text-soft)}
+  .chk .box{flex:none;width:22px;height:22px;border-radius:7px;border:2px solid var(--accent);display:grid;place-items:center;color:var(--accent);font-weight:800;font-size:.8rem;margin-top:1px}
+  .chk li b{color:var(--text);font-weight:600}
+
+  /* índice */
+  .toc{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;margin:0;padding:0;list-style:none;counter-reset:toc}
+  .toc li{counter-increment:toc}
+  .toc a{display:flex;gap:10px;align-items:baseline;text-decoration:none;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:10px 13px;font-weight:600;font-size:.94rem;box-shadow:var(--shadow)}
+  .toc a::before{content:counter(toc);font-family:"JetBrains Mono",monospace;font-size:.78rem;color:var(--accent);font-weight:700}
+  .toc a:hover{border-color:var(--accent)}
+  .toc small{display:block;font-weight:400;color:var(--text-soft);font-size:.8rem}
+  /* blocos recolhíveis (problemas, opcionais, histórico) */
+  details.fold{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin:10px 0;box-shadow:var(--shadow)}
+  details.fold > summary{cursor:pointer;list-style:none;padding:13px 16px;font-family:"Manrope",sans-serif;font-weight:700;font-size:1rem;display:flex;gap:10px;align-items:center}
+  details.fold > summary::-webkit-details-marker{display:none}
+  details.fold > summary::after{content:"+";margin-left:auto;font-family:"JetBrains Mono",monospace;color:var(--accent);font-weight:700}
+  details.fold[open] > summary::after{content:"–"}
+  details.fold > .in{padding:0 16px 14px;color:var(--text-soft);font-size:.94rem}
+  details.fold > .in p{margin:0 0 10px}
+  details.fold > .in ul,details.fold > .in ol{margin:0 0 10px;padding-left:20px;display:flex;flex-direction:column;gap:5px}
+  details.fold b{color:var(--text);font-weight:600}
+  
+  /* ── Roteiro: peças próprias ── */
+  .wrap.hero-in{padding-left:22px;padding-right:22px}
+  .chk.on li.feito span.t b{color:var(--muted)}
+  .agenda{display:flex;gap:3px;margin:6px 0 10px;border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+  .agenda a{display:flex;flex-direction:column;justify-content:space-between;gap:6px;min-width:0;padding:11px 12px;text-decoration:none;color:var(--text);background:var(--surface);border-top:4px solid var(--accent)}
+  .agenda a:hover{background:var(--surface-2)}
+  .agenda a.conv{border-top-color:var(--teal)}
+  .agenda a.fim{border-top-color:var(--amber)}
+  .agenda .min{font-family:"JetBrains Mono",monospace;font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
+  .agenda .nm{font-family:"Manrope",sans-serif;font-weight:700;font-size:.9rem;line-height:1.25}
+  .agenda .tl{font-size:.78rem;color:var(--text-soft);line-height:1.35}
+  .leg{display:flex;flex-wrap:wrap;gap:14px;font-size:.8rem;color:var(--text-soft)}
+  .leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+  .fala{position:relative;margin:12px 0;padding:14px 18px 14px 46px;background:var(--accent-soft);border-radius:var(--radius);color:var(--text);font-size:1rem;line-height:1.55}
+  .fala::before{content:"“";position:absolute;left:14px;top:2px;font-family:"Manrope",sans-serif;font-size:2.6rem;font-weight:800;color:var(--accent);line-height:1}
+  .fala .quem{display:block;font-family:"JetBrains Mono",monospace;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
+
+  .tab{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface);box-shadow:var(--shadow);margin:12px 0}
+  .tab table{width:100%;border-collapse:collapse;font-size:.92rem;min-width:520px}
+  .tab th{text-align:left;font-family:"JetBrains Mono",monospace;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);background:var(--surface-2);padding:10px 14px;font-weight:600}
+  .tab td{padding:10px 14px;border-top:1px solid var(--border);vertical-align:top;color:var(--text-soft)}
+  .tab td:first-child{color:var(--text);font-weight:600}
+  .tab td.min{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:500}
+
+  .mods{display:flex;flex-direction:column;gap:14px}
+  .mod{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px}
+  .mod-h{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+  .mod-h .n{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:.78rem;color:#fff;background:var(--accent);border-radius:7px;padding:3px 9px}
+  .mod-h h3{font-size:1.12rem}
+  .mod-h .onde{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:.74rem;color:var(--muted);font-variant-numeric:tabular-nums}
+  .mod.destaque{border-color:color-mix(in srgb,var(--accent) 45%,var(--border))}
+  .mod .nota{margin:0 0 10px;font-size:.92rem;color:var(--text)}
+  .passos{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+  .passos li{display:grid;grid-template-columns:78px minmax(0,1fr);gap:10px;font-size:.94rem;color:var(--text-soft)}
+  .passos .k{font-family:"JetBrains Mono",monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding-top:3px}
+  .passos .k.ver{color:var(--accent)}
+  .passos .k.diz{color:var(--teal)}
+  .passos .k.num{color:var(--amber)}
+  .passos .k.atn{color:var(--amber)}
+  .passos li b{color:var(--text);font-weight:600}
+  .passos .q{color:var(--text);font-style:italic}
+
+  .chk.on li{cursor:pointer;user-select:none}
+  .chk.on li .box{transition:background .15s}
+  .chk.on li.feito .box{background:var(--accent);color:#fff}
+  .chk.on li.feito .box::after{content:"✓"}
+  .chk.on li.feito span.t{text-decoration:line-through;color:var(--muted)}
+  .chk-acoes{margin-top:10px}
+  .chk-acoes button{font:inherit;font-size:.82rem;background:none;border:1px solid var(--border);color:var(--text-soft);border-radius:8px;padding:5px 11px;cursor:pointer}
+  .chk-acoes button:hover{border-color:var(--accent);color:var(--accent)}
+
+  ol.num{margin:10px 0;padding-left:22px;display:flex;flex-direction:column;gap:6px;color:var(--text-soft)}
+  ol.num b{color:var(--text);font-weight:600}
+  .dica-tela{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:.74rem;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:1px 7px;white-space:nowrap}
+
+  @media(max-width:640px){
+    .agenda{flex-direction:column}
+    .agenda a{flex:none!important;flex-direction:row;align-items:baseline;border-top:0;border-left:4px solid var(--accent)}
+    .agenda a.conv{border-left-color:var(--teal)} .agenda a.fim{border-left-color:var(--amber)}
+    .agenda .tl{display:none}
+    .passos li{grid-template-columns:1fr;gap:2px}
+    .mod-h .onde{margin-left:0;width:100%}
+  }
+  @media print{ .mod,.fala,.tab,details.fold{break-inside:avoid} details.fold > .in{display:block} .chk-acoes{display:none} }
+  @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
+
+<header class="hero">
+  <div class="wrap hero-in">
+    <div class="brand"><img class="brand-logo" alt="SlimFit Studio" src="https://slimfitbrasil.com.br/wp-content/uploads/2025/09/logo-com-contraste.svg"> <span class="reg">Robô · apresentação</span></div>
+    <h1>Roteiro de <span class="accent">apresentação</span></h1>
+    <p class="lede">O passo a passo da reunião com quem quer o sistema no studio: o que perguntar, o que mostrar em cada tela, o que falar e como fechar.</p>
+    <div class="facts">
+      <span class="fact"><b>45 min</b> de reunião</span>
+      <span class="fact"><b>/manual</b> + painel ao vivo</span>
+      <span class="fact"><b>1 data</b> marcada no fim</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- AGENDA -->
+  <section id="agenda">
+    <div class="sec-head"><span class="eyebrow">A reunião</span><h2>45 minutos, em 5 blocos</h2>
+      <p>Mostre primeiro o que resolve a dor que o interessado contar, e não o sistema inteiro na ordem. Clique num bloco para ir até ele.</p></div>
+    <nav class="agenda" aria-label="Blocos da reunião">
+      <a href="#diagnostico" class="conv" style="flex:10"><span class="min">0–10 min</span><span class="nm">Abertura e diagnóstico</span><span class="tl">Sua câmera, sem tela</span></a>
+      <a href="#demo" style="flex:5"><span class="min">10–15</span><span class="nm">Visão geral</span><span class="tl">/manual</span></a>
+      <a href="#demo-painel" style="flex:20"><span class="min">15–35 min</span><span class="nm">Demonstração ao vivo</span><span class="tl">Painel: SoFIA, WhatsApp, Indicadores</span></a>
+      <a href="#implantacao" class="fim" style="flex:5"><span class="min">35–40</span><span class="nm">Implantação</span><span class="tl">/manual</span></a>
+      <a href="#fechamento" class="fim" style="flex:5"><span class="min">40–45</span><span class="nm">Fechamento</span><span class="tl">Investimento</span></a>
+    </nav>
+    <div class="leg"><span><i style="background:var(--teal)"></i>conversa</span><span><i style="background:var(--accent)"></i>demonstração</span><span><i style="background:var(--amber)"></i>negócio</span></div>
+  </section>
+
+  <!-- PREPARAÇÃO -->
+  <section id="preparo">
+    <div class="sec-head"><span class="eyebrow">15 minutos antes</span><h2>Preparação</h2>
+      <p>Toque em cada item para marcar. As marcas ficam só neste aparelho.</p></div>
+    <ul class="chk on" id="chkPrep">
+      <li data-k="p1"><span class="box"></span><span class="t">Abrir o <b>/manual</b> numa aba e o <b>painel do Bueno</b>, já logado, em outra.</span></li>
+      <li data-k="p2"><span class="box"></span><span class="t">Separar no painel uma <b>conversa da SoFIA que terminou em agendamento</b>, para mostrar.</span></li>
+      <li data-k="p3"><span class="box"></span><span class="t">Abrir o <b>Funil</b> e as <b>Professoras</b> no período "30 dias", com números bons para mostrar.</span></li>
+      <li data-k="p4"><span class="box"></span><span class="t">Ter no celular o <b>WhatsApp do Studio</b>, para mostrar uma mensagem que o robô enviou de verdade.</span></li>
+      <li data-k="p5"><span class="box"></span><span class="t">Anotar o <b>nome do studio</b>, a cidade e quem vai estar na reunião (dono, gerente, recepção).</span></li>
+      <li data-k="p6"><span class="box"></span><span class="t"><b>Cuidado com os dados das alunas:</b> não ampliar telefones nem abrir fichas de Contatos com a tela compartilhada.</span></li>
+    </ul>
+    <div class="chk-acoes"><button type="button" onclick="limparChk('chkPrep')">Desmarcar tudo</button></div>
+  </section>
+
+  <!-- DIAGNÓSTICO -->
+  <section id="diagnostico">
+    <div class="phase"><span class="pn">0–10 min</span><h2>Abertura e diagnóstico</h2></div>
+    <p style="margin:0 0 6px;color:var(--text-soft);max-width:66ch">Antes de mostrar qualquer tela, descubra as 2 ou 3 maiores dores do studio. A demonstração depois começa por elas.</p>
+    <div class="fala"><span class="quem">Abertura · 1 minuto</span>Este sistema nasceu dentro de um studio SlimFit, para resolver os problemas do dia a dia: aula experimental que não aparece, lead que chega fora do horário, cobrança e renovação. Hoje ele roda no Bueno, no Park Sul, no Guará e no Lago Sul. Antes de te mostrar, quero entender como é aí, para eu mostrar só o que faz sentido para você.</div>
+    <h3 style="font-size:1.05rem;margin:22px 0 4px">Perguntas</h3>
+    <p style="margin:0;color:var(--text-soft);font-size:.94rem">Anote as respostas: elas dizem por onde começar a demonstração.</p>
+    <div class="tab"><table>
+      <thead><tr><th>Pergunta</th><th>Se a resposta indicar dor, mostre</th></tr></thead>
+      <tbody>
+        <tr><td>Quantas alunas ativas você tem hoje e quantas experimentais por mês?</td><td>Indicadores: Funil e Alunas ativas</td></tr>
+        <tr><td>De cada 10 experimentais agendadas, quantas aparecem?</td><td>Confirmação de hoje e de amanhã, recuperação de faltas</td></tr>
+        <tr><td>Quem responde o WhatsApp à noite e no fim de semana?</td><td>SoFIA</td></tr>
+        <tr><td>Como você cobra quem atrasou a mensalidade?</td><td>Cobrança pela SoFIA</td></tr>
+        <tr><td>Você fica sabendo antes quando um contrato vai vencer?</td><td>Renovação 7 dias antes, contratos a vencer no mês</td></tr>
+        <tr><td>Você sabe qual professora converte mais na experimental?</td><td>Indicadores: Professoras</td></tr>
+        <tr><td>Quanto tempo a recepção gasta por dia confirmando e lembrando aulas?</td><td>O dia do robô (linha do tempo)</td></tr>
+        <tr><td>Usa o EVO? Quantas unidades tem?</td><td>Implantação (duas lojas no mesmo servidor)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="fala"><span class="quem">Feche o diagnóstico</span>Então o que mais pesa hoje é <b>X</b> e <b>Y</b>. Vou começar por aí.</div>
+  </section>
+
+  <!-- DEMONSTRAÇÃO -->
+  <section id="demo">
+    <div class="phase"><span class="pn">10–35 min</span><h2>Demonstração</h2></div>
+    <p style="margin:0 0 18px;color:var(--text-soft);max-width:66ch">Comece pela visão geral no /manual e passe para o painel ao vivo. No painel, abra primeiro o módulo ligado à maior dor do diagnóstico; os outros entram na ordem abaixo, mais rápidos.</p>
+    <div class="mods">
+
+      <article class="mod">
+        <div class="mod-h"><span class="n">1</span><h3>Visão geral</h3><span class="onde">/manual · 5 min</span></div>
+        <ul class="passos">
+          <li><span class="k ver">Mostrar</span><span>O topo, <b>"No seu bolso"</b> e <b>"O sistema"</b>.</span></li>
+          <li><span class="k diz">Falar</span><span class="q">"São dois motores. O robô faz as rotinas do dia no WhatsApp do Studio. A SoFIA é uma atendente com IA, num número só dela, que conversa e agenda sozinha. Tudo roda num servidor, 24 horas, sem computador ligado na recepção."</span></li>
+          <li><span class="k num">Números</span><span>Cerca de <b>30 tarefas</b> automáticas por dia; <b>R$ 0,26</b> de IA por conversa, em média.</span></li>
+        </ul>
+      </article>
+
+      <article class="mod" id="demo-painel">
+        <div class="mod-h"><span class="n">2</span><h3>O dia do robô</h3><span class="onde">/manual e painel → WhatsApp · 5 min</span></div>
+        <ul class="passos">
+          <li><span class="k ver">Mostrar</span><span>No /manual, a linha do tempo <b>"O dia do robô"</b>, de 05:40 a 19:45.</span></li>
+          <li><span class="k ver">Mostrar</span><span>No painel, <span class="dica-tela">WhatsApp → Configuração</span>: abra a confirmação da experimental e mostre o texto, o horário, os dias e o liga/desliga.</span></li>
+          <li><span class="k ver">Mostrar</span><span><span class="dica-tela">WhatsApp → Log</span>: tudo o que saiu hoje, e o botão <b>↻ Reenviar</b> quando um número estava errado.</span></li>
+          <li><span class="k diz">Falar</span><span class="q">"Você muda o texto e o horário aqui, e vale no próximo envio. Se o EVO travar, o robô tenta de novo sozinho e nunca manda em dobro. Se algo falhar, você recebe um alerta no celular."</span></li>
+          <li><span class="k num">Destaque</span><span>Conforme a dor: confirmação e recuperação de faltas (no-show), renovação 7 dias antes, aniversário nos grupos.</span></li>
+        </ul>
+      </article>
+
+      <article class="mod">
+        <div class="mod-h"><span class="n">3</span><h3>SoFIA</h3><span class="onde">painel → SoFIA · 7 min</span></div>
+        <ul class="passos">
+          <li><span class="k ver">Mostrar</span><span><span class="dica-tela">Conversas</span>: abra a conversa que você separou e leia o trecho em que ela oferece horário e agenda.</span></li>
+          <li><span class="k ver">Mostrar</span><span>O botão de <b>assumir a conversa</b>: "Você entra quando quiser, a SoFIA para na hora e volta sozinha depois."</span></li>
+          <li><span class="k ver">Mostrar</span><span><span class="dica-tela">Contatos</span> e <span class="dica-tela">Tags</span>: "Ela etiqueta o funil sozinha: quem agendou, quem perguntou preço, quem sumiu."</span></li>
+          <li><span class="k ver">Mostrar</span><span><span class="dica-tela">Campanhas</span>: "Você escolhe uma tag, a IA escreve 10 variações e o envio sai em ritmo humano."</span></li>
+          <li><span class="k ver">Mostrar</span><span><span class="dica-tela">Cobrança</span> e <span class="dica-tela">Custo IA</span>: "Ela cobra quem atrasou com link, boleto ou PIX. E você vê em reais quanto a IA custou, até por conversa."</span></li>
+          <li><span class="k diz">Falar</span><span class="q">"Ela só oferece horário com vaga real e agenda direto no EVO. Para quem já é aluna, fica calada no horário da recepção."</span></li>
+        </ul>
+      </article>
+
+      <article class="mod">
+        <div class="mod-h"><span class="n">4</span><h3>Captação</h3><span class="onde">painel → Express e Formulário · 4 min</span></div>
+        <ul class="passos">
+          <li><span class="k ver">Mostrar</span><span>O <b>formulário de agendamento</b> público: a lead escolhe dia e horário com vaga e já fica agendada no EVO.</span></li>
+          <li><span class="k ver">Mostrar</span><span>O <b>Cadastro Express</b>: "A recepção cadastra e agenda em segundos, sem abrir o EVO."</span></li>
+          <li><span class="k atn">Atenção</span><span><b>Não conclua o cadastro na reunião:</b> ele cria a aluna e a aula no EVO de verdade.</span></li>
+          <li><span class="k ver">Mostrar</span><span>Um <b>formulário de campanha</b> (ex.: Black Friday) com aberturas, respostas e a tag que vai para os Contatos.</span></li>
+        </ul>
+      </article>
+
+      <article class="mod destaque">
+        <div class="mod-h"><span class="n">5</span><h3>Indicadores</h3><span class="onde">painel → Indicadores · 5 min</span></div>
+        <p class="nota"><b>Este é o módulo que mais convence o dono.</b> Mostre com calma.</p>
+        <ul class="passos">
+          <li><span class="k ver">Funil</span><span>Quem agendou pela SoFIA, pelo Formulário e pelo Express, quantas fizeram a aula e quantas fecharam. Passe o mouse na barra para mostrar os nomes.</span></li>
+          <li><span class="k ver">Profs</span><span>A conversão de cada professora: de quem fez a aula com ela, quantas fecharam.</span></li>
+          <li><span class="k ver">Ativas</span><span>A evolução mês a mês e a comparação com o mesmo mês do ano anterior.</span></li>
+          <li><span class="k diz">Falar</span><span class="q">"Todo dia 1º o robô manda o resumo do mês no grupo, com imagem. E todo sábado, o resumo da semana."</span></li>
+        </ul>
+      </article>
+
+      <article class="mod">
+        <div class="mod-h"><span class="n">6</span><h3>Slim Club e gestão</h3><span class="onde">2 min</span></div>
+        <ul class="passos">
+          <li><span class="k ver">Slim Club</span><span>O clube de vantagens das alunas, com carteirinha digital e aprovação da recepção.</span></li>
+          <li><span class="k ver">Perfis</span><span>Cada pessoa da recepção com o seu usuário, vendo só as telas liberadas, e o registro de quem fez o quê.</span></li>
+          <li><span class="k ver">Saúde</span><span>Robô, SoFIA e formulário em verde, amarelo ou vermelho, com aviso no celular.</span></li>
+        </ul>
+      </article>
+
+      <article class="mod">
+        <div class="mod-h"><span class="n">7</span><h3>Fechar a demonstração</h3><span class="onde">/manual · 1 min</span></div>
+        <ul class="passos">
+          <li><span class="k ver">Mostrar</span><span><b>"Antes × Depois"</b>.</span></li>
+          <li><span class="k diz">Falar</span><span>Retome as dores do diagnóstico, uma por uma, e diga qual parte do sistema resolve cada uma.</span></li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <!-- IMPLANTAÇÃO -->
+  <section id="implantacao">
+    <div class="phase"><span class="pn">35–40 min</span><h2>Implantação</h2></div>
+    <p style="margin:0;color:var(--text-soft);max-width:66ch">Com a ficha e os acessos em mãos, a instalação leva <b style="color:var(--text)">cerca de 1 dia</b> até o studio poder divulgar. Mostre os 3 passos da seção "Implantação" do /manual e diga o que o studio precisa entregar.</p>
+    <div class="fala"><span class="quem">Falar</span>Eu instalo tudo no servidor do seu studio, conecto no seu EVO e nos seus dois WhatsApps e ajusto os textos com você. Você só precisa me passar os acessos e ter alguém com os celulares na hora de conectar.</div>
+    <div class="tab"><table>
+      <thead><tr><th>O que o studio entrega</th><th>Para quê</th></tr></thead>
+      <tbody>
+        <tr><td>Ficha da unidade preenchida no link /cadastro</td><td>Endereço, contatos, grupo da equipe e professoras</td></tr>
+        <tr><td>Dois números de WhatsApp: o do Studio e um só para a SoFIA</td><td>O robô envia pelo do Studio; a SoFIA atende pelo dela</td></tr>
+        <tr><td>Alguém com os dois celulares no dia da instalação</td><td>Escanear os QR codes</td></tr>
+        <tr><td>Acesso à API do EVO (DNS e Secret Key) e um usuário do site só para o robô</td><td>Ler grade, faltas e contratos e agendar as experimentais</td></tr>
+        <tr><td>Um servidor (VPS), cerca de R$ 30/mês pagos à hospedagem</td><td>Onde tudo roda 24 horas</td></tr>
+        <tr><td>Conta de IA (Anthropic) para a SoFIA</td><td>Paga por conversa, acompanhada em reais no painel</td></tr>
+      </tbody>
+    </table></div>
+    <h3 style="font-size:1.05rem;margin:22px 0 0">Depois da instalação, antes de divulgar</h3>
+    <ol class="num">
+      <li>Revisar os textos (endereço, link do formulário, valores) e o tom da SoFIA.</li>
+      <li>Criar no EVO o segmento de vencimento de contrato, usado pela renovação.</li>
+      <li>Criar os usuários da recepção no painel, cada um com as suas telas.</li>
+      <li>Instalar o app de alertas no celular do dono.</li>
+      <li>Testar cada envio em modo seguro, sem mandar nada para as alunas.</li>
+    </ol>
+    <div class="tip">Se o interessado tem <b>duas unidades</b>, as duas podem ficar no mesmo servidor (com 8 GB de memória), cada uma com o seu painel e os seus WhatsApps.</div>
+  </section>
+
+  <!-- OBJEÇÕES -->
+  <section id="objecoes">
+    <div class="sec-head"><span class="eyebrow">Durante a reunião</span><h2>Perguntas e objeções comuns</h2>
+      <p>Responda com um fato e, sempre que der, mostre a tela que prova. Clique na pergunta para abrir a resposta.</p></div>
+    <details class="fold"><summary>Quanto custa a IA da SoFIA?</summary><div class="in"><p>Em média R$ 0,26 por conversa. Você vê o gasto em reais por dia e por conversa, com alerta se passar do limite do dia.</p><p><span class="dica-tela">SoFIA → Custo IA</span></p></div></details>
+    <details class="fold"><summary>E se a SoFIA falar besteira para uma lead?</summary><div class="in"><p>Ela só oferece horário com vaga real no EVO e segue o roteiro do studio. Você assume a conversa quando quiser.</p><p><span class="dica-tela">SoFIA → Conversas</span></p></div></details>
+    <details class="fold"><summary>A recepção perde o controle das alunas?</summary><div class="in"><p>Não. No horário da recepção, a SoFIA fica calada para alunas, e a recepção recebe aviso quando uma aluna escreve.</p><p><span class="dica-tela">SoFIA → Configuração</span></p></div></details>
+    <details class="fold"><summary>O WhatsApp pode bloquear o número?</summary><div class="in"><p>As campanhas saem em ritmo humano, com pausas e limite por dia, e a SoFIA usa um número separado do Studio.</p><p><span class="dica-tela">SoFIA → Campanhas</span></p></div></details>
+    <details class="fold"><summary>Preciso deixar um computador ligado?</summary><div class="in"><p>Não. Tudo roda num servidor 24 horas, e o painel abre no computador ou no celular.</p><p><span class="dica-tela">Painel → Saúde</span></p></div></details>
+    <details class="fold"><summary>E se o EVO ou o WhatsApp mudarem?</summary><div class="in"><p>O acompanhamento dessas mudanças está incluído na renovação anual.</p><p><span class="dica-tela">/manual → Investimento</span></p></div></details>
+    <details class="fold"><summary>E se algo parar de funcionar?</summary><div class="in"><p>O robô tenta de novo sozinho, e você recebe alerta no celular quando algo cai e quando volta.</p><p><span class="dica-tela">Painel → Saúde</span></p></div></details>
+    <details class="fold"><summary>Meus dados e os das alunas ficam onde?</summary><div class="in"><p>No servidor do próprio studio, com login por usuário, registro de quem fez o quê e política de privacidade (LGPD).</p><p><span class="dica-tela">Perfis e sessões</span></p></div></details>
+    <details class="fold"><summary>Por que anual e não mensal?</summary><div class="in"><p>O valor anual cobre instalação, manutenção e ajustes. A renovação é reajustada só pelo IPCA, e você renova só se quiser.</p><p><span class="dica-tela">/manual → Investimento</span></p></div></details>
+    <details class="fold"><summary>Funciona sem EVO?</summary><div class="in"><p>Hoje o sistema é feito para o EVO: ele lê a grade, as faltas e os contratos e agenda direto lá.</p><p><span class="dica-tela">/manual → O sistema</span></p></div></details>
+  </section>
+
+  <!-- FECHAMENTO -->
+  <section id="fechamento">
+    <div class="phase"><span class="pn">40–45 min</span><h2>Fechamento e próximos passos</h2></div>
+    <p style="margin:0;color:var(--text-soft)">Termine com o investimento e uma data marcada, não com "vou pensar".</p>
+    <ol class="num">
+      <li><b>Investimento</b> (/manual → Investimento): R$ 1.800 no 1º ano, já com a SoFIA e a instalação. Nos anos seguintes, R$ 1.800 + IPCA. À parte: servidor (cerca de R$ 30/mês) e IA da SoFIA (por conversa). Pagamento anual, sem mensalidade.</li>
+      <li><b>Pergunta de fechamento:</b> "Faz sentido para o seu studio? Se fizer, já marcamos o dia da instalação."</li>
+      <li><b>Se sim:</b> mande o link do /cadastro para a ficha da unidade e marque o dia da instalação, com alguém do studio e os dois celulares por perto.</li>
+      <li><b>Se ainda não:</b> combine uma data para retomar (até 7 dias) e mande o /manual por WhatsApp.</li>
+    </ol>
+    <h3 style="font-size:1.05rem;margin:22px 0 0">Mensagem para enviar logo depois da reunião</h3>
+    <div class="fala" id="msgPos"><span class="quem">WhatsApp</span><span class="txt">Oi, [NOME]! Obrigado pela conversa de hoje. Como combinamos, aqui está a apresentação completa: [LINK DO /MANUAL]. Pelo que você me contou, o que mais vai ajudar aí é [DOR 1] e [DOR 2]. Para começar, é só preencher a ficha da unidade neste link: [LINK DO /CADASTRO]. Qualquer dúvida, me chama!</span></div>
+    <div class="chk-acoes"><button type="button" id="btnCopiar" onclick="copiarMsg()">Copiar mensagem</button></div>
+  </section>
+
+</main>
+
+<footer>Roteiro de apresentação · uso interno · <a href="manual">ver o /manual</a></footer>
+
+<script>
+  // Mensagem pós-reunião com os links desta unidade (mesmo endereço desta página).
+  (function(){
+    var base = location.href.replace(/\/apresentacao.*$/, '');
+    var t = document.querySelector('#msgPos .txt');
+    if (t) t.textContent = t.textContent.replace('[LINK DO /MANUAL]', base + '/manual').replace('[LINK DO /CADASTRO]', base + '/cadastro');
+  })();
+  function copiarMsg(){
+    var t = document.querySelector('#msgPos .txt').textContent, b = document.getElementById('btnCopiar');
+    var ok = function(){ b.textContent = 'Copiada ✓'; setTimeout(function(){ b.textContent = 'Copiar mensagem'; }, 1800); };
+    try { navigator.clipboard.writeText(t).then(ok, function(){}); } catch (_) {}
+  }
+  // Checklist: marca ao tocar; guarda só neste aparelho (se o navegador deixar).
+  var CHK_KEY = 'roteiro-chk';
+  function lerChk(){ try { return JSON.parse(localStorage.getItem(CHK_KEY) || '{}') || {}; } catch (_) { return {}; } }
+  function gravarChk(o){ try { localStorage.setItem(CHK_KEY, JSON.stringify(o)); } catch (_) {} }
+  (function(){
+    var est = lerChk();
+    [].forEach.call(document.querySelectorAll('.chk.on li'), function(li){
+      var k = li.getAttribute('data-k');
+      if (est[k]) li.classList.add('feito');
+      li.setAttribute('role', 'checkbox'); li.setAttribute('tabindex', '0'); li.setAttribute('aria-checked', est[k] ? 'true' : 'false');
+      var alternar = function(){ var o = lerChk(); var v = !li.classList.contains('feito'); li.classList.toggle('feito', v); li.setAttribute('aria-checked', v ? 'true' : 'false'); if (v) o[k] = 1; else delete o[k]; gravarChk(o); };
+      li.addEventListener('click', alternar);
+      li.addEventListener('keydown', function(e){ if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); alternar(); } });
+    });
+  })();
+  function limparChk(id){
+    [].forEach.call(document.querySelectorAll('#' + id + ' li'), function(li){ li.classList.remove('feito'); li.setAttribute('aria-checked', 'false'); });
+    gravarChk({});
+  }
+</script>
