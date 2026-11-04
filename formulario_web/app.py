@@ -416,6 +416,12 @@ def implantacao():
     return _doc_sem_cache("implantacao.html")
 
 
+@app.get("/apresentacao")
+def apresentacao():
+    """Roteiro da reunião de apresentação com interessados (página estática, não indexada)."""
+    return _doc_sem_cache("apresentacao.html")
+
+
 # Endereço do painel do Studio (hospedado à parte, no VPS). Configurável por
 # ambiente; o padrão aponta para o painel atual.
 PAINEL_URL = os.getenv("PAINEL_URL", "https://painelsfbueno.duckdns.org/")
